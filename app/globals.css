@@ -1,26 +1,207 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --minecraft-bg: #f8fafc;
+  --minecraft-paper: #ffffff;
+  --minecraft-border: #e2e8f0;
+  --minecraft-border-dark: #cbd5e1;
+  --minecraft-text: #1e293b;
+  --minecraft-text-light: #64748b;
+  --minecraft-green: #059669;
+  --minecraft-green-light: #10b981;
+  --minecraft-blue: #0ea5e9;
+  --minecraft-blue-light: #38bdf8;
+  --minecraft-orange: #ea580c;
+  --minecraft-orange-light: #fb923c;
+  --minecraft-accent: #8b5cf6;
+  --minecraft-shadow: rgba(15, 23, 42, 0.08);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+body {
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  background: linear-gradient(135deg, #f1f5f9 0%, #f8fafc 50%, #f1f5f9 100%);
+  color: var(--minecraft-text);
+  min-height: 100vh;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Text utilities */
+.line-clamp-3 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
 }
+
+.minecraft-button {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border: 2px solid var(--minecraft-border-dark);
+  color: var(--minecraft-text);
+  font-family: var(--font-geist-sans), sans-serif;
+  font-weight: 600;
+  border-radius: 8px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px var(--minecraft-shadow), 0 1px 2px rgba(0, 0, 0, 0.06);
+  will-change: transform, box-shadow;
+}
+
+.minecraft-button:hover {
+  background: linear-gradient(135deg, var(--minecraft-green) 0%, var(--minecraft-green-light) 100%);
+  color: white;
+  border-color: var(--minecraft-green);
+  box-shadow: 0 4px 6px -1px var(--minecraft-shadow), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.minecraft-button:active {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.minecraft-panel {
+  background: var(--minecraft-paper);
+  border: 1px solid var(--minecraft-border);
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px var(--minecraft-shadow), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  backdrop-filter: blur(8px);
+}
+
+.minecraft-card {
+  background: var(--minecraft-paper);
+  border: 1px solid var(--minecraft-border);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px var(--minecraft-shadow);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  will-change: transform, box-shadow;
+}
+
+.minecraft-card:hover {
+  box-shadow: 0 10px 15px -3px var(--minecraft-shadow), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  border-color: var(--minecraft-green-light);
+}
+
+.minecraft-nav {
+  background: rgba(255, 255, 255, 0.95);
+  border-bottom: 1px solid var(--minecraft-border);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 1px 3px var(--minecraft-shadow);
+}
+
+.minecraft-gradient-text {
+  background: linear-gradient(135deg, var(--minecraft-green) 0%, var(--minecraft-blue) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.minecraft-badge {
+  background: linear-gradient(135deg, var(--minecraft-green-light) 0%, var(--minecraft-green) 100%);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* WYSIWYG Editor Styles */
+.ProseMirror {
+  outline: none;
+  min-height: 200px;
+  padding: 1rem;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  line-height: 1.6;
+  color: var(--minecraft-text);
+}
+
+.ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: var(--minecraft-text-light);
+  pointer-events: none;
+  height: 0;
+}
+
+.ProseMirror h1, 
+.ProseMirror h2, 
+.ProseMirror h3, 
+.ProseMirror h4, 
+.ProseMirror h5, 
+.ProseMirror h6 {
+  font-weight: bold;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--minecraft-text);
+}
+
+.ProseMirror h2 {
+  font-size: 1.5rem;
+}
+
+.ProseMirror h3 {
+  font-size: 1.25rem;
+}
+
+.ProseMirror ul, 
+.ProseMirror ol {
+  margin-left: 1.5rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.ProseMirror li {
+  margin-bottom: 0.25rem;
+}
+
+.ProseMirror blockquote {
+  border-left: 4px solid var(--minecraft-green);
+  margin: 1rem 0;
+  padding: 0.5rem 1rem;
+  background-color: #f8fafc;
+  font-style: italic;
+  color: var(--minecraft-text-light);
+}
+
+.ProseMirror code {
+  background-color: #f1f5f9;
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 0.875rem;
+}
+
+.ProseMirror pre {
+  background-color: #1e293b;
+  color: #f1f5f9;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+
+.ProseMirror pre code {
+  background: none;
+  padding: 0;
+  color: inherit;
+}
+
+.ProseMirror a {
+  color: var(--minecraft-green);
+  text-decoration: underline;
+}
+
+.ProseMirror a:hover {
+  color: var(--minecraft-green-light);
+}
+
+.ProseMirror img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  margin: 1rem 0;
+}
+
