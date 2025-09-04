@@ -45,8 +45,9 @@ export class StatsBroadcaster {
   private connections = new Map<WebSocket, ConnectionInfo>()
   private contentSubscribers = new Map<string, Set<WebSocket>>() // contentId -> Set<WebSocket>
   private heartbeatInterval: NodeJS.Timeout | null = null
+  private isShuttingDown = false
 
-  constructor(private port: number = 3001) {}
+  constructor(private port: number = parseInt(process.env.WEBSOCKET_PORT || '3001')) {}
 
   /**
    * Initialize WebSocket server
@@ -56,17 +57,41 @@ export class StatsBroadcaster {
       console.log('WebSocket server already initialized')
       return
     }
+    
+    if (this.isShuttingDown) {
+      console.log('WebSocket server is shutting down, skipping initialization')
+      return
+    }
 
-    this.wss = new WebSocketServer({ 
-      port: this.port,
-      perMessageDeflate: {
-        // Enable message compression for better performance
-        threshold: 1024,
-        concurrencyLimit: 10,
+    try {
+      this.wss = new WebSocketServer({ 
+        port: this.port,
+        perMessageDeflate: {
+          // Enable message compression for better performance
+          threshold: 1024,
+          concurrencyLimit: 10,
+        }
+      })
+    } catch (error: any) {
+      if (error.code === 'EADDRINUSE') {
+        console.warn(`📡 WebSocket port ${this.port} already in use, skipping server initialization`)
+        return
       }
-    })
+      throw error
+    }
 
     this.wss.on('connection', this.handleConnection.bind(this))
+    
+    // Handle server errors (including port conflicts)
+    this.wss.on('error', (error: any) => {
+      if (error.code === 'EADDRINUSE') {
+        console.warn(`📡 WebSocket port ${this.port} already in use, shutting down this instance`)
+        this.shutdown()
+        return
+      }
+      console.error('WebSocket server error:', error)
+    })
+
     this.startHeartbeat()
 
     console.log(`📡 Stats WebSocket server running on port ${this.port}`)
@@ -305,13 +330,18 @@ export class StatsBroadcaster {
    * Shutdown WebSocket server gracefully
    */
   public shutdown(): void {
+    this.isShuttingDown = true
+    
     if (this.heartbeatInterval) {
       clearInterval(this.heartbeatInterval)
+      this.heartbeatInterval = null
     }
 
     if (this.wss) {
       this.wss.close(() => {
         console.log('📡 WebSocket server shut down')
+        this.wss = null
+        this.isShuttingDown = false
       })
     }
 

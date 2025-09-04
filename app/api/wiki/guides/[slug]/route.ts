@@ -18,29 +18,34 @@ export const runtime = 'nodejs'
 // GET - Fetch single wiki guide by slug (consistent with blog post)
 export const GET = withDALAndValidation(
   async (request: NextRequest, { user, params, dal }: { user?: ServerUser; params: Promise<WikiSlugData>; dal: typeof DAL }) => {
-    const { slug } = await params
+    try {
+      const { slug } = await params
 
-    // Get guide using DAL
-    const guide = await dal.wiki.getGuideBySlug(slug, user?.id)
+      // Get guide using DAL
+      const guide = await dal.wiki.getGuideBySlug(slug, user?.id)
 
-    if (!guide) {
-      return ApiResponse.error('Guide not found', 404)
+      if (!guide) {
+        return ApiResponse.error('Guide not found', 404)
+      }
+
+      // Check if user can view this guide (non-published guides require permissions)
+      if (guide.status !== 'published' && (!user || !PermissionChecker.canViewDrafts(user, 'wiki'))) {
+        return ApiResponse.error('Guide not found', 404)
+      }
+
+      // Increment view count if not already viewed by this user (consistent with blog/forum)
+      if (user) {
+        await statsManager.recordWikiView(user.id, guide.id)
+      } else {
+        // For anonymous users, increment view count directly
+        await dal.wiki.incrementWikiViewCount(guide.id)
+      }
+
+      return ApiResponse.success({ guide: guide })
+    } catch (error) {
+      console.error('Wiki guide GET error:', error)
+      return ApiResponse.error('Internal server error', 500)
     }
-
-    // Check if user can view this guide (non-published guides require permissions)
-    if (guide.status !== 'published' && (!user || !PermissionChecker.canViewDrafts(user, 'wiki'))) {
-      return ApiResponse.error('Guide not found', 404)
-    }
-
-    // Increment view count if not already viewed by this user (consistent with blog/forum)
-    if (user) {
-      await statsManager.recordWikiView(user.id, guide.id)
-    } else {
-      // For anonymous users, increment view count directly
-      await dal.wiki.incrementWikiViewCount(guide.id)
-    }
-
-    return ApiResponse.success({ guide: guide })
   },
   {
     auth: 'optional',
@@ -55,12 +60,19 @@ export const PUT = withDALAndValidation(
       return ApiResponse.error('Authentication required', 401)
     }
     
-    // Check wiki guide edit permissions using centralized system
-    if (!PermissionChecker.canEdit(user, 'wiki')) {
-      return ApiResponse.error('Only admins can edit wiki guides', 403)
+    const { slug } = await params
+    
+    // Get current wiki guide to check permissions
+    const currentGuide = await dal.wiki.getGuideBySlug(slug)
+    
+    if (!currentGuide) {
+      return ApiResponse.error('Guide not found', 404)
     }
     
-    const { slug } = await params
+    // Check wiki guide edit permissions using centralized system
+    if (!PermissionChecker.canEdit(user, 'wiki', currentGuide)) {
+      return ApiResponse.error('Only admins can edit wiki guides', 403)
+    }
     
     // Extended interface to include metaDescription for proper type safety
     interface ExtendedUpdateData extends UpdateWikiGuideData {
@@ -120,12 +132,19 @@ export const DELETE = withDALAndValidation(
       return ApiResponse.error('Authentication required', 401)
     }
     
-    // Check wiki guide delete permissions using centralized system
-    if (!PermissionChecker.canDelete(user, 'wiki')) {
-      return ApiResponse.error('Only admins can delete wiki guides', 403)
+    const { slug } = await params
+    
+    // Get current wiki guide to check permissions
+    const currentGuide = await dal.wiki.getGuideBySlug(slug)
+    
+    if (!currentGuide) {
+      return ApiResponse.error('Guide not found', 404)
     }
     
-    const { slug } = await params
+    // Check wiki guide delete permissions using centralized system
+    if (!PermissionChecker.canDelete(user, 'wiki', currentGuide)) {
+      return ApiResponse.error('Only admins can delete wiki guides', 403)
+    }
     
     // Delete the wiki guide using DAL (soft delete for consistency)
     const success = await dal.wiki.deleteGuide(slug)
