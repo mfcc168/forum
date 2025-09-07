@@ -24,7 +24,7 @@ export const WikiGuideList = memo(function WikiGuideList({
       <div className="space-y-4">
         {guides.map((guide) => (
           <WikiGuideCard
-            key={guide._id.toString()}
+            key={guide.id}
             guide={guide}
             showCategory={showCategory}
             layout="list"
@@ -38,7 +38,7 @@ export const WikiGuideList = memo(function WikiGuideList({
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
       {guides.map((guide) => (
         <WikiGuideCard
-          key={guide._id.toString()}
+          key={guide.id}
           guide={guide}
           showCategory={showCategory}
           layout="card"

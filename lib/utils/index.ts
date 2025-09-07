@@ -6,6 +6,13 @@ export function cn(...inputs: ClassValue[]) {
 
 // Re-export utilities for centralized access
 export * from './error-handler'
+export * from './errors'
+export * from './validation'
+export * from './slug'
+export * from './meta'
+export * from './html'
+export { ratelimit } from './ratelimit'
+export { PermissionChecker } from './permissions'
 
 // Date formatting utilities
 export function formatDate(date: string | Date): string {
@@ -96,7 +103,7 @@ export function formatNumber(num: number | undefined | null): string {
 }
 
 // Consistent date formatting to prevent hydration mismatch
-export function formatDateSimple(date: string | Date): string {
+export function formatSimpleDate(date: string | Date): string {
   try {
     if (!date) {
       return 'Invalid date';

@@ -4,6 +4,9 @@
  * Common utility types, enums, and MongoDB-specific definitions
  */
 
+import type { Entity } from './base'
+import type { ApiResponse } from './api'
+
 // ============================================================================
 // UTILITY TYPES AND ENUMS
 // ============================================================================
@@ -49,13 +52,13 @@ export type WithTimestamps<T> = T & {
 }
 
 /** Entity with all base fields */
-export type WithEntityFields<T> = T & import('./base').Entity
+export type WithEntityFields<T> = T & Entity
 
 /** Create a partial type but keep ID required */
 export type UpdateData<T> = Partial<Omit<T, 'id' | 'createdAt' | 'updatedAt'>>
 
 /** Extract the data type from API response */
-export type ExtractResponseData<T> = T extends import('./api').ApiResponse<infer U> ? U : never
+export type ExtractResponseData<T> = T extends ApiResponse<infer U> ? U : never
 
 /** Create a type-safe filter for content */
 export type FilterOptions<T> = Partial<{
@@ -69,6 +72,17 @@ export type FilterOptions<T> = Partial<{
 
 /** Generic content item interface for permission checking */
 export interface ContentItem {
+  id: string                    // Required for permission checks
+  slug?: string                 // Optional - not all content types have slugs (e.g., replies)
+  author: {                     // Required for ownership checks
+    id: string
+    name?: string
+    avatar?: string
+  }
+}
+
+/** Partial content item for permission checking with optional fields */
+export interface PartialContentItem {
   id?: string
   slug?: string
   author?: {

@@ -57,13 +57,3 @@ export const generateSlugWithCounter = (baseSlug: string, counter: number): stri
   return `${baseSlug}-${counter}`
 }
 
-/**
- * Legacy compatibility exports
- * @deprecated Use generateSlug() instead
- * These will be removed in a future version
- */
-export const generateForumSlug = generateSlug
-export const generateBlogSlug = generateSlug  
-export const generateWikiSlug = generateSlug
-export const validateBlogSlug = validateSlug
-export const validateWikiSlug = validateSlug

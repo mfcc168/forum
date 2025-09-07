@@ -26,8 +26,40 @@ import {
 import type { 
   WikiCategory, 
   WikiStats,
+  UserInteraction,
   PaginatedResponse
 } from '@/lib/types'
+
+// MongoDB aggregation pipeline interfaces
+interface MongoMatchConditions {
+  $or?: Array<{ [key: string]: { $regex: string; $options: string } }>
+  status?: string | { $in: string[] }
+  category?: string | { $in: string[] }
+  difficulty?: string | { $in: string[] }
+  tags?: { $in: string[] }
+  'author.name'?: { $in: string[] }
+  createdAt?: {
+    $gte?: string
+    $lte?: string
+  }
+}
+
+interface MongoSortStage {
+  'stats.likesCount'?: -1 | 1
+  'stats.viewsCount'?: -1 | 1
+  'stats.helpfulCount'?: -1 | 1
+  difficulty?: -1 | 1
+  createdAt?: -1 | 1
+  title?: -1 | 1
+  'author.name'?: -1 | 1
+}
+
+interface MongoAggregationStage {
+  $match?: MongoMatchConditions
+  $sort?: MongoSortStage
+  $skip?: number
+  $limit?: number
+}
 
 // Types for wiki operations
 export interface WikiFilters {
@@ -39,16 +71,27 @@ export interface WikiFilters {
   search?: string
 }
 
-// Concrete DAL implementations
+// Concrete DAL implementations (consistent with blog/forum pattern)
+class WikiInteractionDAL extends BaseDAL<UserInteraction> {
+  constructor() { super('userInteractions') }
+  
+  // Public method to access collection for upsert operations
+  async getCollectionPublic() {
+    return this.getCollection()
+  }
+}
+
 class WikiCategoryDAL extends BaseDAL<WikiCategory> {
   constructor() { super('wikiCategories') }
 }
 
 export class WikiDAL extends BaseDAL<WikiGuide> {
+  private interactionsDAL: WikiInteractionDAL
   private categoriesDAL: WikiCategoryDAL
 
   constructor() {
     super('wikiGuides')
+    this.interactionsDAL = new WikiInteractionDAL()
     this.categoriesDAL = new WikiCategoryDAL()
   }
 
@@ -99,6 +142,122 @@ export class WikiDAL extends BaseDAL<WikiGuide> {
   }
 
   /**
+   * Enhanced search for wiki guides with advanced filtering and ranking
+   */
+  async searchGuides(searchParams: {
+    query: string
+    categories?: string[]
+    difficulty?: string
+    tags?: string[]
+    authors?: string[]
+    status?: string
+    dateRange?: { from?: Date; to?: Date }
+    sortBy?: 'latest' | 'popular' | 'views'
+    limit?: number
+    offset?: number
+  }): Promise<WikiGuide[]> {
+    try {
+      const {
+        query,
+        categories,
+        difficulty,
+        tags,
+        authors,
+        status = 'published',
+        dateRange,
+        sortBy = 'latest',
+        limit = 20,
+        offset = 0
+      } = searchParams
+
+      // Build search aggregation pipeline
+      const pipeline: MongoAggregationStage[] = []
+
+      // Match stage with search and filters
+      const matchConditions: MongoMatchConditions = {}
+
+      // Text search across title, content, and excerpt
+      if (query) {
+        matchConditions.$or = [
+          { title: { $regex: query, $options: 'i' } },
+          { content: { $regex: query, $options: 'i' } },
+          { excerpt: { $regex: query, $options: 'i' } }
+        ]
+      }
+
+      // Status filter
+      matchConditions.status = status === 'all' ? { $in: ['published', 'draft', 'archived'] } : status
+
+      // Category filter
+      if (categories && categories.length > 0) {
+        matchConditions.category = { $in: categories }
+      }
+
+      // Difficulty filter
+      if (difficulty) {
+        matchConditions.difficulty = difficulty
+      }
+
+      // Tags filter
+      if (tags && tags.length > 0) {
+        matchConditions.tags = { $in: tags }
+      }
+
+      // Author filter
+      if (authors && authors.length > 0) {
+        matchConditions['author.name'] = { $in: authors }
+      }
+
+      // Date range filter
+      if (dateRange) {
+        const dateFilter: { $gte?: string; $lte?: string } = {}
+        if (dateRange.from) {
+          dateFilter.$gte = dateRange.from.toISOString()
+        }
+        if (dateRange.to) {
+          dateFilter.$lte = dateRange.to.toISOString()
+        }
+        if (Object.keys(dateFilter).length > 0) {
+          matchConditions.createdAt = dateFilter
+        }
+      }
+
+      pipeline.push({ $match: matchConditions })
+
+      // Sort stage
+      let sortStage: MongoSortStage = {}
+      switch (sortBy) {
+        case 'popular':
+          sortStage = { 'stats.likesCount': -1, 'stats.helpfulCount': -1 }
+          break
+        case 'views':
+          sortStage = { 'stats.viewsCount': -1 }
+          break
+        default: // 'latest'
+          sortStage = { createdAt: -1 }
+      }
+
+      pipeline.push({ $sort: sortStage })
+
+      // Pagination
+      if (offset > 0) {
+        pipeline.push({ $skip: offset })
+      }
+      pipeline.push({ $limit: limit })
+
+      // Execute search
+      const results = await this.aggregate(pipeline)
+      
+      // Parse and validate results
+      return results.map(doc => MongoWikiGuideSchema.parse(doc))
+
+    } catch (error) {
+      console.error('Wiki search error:', error)
+      handleDatabaseError(error, 'search wiki guides')
+    }
+  }
+
+  /**
    * Get single guide with stats
    */
   async getGuideWithStats(guideId: string | ObjectId, userId?: string, includeAllStatuses = false): Promise<WikiGuide | null> {
@@ -143,16 +302,7 @@ export class WikiDAL extends BaseDAL<WikiGuide> {
       // Parse and validate MongoDB documents with Zod schema
       const guide = MongoWikiGuideSchema.parse(rawGuide)
 
-      // Record view interaction if user is logged in, otherwise increment directly
-      if (guide) {
-        if (userId) {
-          await this.recordInteraction(userId, guide.id, 'view')
-        } else {
-          // For anonymous users, increment view count directly
-          await this.incrementWikiViewCount(guide.id)
-        }
-      }
-
+      // Note: View count increment is handled in the API route to avoid double counting
       return guide
     } catch (error) {
       handleDatabaseError(error, 'fetch wiki guide by slug')
@@ -358,26 +508,34 @@ export class WikiDAL extends BaseDAL<WikiGuide> {
         { $group: { _id: null, total: { $sum: '$stats.viewsCount' } } }
       ]).then((result) => result[0]?.total || 0),
       this.categoriesDAL.find({ isActive: true }, { sort: { order: 1 } }),
-      this.getCollection().then(col => col.find(
-        { status: 'published' },
-        { 
-          sort: { 'stats.viewsCount': -1 },
-          limit: 5,
-          projection: { title: 1, slug: 1, 'stats.viewsCount': 1, difficulty: 1 }
-        }
-      ).toArray()),
-      this.getCollection().then(col => col.find(
-        { status: 'published' },
-        { 
-          sort: { updatedAt: -1 },
-          limit: 5,
-          projection: { title: 1, slug: 1, updatedAt: 1, difficulty: 1, createdAt: 1 }
-        }
-      ).toArray())
+      (async () => {
+        const col = await this.getCollection()
+        return col.find(
+          { status: 'published' },
+          { 
+            sort: { 'stats.viewsCount': -1 },
+            limit: 5,
+            projection: { title: 1, slug: 1, 'stats.viewsCount': 1, difficulty: 1 }
+          }
+        ).toArray()
+      })(),
+      (async () => {
+        const col = await this.getCollection()
+        return col.find(
+          { status: 'published' },
+          { 
+            sort: { updatedAt: -1 },
+            limit: 5,
+            projection: { title: 1, slug: 1, updatedAt: 1, difficulty: 1, createdAt: 1 }
+          }
+        ).toArray()
+      })()
     ])
 
-    const guidesCount = await this.getCollection().then(col => col.countDocuments({ status: 'published' }))
-    const authorsCount = await this.getCollection().then(col => col.distinct('author', { status: 'published' })).then((authors: unknown[]) => authors.length)
+    const collection = await this.getCollection()
+    const guidesCount = await collection.countDocuments({ status: 'published' })
+    const authors = await collection.distinct('author', { status: 'published' })
+    const authorsCount = authors.length
     
     // Build guides count by category
     const guidesCountByCategory: Record<string, number> = {}
@@ -440,18 +598,26 @@ export class WikiDAL extends BaseDAL<WikiGuide> {
       
       // WikiStats-specific properties
       totalGuides: guidesCount,
-      guidesCountByCategory,
-      guidesCountByDifficulty,
+      totalDrafts: await this.count({ status: 'draft' as const, isDeleted: { $ne: true } }),
       averageHelpfulRating: Math.round(averageRating * 10) / 10,
-      mostHelpfulGuides: popularGuides.map((guide) => ({
+      guidesCountByDifficulty,
+      categories: categories.map(cat => ({
+        name: cat.name,
+        slug: cat.slug,
+        postsCount: cat.stats?.postsCount || 0,
+        order: cat.order
+      })),
+      popularPosts: popularGuides.map((guide) => ({
         title: guide.title,
         slug: guide.slug,
+        viewsCount: guide.stats?.viewsCount || 0,
         helpfulsCount: guide.stats?.helpfulsCount || 0,
         difficulty: guide.difficulty
       })),
-      recentGuides: recentlyUpdated.map((guide) => ({
+      recentPosts: recentlyUpdated.map((guide) => ({
         title: guide.title,
         slug: guide.slug,
+        viewsCount: guide.stats?.viewsCount || 0,
         difficulty: guide.difficulty,
         createdAt: guide.createdAt || guide.updatedAt
       }))

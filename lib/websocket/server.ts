@@ -85,11 +85,14 @@ export function cleanupWebSocketServer(): void {
 // Auto-initialize in development
 if (process.env.NODE_ENV === 'development') {
   // Handle Next.js hot module replacement
-  if (typeof module !== 'undefined' && (module as any).hot) {
-    // Clean up on hot reload
-    (module as any).hot.dispose(() => {
-      cleanupWebSocketServer()
-    })
+  if (typeof module !== 'undefined' && module && 'hot' in module) {
+    const hotModule = module as { hot?: { dispose: (callback: () => void) => void } }
+    if (hotModule.hot) {
+      // Clean up on hot reload
+      hotModule.hot.dispose(() => {
+        cleanupWebSocketServer()
+      })
+    }
   }
   
   initializeWebSocketServer()

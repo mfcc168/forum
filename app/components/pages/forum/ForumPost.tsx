@@ -9,7 +9,7 @@ import { useTranslation } from '@/lib/contexts/LanguageContext'
 import { Card } from '@/app/components/ui/Card'
 import { Icon } from '@/app/components/ui/Icon'
 import { getForumCategoryColor } from '@/lib/config/forum-categories'
-import { formatDateSimple, formatNumber } from '@/lib/utils'
+import { formatSimpleDate, formatNumber } from '@/lib/utils'
 import type { ForumPost as ForumPostType } from '@/lib/types'
 
 interface ForumPostProps {
@@ -69,7 +69,7 @@ export function ForumPost({
               <div className="flex items-center space-x-2 text-sm text-slate-500 mt-1">
                 <span>{post.author?.name || 'Anonymous'}</span>
                 <span>•</span>
-                <span>{formatDateSimple(post.createdAt)}</span>
+                <span>{formatSimpleDate(post.createdAt)}</span>
                 {showCategory && post.categoryName && (
                   <>
                     <span>•</span>
@@ -125,7 +125,7 @@ export function ForumPost({
                 )}
                 <div className="flex items-center space-x-1 text-slate-500">
                   <Icon name="clock" className="w-4 h-4" />
-                  <span className="text-sm">{formatDateSimple(post.createdAt)}</span>
+                  <span className="text-sm">{formatSimpleDate(post.createdAt)}</span>
                 </div>
               </div>
               

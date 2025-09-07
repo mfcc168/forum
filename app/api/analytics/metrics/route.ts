@@ -26,7 +26,10 @@ const analyticsQuerySchema = z.object({
  * Store analytics metrics
  */
 export const POST = withDALAndValidation(
-  async (request: NextRequest, { validatedData }: { validatedData: z.infer<typeof metricSchema> }) => {
+  async (request: NextRequest, { validatedData, dal }: { 
+    validatedData: z.infer<typeof metricSchema>;
+    dal: typeof import('@/lib/database/dal').DAL;
+  }) => {
     try {
       // Store metric in analytics collection via DAL
       const analyticsDoc = {
@@ -38,10 +41,8 @@ export const POST = withDALAndValidation(
         createdAt: new Date(validatedData.timestamp)
       }
       
-      // For now, store via direct collection access since no DAL method exists
-      // TODO: Create DAL.analytics.createMetric() method
-      const { db } = await import('@/lib/database/connection').then(m => m.connectToDatabase())
-      await db.collection('analytics').insertOne(analyticsDoc)
+      // Store metric using DAL
+      await dal.analytics.createMetric(analyticsDoc)
       
       return ApiResponse.success(null, 'Metric stored successfully')
       
@@ -63,9 +64,10 @@ export const POST = withDALAndValidation(
  * Retrieve analytics metrics (admin only)
  */
 export const GET = withDALAndValidation(
-  async (_request: NextRequest, { validatedData, user }: { 
+  async (_request: NextRequest, { validatedData, user, dal }: { 
     validatedData: z.infer<typeof analyticsQuerySchema>;
     user?: ServerUser;
+    dal: typeof import('@/lib/database/dal').DAL;
   }) => {
     // Only admins can view analytics
     if (!user || user.role !== 'admin') {
@@ -75,34 +77,17 @@ export const GET = withDALAndValidation(
     try {
       const { type, startDate, endDate, limit } = validatedData
       
-      // TODO: Create DAL.analytics.getMetrics() method
-      const { db } = await import('@/lib/database/connection').then(m => m.connectToDatabase())
-      
-      // Build query filter
-      const filter: Record<string, unknown> = {}
-      
-      if (type) {
-        filter.type = type
-      }
-      
-      if (startDate && endDate) {
-        filter.createdAt = {
-          $gte: new Date(startDate),
-          $lte: new Date(endDate)
-        }
-      }
-      
-      // Get analytics data
-      const analytics = await db
-        .collection('analytics')
-        .find(filter)
-        .sort({ createdAt: -1 })
-        .limit(limit)
-        .toArray()
+      // Get analytics data using DAL
+      const result = await dal.analytics.getMetrics({
+        type,
+        startDate: startDate ? new Date(startDate) : undefined,
+        endDate: endDate ? new Date(endDate) : undefined,
+        limit
+      })
       
       return ApiResponse.success({
-        metrics: analytics,
-        total: analytics.length,
+        metrics: result.metrics,
+        total: result.total,
         filters: { type, startDate, endDate, limit }
       }, 'Analytics metrics retrieved successfully')
       

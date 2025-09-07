@@ -49,7 +49,8 @@ export abstract class BaseDAL<T extends { _id?: string | ObjectId } | { id?: str
     if (options.skip) query = query.skip(options.skip)
     if (options.limit) query = query.limit(options.limit)
     
-    return query.toArray() as Promise<T[]>
+    const results = await query.toArray()
+    return results as T[]
   }
 
   /**
@@ -57,7 +58,8 @@ export abstract class BaseDAL<T extends { _id?: string | ObjectId } | { id?: str
    */
   async findOne(filter: Filter<T>): Promise<T | null> {
     const collection = await this.getCollection()
-    return collection.findOne(filter) as Promise<T | null>
+    const result = await collection.findOne(filter)
+    return result as T | null
   }
 
   /**
@@ -133,7 +135,8 @@ export abstract class BaseDAL<T extends { _id?: string | ObjectId } | { id?: str
    */
   async aggregate<R extends Document = T>(pipeline: object[]): Promise<R[]> {
     const collection = await this.getCollection()
-    return collection.aggregate<R>(pipeline).toArray()
+    const results = await collection.aggregate<R>(pipeline).toArray()
+    return results
   }
 
   /**

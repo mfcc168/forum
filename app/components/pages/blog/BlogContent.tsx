@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { usePermissions } from '@/lib/hooks/usePermissions';
@@ -9,9 +9,9 @@ import { Icon } from '@/app/components/ui/Icon';
 import { Button } from '@/app/components/ui/Button';
 import { CategoryFilter } from '@/app/components/ui/CategoryFilter';
 import { SidebarCategoryFilter } from '@/app/components/ui/SidebarCategoryFilter';
-import { useBlogPosts } from '@/lib/hooks/useBlog';
+import { SearchInput, SearchResultsHeader } from '@/app/components/shared/SearchInput';
+import { useBlogPosts, useBlogSearch } from '@/lib/hooks/useBlog';
 import { BlogList } from '@/app/components/blog/BlogList';
-;
 import { ListRenderer } from '@/app/components/ui/StateRenderer';
 import type { BlogPost, BlogStats, BlogCategory } from '@/lib/types';
 
@@ -28,6 +28,8 @@ export function BlogContent({
   const { t } = useTranslation();
   const { data: session } = useSession();
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
   
   // Ensure initial posts is always an array
   const safeInitialPosts = Array.isArray(initialPosts) ? initialPosts : []
@@ -49,7 +51,24 @@ export function BlogContent({
     initialData: safeInitialPosts
   });
   
+  // Dedicated search hook (like wiki)
+  const searchQuery_trimmed = searchQuery.trim()
+  const searchResults = useBlogSearch(searchQuery_trimmed, {
+    status: 'published',
+    sortBy: 'latest'
+  })
+  
   const blogPosts = blogQuery.data || safeInitialPosts;
+
+  // Determine if we're in search mode
+  const isSearchMode = Boolean(searchQuery_trimmed);
+  const displayPosts = isSearchMode ? (searchResults.data || []) : blogPosts;
+  
+  // Determine if we should show search results or loading
+  // CRITICAL: Only show results when query is valid AND complete AND not loading
+  const isQueryValid = !!searchQuery_trimmed && searchQuery_trimmed.length >= 1;
+  const shouldShowSearchLoading = isSearchMode && (isSearching || (isQueryValid && searchResults.isLoading));
+  const shouldShowSearchResults = isSearchMode && isQueryValid && !isSearching && !searchResults.isLoading;
 
   // Prepare categories for the CategoryFilter component
   const categoryFilterData = (safeInitialCategories || [])
@@ -63,8 +82,8 @@ export function BlogContent({
   
 
   const filteredPosts = selectedCategory
-    ? blogPosts.filter((post: BlogPost) => post?.category && post.category === selectedCategory)
-    : blogPosts.filter((post: BlogPost) => post?.category !== null);
+    ? displayPosts.filter((post: BlogPost) => post?.category && post.category === selectedCategory)
+    : displayPosts.filter((post: BlogPost) => post?.category !== null);
 
   // Use centralized permission system
   const permissions = usePermissions(session, 'blog');
@@ -73,15 +92,41 @@ export function BlogContent({
     <div className="grid lg:grid-cols-4 gap-8">
       {/* Main Content */}
       <div className="lg:col-span-3">
-        {/* Category Filter */}
-        <CategoryFilter
-          categories={categoryFilterData}
-          selectedCategory={selectedCategory}
-          onCategoryChange={setSelectedCategory}
-          title={t.blog.filter.title}
-          showCounts={true}
-          allCategoryLabel={t.common.all}
-        />
+        {/* Search Bar */}
+        <div className="mb-6">
+          <SearchInput
+            value={searchQuery}
+            onChange={setSearchQuery}
+            onSearchStateChange={setIsSearching}
+            placeholder={t.common.searchPlaceholder || 'Search blog posts...'}
+            className="w-full"
+            showSuggestions={true}
+            debounceMs={200}
+            module="blog"
+          />
+        </div>
+
+        {/* Search Results Header */}
+        {isSearchMode && (
+          <SearchResultsHeader
+            query={searchQuery}
+            resultCount={searchResults.data?.length || 0}
+            onClear={() => setSearchQuery('')}
+            module="blog"
+          />
+        )}
+
+        {/* Category Filter - Hidden in search mode */}
+        {!isSearchMode && (
+          <CategoryFilter
+            categories={categoryFilterData}
+            selectedCategory={selectedCategory}
+            onCategoryChange={setSelectedCategory}
+            title={t.blog.filter.title}
+            showCounts={true}
+            allCategoryLabel={t.common.all}
+          />
+        )}
 
         {/* Create Post Button */}
         {permissions.canCreate && (
@@ -95,13 +140,16 @@ export function BlogContent({
           </div>
         )}
 
+
         {/* Blog Posts - Standard List (consistent with forum/wiki) */}
         <ListRenderer
           state={{
             data: filteredPosts,
-            isLoading: blogQuery.isLoading && !blogQuery.data && safeInitialPosts.length === 0,
-            error: blogQuery.error,
-            refetch: blogQuery.refetch
+            isLoading: isSearchMode 
+              ? shouldShowSearchLoading
+              : (blogQuery.isLoading && !blogQuery.data && safeInitialPosts.length === 0),
+            error: isSearchMode ? searchResults.error : blogQuery.error,
+            refetch: isSearchMode ? searchResults.refetch : blogQuery.refetch
           }}
           loading={{
             variant: 'skeleton',
@@ -115,15 +163,22 @@ export function BlogContent({
             showReload: true
           }}
           empty={{
-            title: selectedCategory 
-              ? t.blog.emptyState?.noPostsInCategory?.replace('{category}', getCategoryName(selectedCategory)) || `No posts in ${getCategoryName(selectedCategory)}`
-              : t.blog.emptyState?.noPosts || 'No blog posts yet',
-            description: selectedCategory 
-              ? t.blog.emptyState?.checkBack || 'Check back later for new posts'
-              : t.blog.emptyState?.checkBack || 'Check back later for new posts',
-            icon: 'document',
+            title: isSearchMode
+              ? t.common.noResults || 'No search results'
+              : selectedCategory 
+                ? t.blog.emptyState?.noPostsInCategory?.replace('{category}', getCategoryName(selectedCategory)) || `No posts in ${getCategoryName(selectedCategory)}`
+                : t.blog.emptyState?.noPosts || 'No blog posts yet',
+            description: isSearchMode
+              ? t.common.tryDifferentTerms || 'Try different search terms'
+              : selectedCategory 
+                ? t.blog.emptyState?.checkBack || 'Check back later for new posts'
+                : t.blog.emptyState?.checkBack || 'Check back later for new posts',
+            icon: isSearchMode ? 'search' : 'document',
             variant: 'card',
-            action: selectedCategory ? {
+            action: isSearchMode ? {
+              label: t.common.clear || 'Clear Search',
+              onClick: () => setSearchQuery('')
+            } : selectedCategory ? {
               label: t.blog.sidebar?.viewAllPosts || 'View All Posts',
               onClick: () => setSelectedCategory('')
             } : undefined

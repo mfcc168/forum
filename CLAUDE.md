@@ -178,6 +178,56 @@ This distinction is intentional because:
 
 This ensures clear dependency tracking and easier refactoring.
 
+### Import Statement Rules
+**CRITICAL**: All imports must be at the top of the file. Never use inline imports in type signatures or return types.
+
+#### ✅ Correct Import Pattern
+```typescript
+import type { BlogStats } from '@/lib/types'
+import { DAL } from '@/lib/database/dal'
+
+async function getStats(): Promise<BlogStats> {
+  // implementation
+}
+```
+
+#### ❌ NEVER Use Inline Imports in Types
+```typescript
+// ❌ WRONG: Never use inline imports in type signatures
+async function getStats(): Promise<import('@/lib/types').BlogStats> {
+  // implementation
+}
+
+// ❌ WRONG: Never use inline imports in parameters
+function processData(data: import('@/lib/types').UserData) {
+  // implementation  
+}
+```
+
+#### ✅ Acceptable Dynamic Imports
+Dynamic imports are acceptable ONLY for these specific use cases:
+```typescript
+// ✅ OK: Conditional/environment-specific imports
+if (process.env.NODE_ENV === 'development') {
+  const { initializeWebSocketServer } = await import('@/lib/websocket/server')
+}
+
+// ✅ OK: Server-side only imports
+if (typeof window === 'undefined') {
+  const { getServerUser } = await import('@/lib/auth/server')
+}
+
+// ✅ OK: Lazy loading for performance (with TODO for proper DAL)
+const { db } = await import('@/lib/database/connection')
+```
+
+**Why this rule exists:**
+- Improves code readability and maintainability
+- Makes dependencies explicit and trackable
+- Enables better IDE support and refactoring
+- Follows TypeScript best practices
+- Makes it easier to identify and manage imports
+
 ## Database Connection
 
 ### MongoDB Configuration

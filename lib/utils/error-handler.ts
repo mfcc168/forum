@@ -142,11 +142,13 @@ export function withErrorHandling<T extends (...args: unknown[]) => Promise<unkn
   operation: T,
   operationName: string
 ): T {
-  return (async (...args: Parameters<T>) => {
+  const wrappedFunction = async (...args: Parameters<T>): Promise<Awaited<ReturnType<T>>> => {
     try {
-      return await operation(...args)
+      return await operation(...args) as Awaited<ReturnType<T>>
     } catch (error) {
-      handleDatabaseError(error, operationName)
+      return handleDatabaseError(error, operationName)
     }
-  }) as T
+  }
+  
+  return wrappedFunction as T
 }

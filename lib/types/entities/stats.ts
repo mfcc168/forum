@@ -3,8 +3,8 @@
  * 
  * Comprehensive stats interfaces for different content types and system metrics
  */
-import type { ForumCategory } from './categories'
 import type { Entity } from './base'
+import type { ApiResponse } from './api'
 
 // ============================================================================
 // STATS & ANALYTICS
@@ -22,31 +22,57 @@ export interface StatsResponse {
 }
 
 /** Forum-specific stats */
-export interface ForumStatsResponse extends StatsResponse {
+export interface ForumStats extends StatsResponse {
   totalTopics: number
   totalReplies: number
   totalMembers: number
   onlineMembers: number
-  categories: ForumCategory[]
-  popularPosts?: Array<{
+  categories: Array<{
+    name: string
+    slug: string
+    postsCount: number
+    order: number
+  }>
+  popularPosts: Array<{
     title: string
     slug: string
     viewsCount: number
     repliesCount: number
+  }>
+  recentPosts: Array<{
+    title: string
+    slug: string
+    viewsCount: number
+    repliesCount: number
+    createdAt: string
   }>
 }
 
 /** Blog stats */
 export interface BlogStats extends StatsResponse {
   totalDrafts: number
+  categories: Array<{
+    name: string
+    slug: string
+    postsCount: number
+    order: number
+  }>
+  popularPosts: Array<{
+    title: string
+    slug: string
+    viewsCount: number
+    likesCount: number
+  }>
   recentPosts: Array<{
     title: string
     slug: string
     viewsCount: number
     publishedAt: string
   }>
-  mostPopular: import('./content').BlogPost[]
 }
+
+/** Forum stats response */
+export type ForumStatsResponse = ApiResponse<ForumStats>
 
 /** Blog stats response */
 export type BlogStatsResponse = ApiResponse<BlogStats>
@@ -57,18 +83,26 @@ export type WikiStatsResponse = ApiResponse<WikiStats>
 /** Wiki stats */
 export interface WikiStats extends StatsResponse {
   totalGuides: number
-  guidesCountByCategory: Record<string, number>
-  guidesCountByDifficulty: Record<'beginner' | 'intermediate' | 'advanced', number>
+  totalDrafts: number
   averageHelpfulRating: number
-  mostHelpfulGuides: Array<{
+  guidesCountByDifficulty: Record<'beginner' | 'intermediate' | 'advanced', number>
+  categories: Array<{
+    name: string
+    slug: string
+    postsCount: number
+    order: number
+  }>
+  popularPosts: Array<{
     title: string
     slug: string
+    viewsCount: number
     helpfulsCount: number
     difficulty: 'beginner' | 'intermediate' | 'advanced'
   }>
-  recentGuides: Array<{
+  recentPosts: Array<{
     title: string
     slug: string
+    viewsCount: number
     difficulty: 'beginner' | 'intermediate' | 'advanced'
     createdAt: string
   }>
@@ -106,5 +140,3 @@ export interface SearchResult<TContent, TCategory> {
   suggestions?: string[]
 }
 
-// Import ApiResponse for the response types that need it
-type ApiResponse<T> = import('./api').ApiResponse<T>

@@ -72,8 +72,8 @@ export class StatsBroadcaster {
           concurrencyLimit: 10,
         }
       })
-    } catch (error: any) {
-      if (error.code === 'EADDRINUSE') {
+    } catch (error: unknown) {
+      if (error instanceof Error && 'code' in error && error.code === 'EADDRINUSE') {
         console.warn(`📡 WebSocket port ${this.port} already in use, skipping server initialization`)
         return
       }
@@ -83,8 +83,8 @@ export class StatsBroadcaster {
     this.wss.on('connection', this.handleConnection.bind(this))
     
     // Handle server errors (including port conflicts)
-    this.wss.on('error', (error: any) => {
-      if (error.code === 'EADDRINUSE') {
+    this.wss.on('error', (error: unknown) => {
+      if (error instanceof Error && 'code' in error && error.code === 'EADDRINUSE') {
         console.warn(`📡 WebSocket port ${this.port} already in use, shutting down this instance`)
         this.shutdown()
         return

@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { paginationSchema } from '@/lib/utils/validation'
 
 // Content validation helper (consistent with forum)
 const htmlContentSchema = z.string()
@@ -65,10 +66,8 @@ export const updateBlogPostSchema = z.object({
 
 export type UpdateBlogPostData = z.infer<typeof updateBlogPostSchema>
 
-// Blog Query Parameters Schema (consistent with forum)
-export const blogQuerySchema = z.object({
-  page: z.coerce.number().min(1).default(1),
-  limit: z.coerce.number().min(1).max(100).default(20),
+// Blog Query Parameters Schema (consistent with forum pattern)
+export const blogQuerySchema = paginationSchema.extend({
   category: z.string().optional(),
   search: z.string().min(1).optional(),
   sortBy: z.enum(['latest', 'popular', 'views']).default('latest'),
@@ -77,10 +76,11 @@ export const blogQuerySchema = z.object({
 
 export type BlogQueryData = z.infer<typeof blogQuerySchema>
 
-// Blog Post Interaction Schema
+// Blog Post Interaction Schema (consistent with forum pattern)
 export const blogInteractionSchema = z.object({
   interactionType: z.enum(['like', 'bookmark', 'share', 'view']),
-  postSlug: z.string().min(1),
+  targetId: z.string().min(1),
+  targetType: z.enum(['post']).default('post'),
 })
 
 export type BlogInteractionData = z.infer<typeof blogInteractionSchema>
@@ -94,16 +94,22 @@ export type BlogSlugData = z.infer<typeof blogSlugSchema>
 
 // Note: Legacy response schemas removed - use proper API types from @/lib/types instead
 
-// Blog Category Schema (for admin/internal use)
+// Blog Category Schema (for admin/internal use - consistent with wiki pattern)
 export const blogCategorySchema = z.object({
   id: z.string(),
   name: z.string(),
-  displayName: z.string(),
+  slug: z.string(),
   description: z.string().optional(),
   postCount: z.number().default(0),
+  color: z.string().optional(),
   isActive: z.boolean().default(true),
+  order: z.number().default(0),
   createdAt: z.string(),
   updatedAt: z.string(),
+  stats: z.object({
+    postsCount: z.number(),
+    viewsCount: z.number(),
+  }),
 })
 
 export type BlogCategory = z.infer<typeof blogCategorySchema>
@@ -147,9 +153,7 @@ export const blogStatsResponseSchema = z.object({
 export type BlogStatsResponse = z.infer<typeof blogStatsResponseSchema>
 
 // Validation helpers (consistent with forum patterns)
-// DEPRECATED: Use validateSlug and generateSlug from @/lib/utils/slug instead
-// These functions will be removed in a future version
-export { validateSlug as validateBlogSlug, generateSlug as generateBlogSlug } from '@/lib/utils/slug'
+export { validateSlug, generateSlug } from '@/lib/utils/slug'
 
 // Content validation helpers
 export const validateBlogContent = (content: string): { isValid: boolean; errors: string[] } => {

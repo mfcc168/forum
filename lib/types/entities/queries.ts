@@ -1,8 +1,80 @@
 /**
  * Query State Management Types
  * 
- * React Query and state management patterns
+ * React Query and state management patterns, hook options, and query interfaces
  */
+
+// ============================================================================
+// CONTENT QUERY OPTIONS (moved from hooks.ts for better organization)
+// ============================================================================
+
+/** Interface for all content query options */
+export interface ContentQueryOptions {
+  category?: string
+  search?: string
+  page?: number
+  limit?: number
+  enabled?: boolean
+}
+
+/** Sort options that all content types support */
+export type SortOptions = 'latest' | 'popular' | 'views'
+
+/** Status options for content */
+export type StatusOptions = 'draft' | 'published' | 'archived'
+
+/** Extended interface for blog posts */
+export interface BlogPostQueryOptions extends ContentQueryOptions {
+  sortBy?: SortOptions
+  status?: StatusOptions
+}
+
+/** Extended interface for forum posts (has unique sort and status options) */
+export interface ForumPostQueryOptions extends ContentQueryOptions {
+  sortBy?: SortOptions | 'replies' | 'oldest'
+  status?: StatusOptions | 'active' | 'locked' | 'all'
+}
+
+/** Extended interface for wiki guides (has unique properties) */
+export interface WikiGuideQueryOptions extends ContentQueryOptions {
+  difficulty?: 'beginner' | 'intermediate' | 'advanced'
+  tags?: string[]
+  sortBy?: SortOptions
+  status?: StatusOptions
+  category?: 'getting-started' | 'gameplay' | 'features' | 'community'
+}
+
+/** Response structure for paginated content */
+export interface ContentResponse<T> {
+  success: boolean
+  message?: string
+  data: {
+    items: T[]
+    pagination: {
+      page: number
+      limit: number
+      total: number
+      pages: number
+      hasNext: boolean
+      hasPrev: boolean
+    }
+    filters: {
+      category?: string
+      search?: string
+      status: string
+      [key: string]: string | undefined
+    }
+  }
+}
+
+/** Single item response */
+export interface SingleItemResponse<T> {
+  success: boolean
+  message?: string
+  data: {
+    item: T
+  }
+}
 
 // ============================================================================
 // QUERY STATE MANAGEMENT

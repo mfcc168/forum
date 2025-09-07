@@ -1,17 +1,26 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo, memo } from 'react'
+import { useReducer, useEffect, useCallback, useMemo, memo } from 'react'
 import { useSession } from 'next-auth/react'
 import { usePermissions } from '@/lib/hooks/usePermissions'
 import { Button } from '@/app/components/ui/Button'
 import { Card } from '@/app/components/ui/Card'
-import { WysiwygEditor } from '@/app/components/ui/WysiwygEditor'
+import { LazyWysiwygEditor } from '@/app/components/ui/LazyWysiwygEditor'
 // Translation support available for future features
 // import { useTranslation } from '@/lib/contexts/LanguageContext'
 import type { ZodSchema } from 'zod'
 import { ZodError } from 'zod'
 import type { UseMutationResult, UseQueryResult } from '@tanstack/react-query'
 import type { ContentItem } from '@/lib/types'
+import { 
+  formReducer, 
+  createInitialFormState, 
+  processFormData, 
+  validateField,
+  autoGenerateExcerpt,
+  autoGenerateSlug,
+  type FormAction 
+} from './ContentFormReducer'
 
 // Hook result types - properly typed
 type CreateMutationHook<T = ContentItem> = UseMutationResult<T, Error, Partial<T>>
@@ -83,50 +92,19 @@ export function ContentForm<T extends ContentItem = ContentItem>({
     return isEditing ? permissions.canEdit : permissions.canCreate
   }, [permissions, item])
 
-  // Dynamic state management based on config fields
-  const [formData, setFormData] = useState<Record<string, unknown>>(() => {
-    const initial: Record<string, unknown> = {}
-    config.fields.forEach(field => {
-      const value = item?.[field.name as keyof T] || initialData?.[field.name as keyof T]
-      
-      
-      switch (field.type) {
-        case 'tags':
-          initial[field.name] = Array.isArray(value) ? value.join(', ') : value || ''
-          break
-        case 'select':
-          initial[field.name] = value || (field.options?.[0]?.value) || config.categoryConfig?.getDefault?.() || ''
-          break
-        default:
-          initial[field.name] = value || ''
-      }
-    })
-    return initial
-  })
-
-  const [error, setError] = useState('')
+  // Optimized state management with useReducer for complex forms
+  const [state, dispatch] = useReducer(
+    formReducer, 
+    createInitialFormState(config, item, initialData)
+  )
 
   // Update form data when item changes (for edit mode)
   useEffect(() => {
     if (item) {
-      const updated: Record<string, unknown> = {}
-      config.fields.forEach(field => {
-        const value = item[field.name as keyof T]
-        
-        switch (field.type) {
-          case 'tags':
-            updated[field.name] = Array.isArray(value) ? value.join(', ') : value || ''
-            break
-          case 'select':
-            updated[field.name] = value || (field.options?.[0]?.value) || config.categoryConfig?.getDefault?.() || ''
-            break
-          default:
-            updated[field.name] = value || ''
-        }
-      })
-      setFormData(updated)
+      const initialData = createInitialFormState(config, item)
+      dispatch({ type: 'SET_INITIAL_DATA', data: initialData.formData })
     }
-  }, [item, config.fields, config.categoryConfig])
+  }, [item, config])
 
   // Get hooks dynamically from config
   const createMutation = config.hooks.useCreate()
@@ -138,24 +116,22 @@ export function ContentForm<T extends ContentItem = ContentItem>({
   const mutation = useMemo(() => isEditing ? updateMutation : createMutation, [isEditing, updateMutation, createMutation])
   const isSubmitting = mutation?.isPending || false
 
-  // Auto-generation logic (e.g., excerpt from content)
+  // Auto-generation logic (e.g., excerpt from content)  
   useEffect(() => {
     const excerptField = config.fields.find(f => f.name === 'excerpt' && f.autoGenerate)
-    const contentValue = formData.content as string
-    if (excerptField && !formData.excerpt && contentValue) {
-      const plainText = contentValue.replace(/<[^>]*>/g, '').trim()
-      if (plainText.length > 500) {
-        setFormData(prev => ({ ...prev, excerpt: plainText.substring(0, 497) + '...' }))
-      } else if (plainText.length > 0) {
-        setFormData(prev => ({ ...prev, excerpt: plainText }))
+    const contentValue = state.formData.content as string
+    if (excerptField && !state.formData.excerpt && contentValue) {
+      const excerpt = autoGenerateExcerpt(contentValue, 150)
+      if (excerpt) {
+        dispatch({ type: 'FIELD_CHANGE', field: 'excerpt', value: excerpt })
       }
     }
-  }, [formData.content, formData.excerpt, config.fields])
+  }, [state.formData.content, state.formData.excerpt, config.fields])
 
-  // Handle form field changes
+  // Handle form field changes with optimized dispatch
   const handleFieldChange = useCallback((fieldName: string, value: unknown) => {
-    setFormData(prev => ({ ...prev, [fieldName]: value }))
-    setError('')
+    dispatch({ type: 'FIELD_CHANGE', field: fieldName, value })
+    dispatch({ type: 'FIELD_TOUCH', field: fieldName })
   }, [])
 
   // Form validation and submission
@@ -163,29 +139,14 @@ export function ContentForm<T extends ContentItem = ContentItem>({
     e.preventDefault()
     
     if (!hasPermission) {
-      setError('You do not have permission to perform this action')
+      dispatch({ type: 'SET_ERROR', error: 'You do not have permission to perform this action' })
       return
     }
 
-    setError('')
+    dispatch({ type: 'SET_VALIDATING', isValidating: true })
 
-    // Prepare form data
-    const submitData: Record<string, unknown> = { ...formData }
-    
-    // Process tags field
-    const tagsField = config.fields.find(f => f.type === 'tags')
-    if (tagsField) {
-      const tagsValue = submitData[tagsField.name] as string
-      // Convert empty string or falsy values to empty array
-      if (!tagsValue || tagsValue === '') {
-        submitData[tagsField.name] = []
-      } else {
-        submitData[tagsField.name] = tagsValue
-          .split(',')
-          .map((tag: string) => tag.trim())
-          .filter((tag: string) => tag.length > 0)
-      }
-    }
+    // Process form data using optimized helper
+    const submitData = processFormData(state.formData, config.fields)
 
     try {
       // Validate with appropriate schema
@@ -214,18 +175,18 @@ export function ContentForm<T extends ContentItem = ContentItem>({
         const fieldErrors = error.errors.map(err => 
           `${err.path.join('.')}: ${err.message}`
         ).join(', ')
-        setError(`Validation errors: ${fieldErrors}`)
+        dispatch({ type: 'SET_ERROR', error: `Validation errors: ${fieldErrors}` })
       } else if (error instanceof Error) {
-        setError(error.message)
+        dispatch({ type: 'SET_ERROR', error: error.message })
       } else {
-        setError('An unexpected error occurred. Please try again.')
+        dispatch({ type: 'SET_ERROR', error: 'An unexpected error occurred. Please try again.' })
       }
     }
-  }, [formData, hasPermission, isEditing, item, config, createMutation, updateMutation, onSuccess])
+  }, [state.formData, hasPermission, isEditing, item, config, createMutation, updateMutation, onSuccess])
 
-  // Render field based on type
+  // Render field based on type with optimized state access
   const renderField = useCallback((field: ContentFormField) => {
-    const value = (formData[field.name] as string) || ''
+    const value = (state.formData[field.name] as string) || ''
     
     switch (field.type) {
       case 'text':
@@ -285,7 +246,7 @@ export function ContentForm<T extends ContentItem = ContentItem>({
 
       case 'wysiwyg':
         return (
-          <WysiwygEditor
+          <LazyWysiwygEditor
             value={value}
             onChange={(newContent: string) => handleFieldChange(field.name, newContent)}
             placeholder={field.placeholder}
@@ -307,7 +268,7 @@ export function ContentForm<T extends ContentItem = ContentItem>({
       default:
         return null
     }
-  }, [formData, handleFieldChange, config])
+  }, [state.formData, handleFieldChange, config])
 
   if (!hasPermission) {
     return (
@@ -340,17 +301,17 @@ export function ContentForm<T extends ContentItem = ContentItem>({
               <p className="mt-1 text-sm text-slate-500">{field.help}</p>
             )}
             
-            {field.maxLength && formData[field.name] ? (
+            {field.maxLength && state.formData[field.name] ? (
               <div className="mt-1 text-xs text-slate-400">
-                {String(formData[field.name] || '').length} / {field.maxLength} characters
+                {String(state.formData[field.name] || '').length} / {field.maxLength} characters
               </div>
             ) : null}
           </div>
         ))}
 
-        {error && (
+        {state.error && (
           <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-sm text-red-600">{error}</p>
+            <p className="text-sm text-red-600">{state.error}</p>
           </div>
         )}
 

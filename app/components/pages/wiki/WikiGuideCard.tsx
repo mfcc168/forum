@@ -25,7 +25,7 @@ export const WikiGuideCard = memo(function WikiGuideCard({
 
   const handleInteraction = useCallback(async (
     e: React.MouseEvent,
-    action: 'like' | 'save' | 'helpful'
+    action: 'like' | 'bookmark' | 'helpful'
   ) => {
     e.preventDefault()
     e.stopPropagation()
@@ -72,9 +72,7 @@ export const WikiGuideCard = memo(function WikiGuideCard({
           <div className="flex items-start justify-between">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-3 mb-2">
-                {guide.icon && (
-                  <Icon name={guide.icon} className="w-5 h-5 text-slate-600 flex-shrink-0" />
-                )}
+                {/* Icon removed - not part of WikiGuide interface */}
                 <h3 className="text-lg font-semibold text-slate-800 truncate">
                   {guide.title}
                 </h3>
@@ -107,7 +105,7 @@ export const WikiGuideCard = memo(function WikiGuideCard({
                     </span>
                   )}
                   <span>
-                    by {guide.authorName}
+                    by {guide.author.name}
                   </span>
                 </div>
                 
@@ -116,7 +114,7 @@ export const WikiGuideCard = memo(function WikiGuideCard({
                     <button
                       onClick={(e) => handleInteraction(e, 'like')}
                       className={`p-1 rounded transition-colors ${
-                        guide.isLikedByUser 
+                        guide.interactions?.isLiked 
                           ? 'text-red-500 hover:text-red-600' 
                           : 'text-slate-400 hover:text-red-500'
                       }`}
@@ -125,9 +123,9 @@ export const WikiGuideCard = memo(function WikiGuideCard({
                       <Icon name="heart" className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={(e) => handleInteraction(e, 'save')}
+                      onClick={(e) => handleInteraction(e, 'bookmark')}
                       className={`p-1 rounded transition-colors ${
-                        guide.isSavedByUser 
+                        guide.interactions?.isBookmarked 
                           ? 'text-blue-500 hover:text-blue-600' 
                           : 'text-slate-400 hover:text-blue-500'
                       }`}
@@ -153,9 +151,7 @@ export const WikiGuideCard = memo(function WikiGuideCard({
           {/* Header */}
           <div className="flex items-start justify-between mb-3">
             <div className="flex items-center gap-2 min-w-0 flex-1">
-              {guide.icon && (
-                <Icon name={guide.icon} className="w-5 h-5 text-slate-600 flex-shrink-0" />
-              )}
+              {/* Icon removed - not part of WikiGuide interface */}
               <h3 className="text-lg font-semibold text-slate-800 line-clamp-2 group-hover:text-blue-600 transition-colors">
                 {guide.title}
               </h3>
@@ -216,24 +212,24 @@ export const WikiGuideCard = memo(function WikiGuideCard({
                 <button
                   onClick={(e) => handleInteraction(e, 'like')}
                   className={`p-1 rounded transition-colors ${
-                    guide.isLikedByUser 
+                    guide.interactions?.isLiked 
                       ? 'text-red-500 hover:text-red-600' 
                       : 'text-slate-400 hover:text-red-500'
                   }`}
                   disabled={interactionMutation.isPending}
-                  title={guide.isLikedByUser ? 'Unlike' : 'Like'}
+                  title={guide.interactions?.isLiked ? 'Unlike' : 'Like'}
                 >
                   <Icon name="heart" className="w-4 h-4" />
                 </button>
                 <button
-                  onClick={(e) => handleInteraction(e, 'save')}
+                  onClick={(e) => handleInteraction(e, 'bookmark')}
                   className={`p-1 rounded transition-colors ${
-                    guide.isSavedByUser 
+                    guide.interactions?.isBookmarked 
                       ? 'text-blue-500 hover:text-blue-600' 
                       : 'text-slate-400 hover:text-blue-500'
                   }`}
                   disabled={interactionMutation.isPending}
-                  title={guide.isSavedByUser ? 'Unsave' : 'Save'}
+                  title={guide.interactions?.isBookmarked ? 'Unsave' : 'Save'}
                 >
                   <Icon name="bookmark" className="w-4 h-4" />
                 </button>
@@ -244,17 +240,17 @@ export const WikiGuideCard = memo(function WikiGuideCard({
           {/* Author info */}
           <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-100">
             <div className="flex items-center gap-2 text-xs text-slate-500">
-              {guide.authorAvatar && (
+              {guide.author.avatar && (
                 <img 
-                  src={guide.authorAvatar} 
-                  alt={guide.authorName}
+                  src={guide.author.avatar} 
+                  alt={guide.author.name}
                   className="w-4 h-4 rounded-full"
                 />
               )}
-              <span>by {guide.authorName}</span>
+              <span>by {guide.author.name}</span>
             </div>
             <span className="text-xs text-slate-400">
-              {formatDistanceToNow(new Date(guide.lastModified), { addSuffix: true })}
+              {formatDistanceToNow(new Date(guide.updatedAt), { addSuffix: true })}
             </span>
           </div>
         </div>

@@ -8,7 +8,7 @@ import { AuthorDisplay } from './AuthorDisplay'
 import { TagList } from './TagList'
 import { CategoryBadge } from './CategoryBadge'
 import { ContentRenderer } from './ContentRenderer'
-import { formatDateSimple, formatNumber } from '@/lib/utils'
+import { formatSimpleDate, formatNumber } from '@/lib/utils'
 
 export interface ContentDetailConfig {
   /** Type of content */
@@ -201,7 +201,7 @@ export const ContentDetail = memo(function ContentDetail({
               <div className="flex items-center space-x-2">
                 <Icon name="calendar" className="w-4 h-4" />
                 <time dateTime={displayDate.toISOString()}>
-                  {formatDateSimple(displayDate)}
+                  {formatSimpleDate(displayDate)}
                 </time>
               </div>
             )}

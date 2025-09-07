@@ -3,7 +3,7 @@
  */
 
 import { PermissionChecker } from '@/lib/utils/permissions'
-import type { ContentModule, ContentItem, UserRole, PermissionUser } from '@/lib/types'
+import type { ContentModule, ContentItem, PartialContentItem, UserRole, PermissionUser } from '@/lib/types'
 
 /**
  * React hook for content permissions.
@@ -16,7 +16,7 @@ import type { ContentModule, ContentItem, UserRole, PermissionUser } from '@/lib
 export function usePermissions(
   session: { user?: { id: string; role?: UserRole } } | null, 
   module: ContentModule, 
-  content?: ContentItem
+  content?: ContentItem | PartialContentItem
 ) {
   const user: PermissionUser | null = (session?.user && session.user.role) ? {
     id: session.user.id,

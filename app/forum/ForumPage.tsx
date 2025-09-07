@@ -5,12 +5,13 @@ import { WelcomeSection } from '@/app/components/ui/WelcomeSection'
 import { useTranslation } from '@/lib/contexts/LanguageContext'
 import { ForumContent } from '@/app/components/pages/forum/ForumContent'
 import { formatNumber } from '@/lib/utils'
-import type { ForumPost, ForumCategory, ForumStatsResponse } from '@/lib/types'
+import type { ForumPost, ForumCategory } from '@/lib/types'
+import type { ForumStats } from '@/lib/types/entities/stats'
 
 interface ForumPageProps {
   initialPosts: ForumPost[]
   initialCategories: ForumCategory[]
-  initialStats: ForumStatsResponse
+  initialStats: ForumStats
 }
 
 export default function ForumPage({ 

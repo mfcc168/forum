@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card } from '@/app/components/ui/Card';
-import type { TranslationStructure } from '@/lib/types/translations';
+import type { TranslationStructure } from '@/lib/types';
 
 interface Stat {
   id: string

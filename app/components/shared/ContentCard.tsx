@@ -8,7 +8,7 @@ import { TagList } from './TagList'
 import CategoryBadge from './CategoryBadge'
 import StatsDisplay from './StatsDisplay'
 import { Icon } from '@/app/components/ui/Icon'
-import { formatDateSimple } from '@/lib/utils'
+import { formatSimpleDate } from '@/lib/utils'
 
 export interface ContentCardProps {
   /** Card content item */
@@ -220,7 +220,7 @@ export const ContentCard = memo(function ContentCard({
     if (formatDate) return formatDate(date)
     
     // Use the utility function to ensure consistent formatting
-    return formatDateSimple(date).replace(/-/g, '/')
+    return formatSimpleDate(date).replace(/-/g, '/')
   }
   
   // Get link URL

@@ -12,7 +12,7 @@ export const runtime = 'nodejs'
  * /api/wiki/guides/{slug}/interactions:
  *   post:
  *     summary: Record a user interaction with a wiki guide
- *     description: Record user interactions like likes, saves, helpful votes, or shares for a wiki guide
+ *     description: Record user interactions like likes, bookmarks, helpful votes, or shares for a wiki guide
  *     tags: [Wiki]
  *     security:
  *       - bearerAuth: []
@@ -34,7 +34,7 @@ export const runtime = 'nodejs'
  *             properties:
  *               action:
  *                 type: string
- *                 enum: [like, save, helpful, share]
+ *                 enum: [like, bookmark, helpful, share]
  *                 description: The type of interaction to record
  *     responses:
  *       200:

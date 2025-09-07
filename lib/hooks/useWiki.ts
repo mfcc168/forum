@@ -137,7 +137,7 @@ export function useWikiSearch(query: string, options: Omit<UseWikiGuidesOptions,
   return useWikiGuides({
     ...options,
     search: query,
-    enabled: !!query && query.length >= 2
+    enabled: !!query && query.length >= 1 // Allow single character searches like blog/forum
   })
 }
 
@@ -158,7 +158,7 @@ export function usePopularWikiGuides(limit = 10) {
         throw new Error(result.error || 'Failed to fetch popular wiki guides')
       }
       
-      return result.data?.guides || []
+      return result.data?.wikiGuides || []
     },
     staleTime: 10 * 60 * 1000, // 10 minutes
     gcTime: 30 * 60 * 1000     // 30 minutes
@@ -182,7 +182,7 @@ export function useRecentWikiGuides(limit = 10) {
         throw new Error(result.error || 'Failed to fetch recent wiki guides')
       }
       
-      return result.data?.guides || []
+      return result.data?.wikiGuides || []
     },
     staleTime: 5 * 60 * 1000,  // 5 minutes
     gcTime: 15 * 60 * 1000     // 15 minutes
@@ -206,7 +206,7 @@ export function useGuidesByDifficulty(difficulty: 'beginner' | 'intermediate' | 
         throw new Error(result.error || `Failed to fetch ${difficulty} wiki guides`)
       }
       
-      return result.data?.guides || []
+      return result.data?.wikiGuides || []
     },
     staleTime: 10 * 60 * 1000, // 10 minutes
     gcTime: 30 * 60 * 1000     // 30 minutes

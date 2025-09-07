@@ -8,6 +8,7 @@ import type { ServerUser } from "@/lib/types"
 import { revalidateTag } from 'next/cache'
 import { 
   updateWikiGuideSchema,
+  wikiSlugSchema,
   type UpdateWikiGuideData,
   type WikiSlugData
 } from '@/lib/schemas/wiki'
@@ -41,13 +42,14 @@ export const GET = withDALAndValidation(
         await dal.wiki.incrementWikiViewCount(guide.id)
       }
 
-      return ApiResponse.success({ guide: guide })
+      return ApiResponse.success({ wikiGuide: guide })
     } catch (error) {
       console.error('Wiki guide GET error:', error)
       return ApiResponse.error('Internal server error', 500)
     }
   },
   {
+    schema: wikiSlugSchema,
     auth: 'optional',
     rateLimit: { requests: 60, window: '1m' }
   }
@@ -114,7 +116,7 @@ export const PUT = withDALAndValidation(
     const updatedGuide = await dal.wiki.getGuideBySlug(slug, user.id, true)
     
     return ApiResponse.success(
-      { guide: updatedGuide },
+      { wikiGuide: updatedGuide },
       'Guide updated successfully'
     )
   },
@@ -165,6 +167,7 @@ export const DELETE = withDALAndValidation(
     )
   },
   {
+    schema: wikiSlugSchema,
     auth: 'required',
     rateLimit: { requests: 5, window: '1m' }
   }

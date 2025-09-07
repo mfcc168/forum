@@ -36,6 +36,7 @@ export async function GET(_request: NextRequest) {
     
   } catch (error) {
     console.error('❌ Auth debug error:', error)
-    return ApiResponse.error(`Auth system error: ${error.message}`, 500)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    return ApiResponse.error(`Auth system error: ${errorMessage}`, 500)
   }
 }

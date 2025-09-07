@@ -34,7 +34,7 @@ async function getWikiGuideData(slug: string) {
 
 
     return {
-      guide: result.success ? result.data.guide : null,
+      guide: result.success ? result.data.wikiGuide : null,
       error: !result.success ? result.message || 'Wiki guide not found' : null
     }
   } catch (error) {

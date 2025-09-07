@@ -37,13 +37,24 @@ export default function BlogPage({
     
     // BlogStats-specific properties
     totalDrafts: 0,
+    categories: safeInitialCategories.map(cat => ({
+      name: cat.name,
+      slug: cat.slug,
+      postsCount: cat.stats?.postsCount || 0,
+      order: cat.order
+    })),
     recentPosts: safeInitialPosts.slice(0, 5).map(post => ({
       title: post.title,
       slug: post.slug,
       viewsCount: post.stats?.viewsCount || 0,
       publishedAt: post.publishedAt || post.createdAt
     })),
-    mostPopular: safeInitialPosts.slice(0, 5)
+    popularPosts: safeInitialPosts.slice(0, 5).map(post => ({
+      title: post.title,
+      slug: post.slug,
+      viewsCount: post.stats?.viewsCount || 0,
+      likesCount: post.stats?.likesCount || 0
+    }))
   }
 
   return (

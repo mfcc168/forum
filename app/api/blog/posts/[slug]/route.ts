@@ -7,16 +7,15 @@ import { PermissionChecker } from '@/lib/utils/permissions'
 import type { ServerUser } from "@/lib/types"
 import { revalidateTag } from 'next/cache'
 import { 
-  updateBlogPostSchema, 
+  updateBlogPostSchema,
+  blogSlugSchema,
   type UpdateBlogPostData,
+  type BlogSlugData,
   validateBlogContent
 } from '@/lib/schemas/blog'
 import { generateBlogMetaDescription } from '@/lib/utils/meta'
 
-// Path parameter type
-type BlogSlugData = {
-  slug: string
-}
+// Path parameter type imported from schema for consistency
 
 // GET - Fetch single blog post by slug
 export const GET = withDALAndValidation(
@@ -56,13 +55,14 @@ export const GET = withDALAndValidation(
         })
       }
       
-      return ApiResponse.success({ post: transformedPost })
+      return ApiResponse.success({ blogPost: transformedPost })
     } catch (error) {
       console.error('Blog post GET error:', error)
       return ApiResponse.error('Internal server error', 500)
     }
   },
   {
+    schema: blogSlugSchema,
     auth: 'optional',
     rateLimit: { requests: 60, window: '1m' }
   }
@@ -128,7 +128,7 @@ export const PUT = withDALAndValidation(
     const updatedPost = await dal.blog.getPostBySlug(slug, user.id, true)
 
     return ApiResponse.success(
-      { post: updatedPost },
+      { blogPost: updatedPost },
       'Blog post updated successfully'
     )
   },
@@ -177,6 +177,7 @@ export const DELETE = withDALAndValidation(
     )
   },
   {
+    schema: blogSlugSchema,
     auth: 'required',
     rateLimit: { requests: 5, window: '1m' }
   }

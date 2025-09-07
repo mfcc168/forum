@@ -14,13 +14,9 @@ const LanguageContext = createContext<LanguageContextType>({
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   // Initialize with a consistent default that works for both server and client
   const [locale, setLocale] = useState<Locale>('en');
-  const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
-    // Only run on client side after hydration
-    setIsHydrated(true);
-    
-    // Check localStorage for saved preference
+    // Check localStorage for saved preference (runs on client side after hydration)
     const savedLocale = localStorage.getItem('locale') as Locale;
     if (savedLocale && (savedLocale === 'zh-TW' || savedLocale === 'en')) {
       setLocale(savedLocale);
@@ -38,8 +34,8 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const value = {
     locale,
     t: getTranslation(locale),
-    setLocale: (newLocale: string) => setLocale(newLocale as Locale),
-    changeLanguage: (newLocale: string) => changeLanguage(newLocale as Locale),
+    setLocale: (newLocale: Locale) => setLocale(newLocale),
+    changeLanguage: (newLocale: Locale) => changeLanguage(newLocale),
   };
 
   return (

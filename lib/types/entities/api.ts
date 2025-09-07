@@ -5,6 +5,13 @@
  */
 
 import type { ForumPost, BlogPost, WikiGuide } from './content'
+import type { ContentInteractionState, ContentStats } from './base'
+import type { 
+  ContentQueryOptions, 
+  BlogPostQueryOptions, 
+  ForumPostQueryOptions, 
+  WikiGuideQueryOptions 
+} from './queries'
 
 // ============================================================================
 // API PATTERNS (optimized with generics)
@@ -29,30 +36,32 @@ export interface PaginationMeta {
   hasPrev: boolean
 }
 
-/** Base content filters - flexible for different content types */
-export interface ContentFilters {
-  category?: string
-  search?: string  
+/** Content filters - unified with query options */
+export type ContentFilters = ContentQueryOptions & {
   status?: string
   author?: string
   tags?: string[]
   sortBy?: string
-  page?: number
-  limit?: number
 }
 
-/** Forum post filters */
-export interface PostFilters extends ContentFilters {
+/** Forum post filters - extends query options with API-specific fields */
+export type PostFilters = ForumPostQueryOptions & {
   categoryName?: string
   isPinned?: boolean
   isLocked?: boolean
+  author?: string
+  tags?: string[]
 }
 
-/** Wiki guide filters */
-export interface WikiFilters extends ContentFilters {
-  difficulty?: 'beginner' | 'intermediate' | 'advanced'
+/** Blog post filters - extends query options with API-specific fields */
+export type BlogFilters = BlogPostQueryOptions & {
+  author?: string
+  featuredImage?: boolean
+}
+
+/** Wiki guide filters - extends query options */  
+export type WikiFilters = WikiGuideQueryOptions & {
   estimatedTime?: string
-  status?: 'draft' | 'published' | 'archived'
 }
 
 /** User filters */
@@ -70,21 +79,21 @@ export interface UserFilters {
 
 /** Blog posts list response */
 export type BlogPostsResponse = ApiResponse<{
-  posts: BlogPost[]
+  blogPosts: BlogPost[]
   pagination: PaginationMeta
   filters: ContentFilters
 }>
 
 /** Forum posts list response */
 export type ForumPostsResponse = ApiResponse<{
-  posts: ForumPost[]
+  forumPosts: ForumPost[]
   pagination: PaginationMeta
   filters: ContentFilters
 }>
 
 /** Wiki guides list response */
 export type WikiGuidesResponse = ApiResponse<{
-  guides: WikiGuide[]
+  wikiGuides: WikiGuide[]
   pagination: PaginationMeta
   filters: ContentFilters & {
     difficulty?: string
@@ -93,9 +102,9 @@ export type WikiGuidesResponse = ApiResponse<{
 }>
 
 /** Single item responses */
-export type BlogPostResponse = ApiResponse<BlogPost>
-export type ForumPostResponse = ApiResponse<ForumPost>  
-export type WikiGuideResponse = ApiResponse<WikiGuide>
+export type BlogPostResponse = ApiResponse<{ blogPost: BlogPost }>
+export type ForumPostResponse = ApiResponse<{ forumPost: ForumPost }>  
+export type WikiGuideResponse = ApiResponse<{ wikiGuide: WikiGuide }>
 
 /** Generic paginated response pattern */
 export interface PaginatedResponse<T> {
@@ -110,19 +119,19 @@ export type PaginatedResult<T> = PaginatedResponse<T>
 /** Content response with user interactions */
 export interface ContentResponse<T> {
   content: T
-  interactions?: import('./base').ContentInteractionState
+  interactions?: ContentInteractionState
   relatedContent?: T[]
 }
 
-/** Base interaction response for simple stat updates */
-export interface BaseInteractionResponse {
+/** Interaction response for simple stat updates */
+export interface InteractionResponse {
   success: boolean
-  stats: import('./base').ContentStats
-  interactions: import('./base').ContentInteractionState
+  stats: ContentStats
+  interactions: ContentInteractionState
 }
 
 /** Detailed interaction response with action metadata */
-export interface DetailedInteractionResponse extends BaseInteractionResponse {
+export interface DetailedInteractionResponse extends InteractionResponse {
   action: 'added' | 'removed' | 'viewed'
   currentState: boolean
   isNew: boolean

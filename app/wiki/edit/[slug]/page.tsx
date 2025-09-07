@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getServerUser } from '@/lib/auth/server';
 import { PermissionChecker } from '@/lib/utils/permissions';
-import EditWikiContent from './EditWikiContent';
+import EditWikiContent from '@/app/wiki/edit/[slug]/EditWikiContent';
 
 // Server-side data fetching
 async function getWikiGuide(slug: string) {

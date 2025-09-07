@@ -7,9 +7,9 @@ import Link from 'next/link';
 import { useTranslation } from '@/lib/contexts/LanguageContext';
 import { Icon } from '@/app/components/ui/Icon';
 import { Card } from '@/app/components/ui/Card';
-import { BlogActions } from './BlogActions';
+import { BlogActions } from '@/app/components/blog/BlogActions';
 import { getBlogCategoryColor } from '@/lib/config/blog-categories';
-import { formatDateSimple, formatNumber } from '@/lib/utils';
+import { formatSimpleDate, formatNumber } from '@/lib/utils';
 import type { BlogPost } from '@/lib/types';
 
 interface BlogDetailProps {
@@ -97,7 +97,7 @@ export const BlogDetail = memo(function BlogDetail({
                     </div>
                     <div className="flex items-center space-x-2">
                       <Icon name="clock" className="w-4 h-4 text-emerald-200" />
-                      <span className="text-emerald-100">{formatDateSimple(post.publishedAt || post.createdAt)}</span>
+                      <span className="text-emerald-100">{formatSimpleDate(post.publishedAt || post.createdAt)}</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <Icon name="eye" className="w-4 h-4 text-emerald-200" />
@@ -247,7 +247,7 @@ export const BlogDetail = memo(function BlogDetail({
                   <div className="space-y-2 text-sm text-slate-600">
                     <div className="flex items-center justify-between">
                       <span>{t.blog.stats.published}</span>
-                      <span className="font-medium">{formatDateSimple(post.publishedAt || post.createdAt)}</span>
+                      <span className="font-medium">{formatSimpleDate(post.publishedAt || post.createdAt)}</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span>{t.blog.stats.views}</span>
@@ -332,7 +332,7 @@ export const BlogDetail = memo(function BlogDetail({
               <div className="flex items-center space-x-2 text-slate-500">
                 <Icon name="clock" className="w-4 h-4" />
                 <span className="text-sm">
-                  {formatDateSimple(post.publishedAt || post.createdAt)}
+                  {formatSimpleDate(post.publishedAt || post.createdAt)}
                 </span>
               </div>
             </div>

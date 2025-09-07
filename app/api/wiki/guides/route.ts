@@ -38,9 +38,9 @@ export const GET = withDALAndValidation(
     // Guides already in correct format from DAL
     const transformedGuides = result.data
     
-    // Return consistent format with pagination and filters (use 'guides' for wiki content)
+    // Return consistent format with pagination and filters (use module-specific key)
     return ApiResponse.success({
-      guides: transformedGuides,
+      wikiGuides: transformedGuides,
       pagination: result.pagination,
       filters: { category, difficulty, search, sortBy, status }
     })
@@ -92,7 +92,7 @@ export const POST = withDALAndValidation(
     revalidateTag('wiki-categories')
     
     return ApiResponse.success(
-      { guide },
+      { wikiGuide: guide },
       'Wiki guide created successfully'
     )
   },

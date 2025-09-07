@@ -237,7 +237,8 @@ export const en = {
     forms: {
       create: {
         title: 'Create Wiki Guide',
-        description: 'Share your knowledge with the community'
+        description: 'Share your knowledge with the community',
+        submitButton: 'Create New Guide'
       },
       createGuide: {
         title: 'Create Wiki Guide',
@@ -252,8 +253,8 @@ export const en = {
         categoryPlaceholder: 'Select a category',
         difficultyLabel: 'Difficulty',
         difficultyPlaceholder: 'Select difficulty level',
-        tagsLabel: 'Tags',
-        tagsPlaceholder: 'Enter tags separated by commas',
+        tagsLabel: 'Tags (optional)',
+        tagsPlaceholder: 'Enter tags separated by commas (optional)',
         tagsHelp: 'Add relevant tags to help players find your guide',
         estimatedTimeLabel: 'Estimated Reading Time',
         estimatedTimePlaceholder: 'e.g., 5 minutes',
@@ -276,6 +277,12 @@ export const en = {
         categoryRequired: 'Category is required',
         difficultyRequired: 'Difficulty is required'
       }
+    },
+    
+    emptyState: {
+      title: 'No guides found',
+      description: 'There are no guides to display at this time.',
+      actionLabel: 'Create Guide'
     },
     
     status: {
@@ -700,6 +707,10 @@ export const en = {
     postCreatedSuccessfully: 'Post created successfully!',
     postDeletedSuccessfully: 'Post deleted successfully',
     replyCreatedSuccessfully: 'Reply posted successfully!',
+    searchPlaceholder: 'Search...',
+    noResults: 'No search results',
+    tryDifferentTerms: 'Try different search terms',
+    clear: 'Clear',
     replyUpdatedSuccessfully: 'Reply updated successfully!',
     replyDeletedSuccessfully: 'Reply deleted successfully!',
     networkError: 'Network error occurred',

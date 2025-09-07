@@ -4,6 +4,53 @@ import { IndexDefinition, IndexStats } from '@/lib/types'
 // =============================================
 // COMPREHENSIVE DATABASE INDEXES
 // =============================================
+// 
+// This file defines all MongoDB indexes for the Minecraft Server Website.
+// Indexes are optimized for the actual query patterns used in the application.
+//
+// KEY OPTIMIZATION PATTERNS:
+// 
+// 1. AUTHOR-BASED QUERIES (High Impact):
+//    - Uses 'author.id' format (embedded author objects) 
+//    - Compound indexes with status + date sorting for performance
+//    - Examples: idx_blog_author_id_status_published_optimized
+//
+// 2. AGGREGATION PIPELINE SUPPORT:
+//    - authorObjectId indexes support complex aggregation queries
+//    - Sparse indexes since authorObjectId is computed during aggregation
+//    - Examples: idx_forum_author_object_id_status
+//
+// 3. DATE RANGE FILTERING:
+//    - Optimized compound indexes for date ranges with category/status filters
+//    - Blog uses publishedAt, Wiki uses updatedAt, Forum uses createdAt
+//    - Examples: idx_blog_published_date_status_category_optimized
+//
+// 4. SEARCH OPTIMIZATION:
+//    - Category + status + popularity compound indexes for filtered searches
+//    - Text indexes for regex-based category searches (Forum)
+//    - Examples: idx_wiki_category_difficulty_status_popularity_optimized
+//
+// 5. EMBEDDED STATS CONSISTENCY:
+//    - All popularity indexes use 'stats.viewsCount', 'stats.likesCount' format
+//    - Consistent across all content modules (blog, wiki, forum)
+//    - Supports modern embedded stats architecture
+//
+// QUERY PATTERN COVERAGE:
+// - ✅ Slug-based lookups (unique indexes)
+// - ✅ Author filtering ('author.id' compound indexes)  
+// - ✅ Category/status filtering (compound indexes)
+// - ✅ Date range queries (optimized compound indexes)
+// - ✅ Popularity sorting (embedded stats indexes)
+// - ✅ Full-text search (weighted text indexes)
+// - ✅ User interactions (compound unique indexes)
+// - ✅ Aggregation pipelines (authorObjectId support)
+//
+// PERFORMANCE NOTES:
+// - Compound indexes ordered by selectivity (most selective fields first)
+// - Sparse indexes used where fields may not exist (authorObjectId, tags)
+// - Text indexes with custom weights (title:10, content:5, tags:8)
+// - TTL indexes for automatic cleanup (logs, metrics, notifications)
+//
 
 export const COMPREHENSIVE_INDEXES: IndexDefinition[] = [
   // =============================================
@@ -108,6 +155,12 @@ export const COMPREHENSIVE_INDEXES: IndexDefinition[] = [
     index: { author: 1, status: 1, createdAt: -1 },
     options: { name: 'idx_posts_author_status_created' }
   },
+  // NEW: Optimized author queries using embedded author.id format
+  {
+    collection: 'forumPosts',
+    index: { 'author.id': 1, status: 1, createdAt: -1 },
+    options: { name: 'idx_forum_author_id_status_created_optimized' }
+  },
   
   // Post ID lookup (for single post queries)
   {
@@ -139,6 +192,27 @@ export const COMPREHENSIVE_INDEXES: IndexDefinition[] = [
     index: { tags: 1, status: 1, createdAt: -1 },
     options: { name: 'idx_posts_tags_status_created', sparse: true }
   },
+  
+  // NEW: Aggregation pipeline support - authorObjectId filtering
+  {
+    collection: 'forumPosts',
+    index: { authorObjectId: 1, status: 1 },
+    options: { name: 'idx_forum_author_object_id_status', sparse: true }
+  },
+  
+  // NEW: Optimized date range filtering with category support
+  {
+    collection: 'forumPosts',
+    index: { createdAt: -1, status: 1, categoryName: 1 },
+    options: { name: 'idx_forum_created_date_status_category_optimized' }
+  },
+  
+  // NEW: Forum category regex search optimization
+  {
+    collection: 'forumPosts',
+    index: { categoryName: 'text', status: 1, isPinned: -1 },
+    options: { name: 'idx_forum_category_text_search_optimized' }
+  },
 
   // =============================================
   // FORUM REPLIES COLLECTION INDEXES
@@ -157,6 +231,12 @@ export const COMPREHENSIVE_INDEXES: IndexDefinition[] = [
     collection: 'forumReplies',
     index: { author: 1, createdAt: -1 },
     options: { name: 'idx_replies_author_created' }
+  },
+  // NEW: Optimized author queries using embedded author format
+  {
+    collection: 'forumReplies',
+    index: { 'author.id': 1, postId: 1, createdAt: -1 },
+    options: { name: 'idx_replies_author_id_post_created_optimized' }
   },
   {
     collection: 'forumReplies',
@@ -244,6 +324,12 @@ export const COMPREHENSIVE_INDEXES: IndexDefinition[] = [
     index: { author: 1, status: 1, publishedAt: -1 },
     options: { name: 'idx_blog_author_status_published' }
   },
+  // NEW: Optimized author queries using embedded author.id format
+  {
+    collection: 'blogPosts',
+    index: { 'author.id': 1, status: 1, publishedAt: -1 },
+    options: { name: 'idx_blog_author_id_status_published_optimized' }
+  },
   {
     collection: 'blogPosts',
     index: { category: 1, status: 1, publishedAt: -1 },
@@ -256,7 +342,7 @@ export const COMPREHENSIVE_INDEXES: IndexDefinition[] = [
   },
   {
     collection: 'blogPosts',
-    index: { viewCount: -1, likesCount: -1 },
+    index: { 'stats.viewsCount': -1, 'stats.likesCount': -1 },
     options: { name: 'idx_blog_popularity' }
   },
   {
@@ -277,6 +363,27 @@ export const COMPREHENSIVE_INDEXES: IndexDefinition[] = [
     index: { updatedAt: -1 },
     options: { name: 'idx_blog_last_modified' }
   },
+  
+  // NEW: Aggregation pipeline support - authorObjectId filtering
+  {
+    collection: 'blogPosts',
+    index: { authorObjectId: 1, status: 1 },
+    options: { name: 'idx_blog_author_object_id_status', sparse: true }
+  },
+  
+  // NEW: Optimized date range filtering with category support
+  {
+    collection: 'blogPosts',
+    index: { publishedAt: -1, status: 1, category: 1 },
+    options: { name: 'idx_blog_published_date_status_category_optimized' }
+  },
+  
+  // NEW: Search optimization - category + status for filtered searches
+  {
+    collection: 'blogPosts',
+    index: { category: 1, status: 1, 'stats.viewsCount': -1, publishedAt: -1 },
+    options: { name: 'idx_blog_category_status_popularity_optimized' }
+  },
 
   // =============================================
   // WIKI GUIDES COLLECTION INDEXES
@@ -295,6 +402,12 @@ export const COMPREHENSIVE_INDEXES: IndexDefinition[] = [
     collection: 'wikiGuides',
     index: { author: 1, status: 1, createdAt: -1 },
     options: { name: 'idx_wiki_author_status_created' }
+  },
+  // NEW: Optimized author queries using embedded author.id format
+  {
+    collection: 'wikiGuides',
+    index: { 'author.id': 1, status: 1, updatedAt: -1 },
+    options: { name: 'idx_wiki_author_id_status_updated_optimized' }
   },
   {
     collection: 'wikiGuides',
@@ -318,6 +431,27 @@ export const COMPREHENSIVE_INDEXES: IndexDefinition[] = [
       name: 'idx_wiki_fulltext_search',
       weights: { title: 10, content: 5, tags: 8 }
     }
+  },
+  
+  // NEW: Aggregation pipeline support - authorObjectId filtering
+  {
+    collection: 'wikiGuides',
+    index: { authorObjectId: 1, status: 1 },
+    options: { name: 'idx_wiki_author_object_id_status', sparse: true }
+  },
+  
+  // NEW: Optimized date range filtering with category and difficulty support
+  {
+    collection: 'wikiGuides',
+    index: { updatedAt: -1, status: 1, category: 1, difficulty: 1 },
+    options: { name: 'idx_wiki_updated_date_status_category_difficulty_optimized' }
+  },
+  
+  // NEW: Search optimization - category + difficulty + status for filtered searches  
+  {
+    collection: 'wikiGuides',
+    index: { category: 1, difficulty: 1, status: 1, 'stats.viewsCount': -1, updatedAt: -1 },
+    options: { name: 'idx_wiki_category_difficulty_status_popularity_optimized' }
   },
 
   // =============================================
@@ -454,14 +588,23 @@ export const COMPREHENSIVE_INDEXES: IndexDefinition[] = [
 
 export async function createAllIndexes(db: Db): Promise<void> {
   console.log('🔧 Starting comprehensive index creation...')
+  console.log(`📊 Total indexes to create: ${COMPREHENSIVE_INDEXES.length}`)
   
   const results = []
+  const newIndexes = []
   
   for (const indexDef of COMPREHENSIVE_INDEXES) {
     try {
       const collection = db.collection(indexDef.collection)
+      const indexName = indexDef.options?.name || 'unnamed'
       
-      console.log(`Creating index ${indexDef.options?.name || 'unnamed'} on ${indexDef.collection}...`)
+      // Check if this is a new optimization index
+      const isNewIndex = indexName.includes('_optimized') || indexName.includes('_object_id')
+      if (isNewIndex) {
+        newIndexes.push(indexName)
+      }
+      
+      console.log(`Creating index ${indexName} on ${indexDef.collection}...`)
       
       const result = await collection.createIndex(
         indexDef.index,
@@ -470,27 +613,45 @@ export async function createAllIndexes(db: Db): Promise<void> {
       
       results.push({
         collection: indexDef.collection,
-        index: indexDef.options?.name || result,
-        status: 'created'
+        index: indexName,
+        status: 'created',
+        isNew: isNewIndex
       })
       
-      console.log(`✅ Created index: ${indexDef.options?.name || result}`)
+      console.log(`✅ Created index: ${indexName}${isNewIndex ? ' (NEW OPTIMIZATION)' : ''}`)
       
     } catch (error) {
-      console.error(`❌ Failed to create index on ${indexDef.collection}:`, error)
-      results.push({
-        collection: indexDef.collection,
-        index: indexDef.options?.name || 'unknown',
-        status: 'failed',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      })
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error'
+      // Check if error is due to index already existing
+      if (errorMsg.includes('already exists')) {
+        console.log(`⚠️ Index already exists: ${indexDef.options?.name || 'unnamed'} on ${indexDef.collection}`)
+        results.push({
+          collection: indexDef.collection,
+          index: indexDef.options?.name || 'unknown',
+          status: 'exists'
+        })
+      } else {
+        console.error(`❌ Failed to create index on ${indexDef.collection}:`, error)
+        results.push({
+          collection: indexDef.collection,
+          index: indexDef.options?.name || 'unknown',
+          status: 'failed',
+          error: errorMsg
+        })
+      }
     }
   }
   
   console.log('\n📊 Index Creation Summary:')
-  console.log(`✅ Successful: ${results.filter(r => r.status === 'created').length}`)
+  console.log(`✅ Successfully created: ${results.filter(r => r.status === 'created').length}`)
+  console.log(`⚠️ Already existed: ${results.filter(r => r.status === 'exists').length}`)
   console.log(`❌ Failed: ${results.filter(r => r.status === 'failed').length}`)
-  console.log(`📈 Total: ${results.length}`)
+  console.log(`📈 Total processed: ${results.length}`)
+  
+  if (newIndexes.length > 0) {
+    console.log('\n🚀 New optimization indexes added:')
+    newIndexes.forEach(name => console.log(`  - ${name}`))
+  }
   
   const failed = results.filter(r => r.status === 'failed')
   if (failed.length > 0) {
@@ -564,11 +725,47 @@ export async function validateIndexes(db: Db): Promise<boolean> {
   // Test queries that should use indexes efficiently
   // Using placeholder ObjectIds for validation queries
   const testObjectId = new ObjectId()
+  const testUserId = testObjectId.toString()
   const testQueries = [
     {
       collection: 'forumPosts',
-      query: { categoryId: testObjectId, status: 'active' },
-      description: 'Posts by category and status'
+      query: { categoryName: 'general', status: 'published' },
+      description: 'Forum posts by category and status'
+    },
+    {
+      collection: 'forumPosts',
+      query: { 'author.id': testUserId, status: 'published' },
+      description: 'Forum posts by author.id (NEW INDEX)'
+    },
+    {
+      collection: 'forumPosts',
+      query: { authorObjectId: testObjectId, status: 'published' },
+      description: 'Forum posts by authorObjectId (NEW INDEX)'
+    },
+    {
+      collection: 'blogPosts',
+      query: { 'author.id': testUserId, status: 'published' },
+      description: 'Blog posts by author.id (NEW INDEX)'
+    },
+    {
+      collection: 'blogPosts',
+      query: { category: 'tech', status: 'published', 'stats.viewsCount': { $gte: 0 } },
+      description: 'Blog posts category + popularity (NEW INDEX)'
+    },
+    {
+      collection: 'wikiGuides',
+      query: { 'author.id': testUserId, status: 'published' },
+      description: 'Wiki guides by author.id (NEW INDEX)'
+    },
+    {
+      collection: 'wikiGuides',
+      query: { category: 'getting-started', difficulty: 'beginner', status: 'published' },
+      description: 'Wiki guides by category + difficulty + status (NEW INDEX)'
+    },
+    {
+      collection: 'forumReplies',
+      query: { 'author.id': testUserId, postId: testObjectId },
+      description: 'Forum replies by author.id + postId (NEW INDEX)'
     },
     {
       collection: 'forumReplies',
@@ -582,7 +779,7 @@ export async function validateIndexes(db: Db): Promise<boolean> {
     },
     {
       collection: 'userInteractions',
-      query: { userId: testObjectId, targetType: 'post', interactionType: 'like' },
+      query: { userId: testUserId, targetType: 'post', interactionType: 'like' },
       description: 'User interactions'
     }
   ]

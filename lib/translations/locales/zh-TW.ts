@@ -250,7 +250,8 @@ export const zhTW = {
     forms: {
       create: {
         title: '建立知識庫指南',
-        description: '與社群分享你的知識'
+        description: '與社群分享你的知識',
+        submitButton: '建立新指南'
       },
       createGuide: {
         title: '建立知識庫指南',
@@ -265,8 +266,8 @@ export const zhTW = {
         categoryPlaceholder: '選擇一個分類',
         difficultyLabel: '難度',
         difficultyPlaceholder: '選擇難度等級',
-        tagsLabel: '標籤',
-        tagsPlaceholder: '輸入標籤，以逗號分隔',
+        tagsLabel: '標籤（選填）',
+        tagsPlaceholder: '輸入標籤，以逗號分隔（選填）',
         tagsHelp: '新增相關標籤以幫助玩家找到你的指南',
         estimatedTimeLabel: '預估閱讀時間',
         estimatedTimePlaceholder: '例如：5 分鐘',
@@ -289,6 +290,12 @@ export const zhTW = {
         categoryRequired: '分類為必填',
         difficultyRequired: '難度為必填'
       }
+    },
+    
+    emptyState: {
+      title: '未找到指南',
+      description: '目前沒有指南可以顯示。',
+      actionLabel: '建立指南'
     },
     
     status: {
@@ -700,6 +707,10 @@ export const zhTW = {
     postCreatedSuccessfully: '貼文建立成功！',
     postDeletedSuccessfully: '貼文刪除成功',
     replyCreatedSuccessfully: '回覆發布成功！',
+    searchPlaceholder: '搜尋...',
+    noResults: '無搜尋結果',
+    tryDifferentTerms: '請嘗試不同的搜尋條件',
+    clear: '清除',
     replyUpdatedSuccessfully: '回覆更新成功！',
     replyDeletedSuccessfully: '回覆刪除成功！',
     networkError: '網路連線錯誤',

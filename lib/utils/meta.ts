@@ -96,7 +96,7 @@ export function generateForumMetaDescription(
   options?: MetaDescriptionOptions
 ): string {
   return generateMetaDescription(content, excerpt, {
-    maxLength: 155, // Slightly shorter for forum posts
+    maxLength: 160, // Consistent with other modules
     ...options
   })
 }

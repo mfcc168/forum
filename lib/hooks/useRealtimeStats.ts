@@ -49,8 +49,8 @@ export function useRealtimeStats(options: UseRealtimeStatsOptions = {}) {
   const [connectionState, setConnectionState] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>('disconnected')
   const [lastUpdate, setLastUpdate] = useState<number>(0)
 
-  // WebSocket URL (you can make this configurable)
-  const wsUrl = `ws://localhost:3001${session?.user?.id ? `?userId=${session.user.id}` : ''}`
+  // WebSocket URL from environment or fallback to localhost for development
+  const wsUrl = `${process.env.NEXT_PUBLIC_WEBSOCKET_URL || 'ws://localhost:3001'}${session?.user?.id ? `?userId=${session.user.id}` : ''}`
 
   const log = useCallback((message: string, data?: unknown) => {
     if (debug) {
@@ -91,7 +91,7 @@ export function useRealtimeStats(options: UseRealtimeStatsOptions = {}) {
           log('Received message:', message)
 
           if (message.type === 'stats_update') {
-            handleStatsUpdate(message as StatsUpdateMessage)
+            handleStatsUpdate(message as unknown as StatsUpdateMessage)
           } else if (message.type === 'ping') {
             // Respond to server ping
             ws.send(JSON.stringify({ type: 'pong', timestamp: Date.now() }))

@@ -13,7 +13,7 @@ import type { ForumCategory, ForumPost } from '@/lib/types'
 // FORUM-SPECIFIC OPTIONS
 // ============================================================================
 
-export interface UsePostsOptions extends UseContentOptions<'forum'> {
+export interface UseForumPostsOptions extends UseContentOptions<'forum'> {
   category?: string
   categoryName?: string
   isPinned?: boolean
@@ -28,27 +28,27 @@ export interface UsePostsOptions extends UseContentOptions<'forum'> {
 /**
  * Fetch forum posts with filtering and pagination
  */
-export function useForumPosts(options: UsePostsOptions = {}) {
+export function useForumPosts(options: UseForumPostsOptions = {}) {
   return forumHooks.useContent(options)
 }
 
 /**
  * Infinite scrolling forum posts
  */
-export function useInfiniteForumPosts(options: Omit<UsePostsOptions, 'page'> = {}) {
+export function useInfiniteForumPosts(options: Omit<UseForumPostsOptions, 'page'> = {}) {
   return forumHooks.useInfiniteContent(options as UseInfiniteContentOptions<'forum'>)
 }
 
 /**
  * Fetch single forum post by slug
  */
-export function useForumPost(postSlug: string, options: { 
+export function useForumPost(slug: string, options: { 
   enabled?: boolean; 
   initialData?: ForumPost;
   refetchOnMount?: boolean;
   staleTime?: number;
 } = {}) {
-  return forumHooks.useContentItem(postSlug, options)
+  return forumHooks.useContentItem(slug, options)
 }
 
 /**
@@ -82,6 +82,17 @@ export function useForumPostInteraction() {
 // ============================================================================
 // FORUM-SPECIFIC HOOKS
 // ============================================================================
+
+/**
+ * Search forum posts
+ */
+export function useForumSearch(query: string, options: Omit<UseForumPostsOptions, 'search'> = {}) {
+  return useForumPosts({
+    ...options,
+    search: query,
+    enabled: !!query && query.length >= 1 // Allow single character searches
+  })
+}
 
 /**
  * Get forum statistics
@@ -139,15 +150,15 @@ export function useAdminPostAction() {
   
   return useMutation({
     mutationFn: async ({ 
-      postSlug, 
+      slug, 
       action, 
       value 
     }: { 
-      postSlug: string
+      slug: string
       action: 'pin' | 'lock' | 'feature'
       value: boolean 
     }) => {
-      const response = await fetch(`/api/forum/posts/${postSlug}/admin`, {
+      const response = await fetch(`/api/forum/posts/${slug}/admin`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action, value })
@@ -160,9 +171,9 @@ export function useAdminPostAction() {
       
       return response.json()
     },
-    onSuccess: (data, { postSlug, action, value }) => {
+    onSuccess: (data, { slug, action, value }) => {
       // Update post in cache
-      queryClient.setQueryData(['forum-content', postSlug], (old: ForumPost | undefined) => {
+      queryClient.setQueryData(['forum-content', slug], (old: ForumPost | undefined) => {
         if (!old) return old
         return {
           ...old,
@@ -203,5 +214,29 @@ export function usePopularForumPosts(limit = 10) {
     },
     staleTime: 10 * 60 * 1000, // 10 minutes
     gcTime: 30 * 60 * 1000     // 30 minutes
+  })
+}
+
+/**
+ * Get recent forum posts
+ */
+export function useRecentForumPosts(limit = 10) {
+  return useQuery({
+    queryKey: ['recent-forum-posts', limit],
+    queryFn: async (): Promise<ForumPost[]> => {
+      const response = await fetch(`/api/forum/posts?sortBy=latest&limit=${limit}&status=published`)
+      if (!response.ok) {
+        throw new Error('Failed to fetch recent forum posts')
+      }
+      
+      const result = await response.json()
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to fetch recent forum posts')
+      }
+      
+      return result.data || []
+    },
+    staleTime: 5 * 60 * 1000,  // 5 minutes - matches other recent hooks
+    gcTime: 15 * 60 * 1000     // 15 minutes
   })
 }

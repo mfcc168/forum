@@ -11,14 +11,20 @@ import type { WikiGuide } from '@/lib/types'
 
 interface WikiDetailProps {
   guide: WikiGuide
-  showCategory?: boolean
-  layout?: 'card' | 'list'
+  showActions?: boolean
+  showMeta?: boolean
+  layout?: 'card' | 'page'
+  currentUserId?: string
+  onGuideDeleted?: () => void
 }
 
 export const WikiDetail = memo(function WikiDetail({ 
   guide, 
-  showCategory = true,
-  layout = 'card'
+  showActions = true,
+  showMeta = true,
+  layout = 'card',
+  currentUserId: _currentUserId, // Reserved for future features
+  onGuideDeleted
 }: WikiDetailProps) {
   const { data: session } = useSession()
   const interactionMutation = useWikiGuideInteraction()
@@ -65,7 +71,7 @@ export const WikiDetail = memo(function WikiDetail({
     'community': 'Community',
   } as const
 
-  if (layout === 'list') {
+  if (layout === 'card' && !showActions) {
     return (
       <Link href={`/wiki/${guide.slug}`}>
         <div className="minecraft-card p-6 hover:shadow-lg transition-all duration-200 cursor-pointer">
@@ -88,7 +94,7 @@ export const WikiDetail = memo(function WikiDetail({
               
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4 text-xs text-slate-500">
-                  {showCategory && (
+                  {showMeta && (
                     <span className={`px-2 py-1 rounded-full ${categoryColors[guide.category]}`}>
                       {categoryNames[guide.category]}
                     </span>
@@ -182,7 +188,7 @@ export const WikiDetail = memo(function WikiDetail({
           {/* Footer */}
           <div className="flex items-center justify-between pt-4 border-t border-slate-100">
             <div className="flex items-center gap-3 text-xs text-slate-500">
-              {showCategory && (
+              {showMeta && (
                 <span className={`px-2 py-1 rounded-full ${categoryColors[guide.category]}`}>
                   {categoryNames[guide.category]}
                 </span>

@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { getServerUser } from '@/lib/auth/server'
-import CreateForumContent from './CreateForumContent'
+import { PermissionChecker } from '@/lib/utils/permissions'
+import CreateForumContent from '@/app/forum/create/CreateForumContent'
 
 export default async function CreateForumPage() {
   // Server-side authentication check
@@ -10,8 +11,10 @@ export default async function CreateForumPage() {
     redirect('/login')
   }
   
-  // All logged-in users can create forum posts
-  // No role restriction needed
+  // Check forum creation permissions using centralized system
+  if (!PermissionChecker.canCreate(user, 'forum')) {
+    redirect('/forum')
+  }
 
   return <CreateForumContent />
 }

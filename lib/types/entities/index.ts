@@ -55,6 +55,7 @@ export type {
   ApiResponse,
   PaginationMeta,
   ContentFilters,
+  BlogFilters,
   PostFilters,
   WikiFilters,
   UserFilters,
@@ -67,7 +68,7 @@ export type {
   PaginatedResponse,
   PaginatedResult,
   ContentResponse,
-  BaseInteractionResponse,
+  InteractionResponse,
   DetailedInteractionResponse
 } from './api'
 
@@ -124,6 +125,7 @@ export type {
   ExtractResponseData,
   FilterOptions,
   ContentItem,
+  PartialContentItem,
   PermissionUser,
   // Error handling
   AppError,
@@ -136,3 +138,13 @@ export type {
   IndexDefinition,
   IndexStats
 } from './utils'
+
+// ============================================================================
+// TRANSLATIONS
+// ============================================================================
+export type {
+  TranslationStructure,
+  TranslationKey,
+  TranslationFunction,
+  TranslationContext
+} from './translations'

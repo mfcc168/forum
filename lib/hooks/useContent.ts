@@ -114,7 +114,17 @@ export function useContent<T extends ContentType>(
         throw new Error(result.error || `Failed to fetch ${CONTENT_NAMES[type]}s`)
       }
       
-      return result.data?.posts || result.data?.guides || result.data || []
+      // Extract data based on content type to avoid false fallbacks with empty arrays
+      if (result.data?.blogPosts !== undefined) {
+        return result.data.blogPosts
+      }
+      if (result.data?.forumPosts !== undefined) {
+        return result.data.forumPosts
+      }
+      if (result.data?.wikiGuides !== undefined) {
+        return result.data.wikiGuides
+      }
+      return result.data || []
     },
     enabled,
     initialData,
@@ -177,7 +187,7 @@ export function useInfiniteContent<T extends ContentType>(
       }
       
       return {
-        items: result.data?.posts || result.data?.guides || result.data || [],
+        items: result.data?.blogPosts || result.data?.forumPosts || result.data?.wikiGuides || result.data || [],
         pagination: result.data?.pagination || { 
           page: pageParam, 
           pages: 1, 
@@ -233,7 +243,7 @@ export function useContentItem<T extends ContentType>(
         throw new Error(result.error || `Failed to fetch ${CONTENT_NAMES[type]}`)
       }
       
-      const contentData = result.data?.post || result.data?.guide || result.data
+      const contentData = result.data?.blogPost || result.data?.forumPost || result.data?.wikiGuide || result.data
       
       // Extract the actual content item from the API response structure
       return contentData
@@ -254,6 +264,7 @@ export function useContentItem<T extends ContentType>(
  */
 export function useCreateContent<T extends ContentType>(type: T) {
   const queryClient = useQueryClient()
+  const { data: session } = useSession()
   
   return useMutation({
     mutationFn: async (data: Partial<ContentTypeMap[T]>): Promise<ContentTypeMap[T]> => {
@@ -273,9 +284,31 @@ export function useCreateContent<T extends ContentType>(type: T) {
         throw new Error(result.error || `Failed to create ${CONTENT_NAMES[type]}`)
       }
       
-      return result.data
+      // Extract the created item from the nested response
+      // API responses are { blogPost: post }, { wikiGuide: guide }, { forumPost: post }
+      const responseData = result.data as Record<string, unknown>
+      if (type === 'blog' && 'blogPost' in responseData) {
+        return responseData.blogPost as ContentTypeMap[T]
+      } else if (type === 'wiki' && 'wikiGuide' in responseData) {
+        return responseData.wikiGuide as ContentTypeMap[T]
+      } else if (type === 'forum' && 'forumPost' in responseData) {
+        return responseData.forumPost as ContentTypeMap[T]
+      }
+      
+      // Fallback for unexpected response structure
+      return responseData as unknown as ContentTypeMap[T]
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Pre-warm the cache for the created item's detail page
+      // This allows immediate redirect to detail page without additional API call
+      const slug = data.slug || data.id
+      if (slug) {
+        queryClient.setQueryData(
+          [`${type}-content`, slug, session?.user?.id || 'anonymous'],
+          data
+        )
+      }
+      
       // Invalidate related queries with broader scope
       queryClient.invalidateQueries({ queryKey: [`${type}-content`] })
       queryClient.invalidateQueries({ queryKey: [`${type}-stats`] })
@@ -325,7 +358,19 @@ export function useUpdateContent<T extends ContentType>(type: T) {
         throw new Error(result.error || `Failed to update ${CONTENT_NAMES[type]}`)
       }
       
-      return result.data
+      // Extract the updated item from the nested response
+      // API responses are { blogPost: post }, { wikiGuide: guide }, { forumPost: post }
+      const responseData = result.data as Record<string, unknown>
+      if (type === 'blog' && 'blogPost' in responseData) {
+        return responseData.blogPost as ContentTypeMap[T]
+      } else if (type === 'wiki' && 'wikiGuide' in responseData) {
+        return responseData.wikiGuide as ContentTypeMap[T]
+      } else if (type === 'forum' && 'forumPost' in responseData) {
+        return responseData.forumPost as ContentTypeMap[T]
+      }
+      
+      // Fallback for unexpected response structure
+      return responseData as unknown as ContentTypeMap[T]
     },
     onSuccess: (data, { slug }) => {
       // Update specific item cache

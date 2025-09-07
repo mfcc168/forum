@@ -65,9 +65,7 @@ export const forumQuerySchema = paginationSchema.extend({
 
 export type ForumQueryData = z.infer<typeof forumQuerySchema>
 
-// DEPRECATED: Use generateSlug from @/lib/utils/slug instead
-// This function will be removed in a future version
-export { generateSlug as generateForumSlug } from '@/lib/utils/slug'
+export { generateSlug } from '@/lib/utils/slug'
 
 // Enhanced Forum Reply Creation Schema
 export const createReplySchema = z.object({
@@ -137,3 +135,72 @@ export const deletePostSchema = z.object({
 export type DeletePostData = z.infer<typeof deletePostSchema>
 
 // Note: Legacy response schemas removed - use proper API types from @/lib/types instead
+
+// Forum Category Schema (for admin/internal use - consistent with blog/wiki pattern)
+export const forumCategorySchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  slug: z.string(),
+  description: z.string().optional(),
+  postCount: z.number().default(0),
+  color: z.string().optional(),
+  isActive: z.boolean().default(true),
+  order: z.number().default(0),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  stats: z.object({
+    postsCount: z.number(),
+    viewsCount: z.number(),
+  }),
+})
+
+export type ForumCategory = z.infer<typeof forumCategorySchema>
+
+// Forum Categories Response Schema
+export const forumCategoriesResponseSchema = z.object({
+  success: z.boolean(),
+  message: z.string().optional(),
+  data: z.array(forumCategorySchema),
+})
+
+export type ForumCategoriesResponse = z.infer<typeof forumCategoriesResponseSchema>
+
+// Forum Stats Schema (consistent with blog/wiki pattern)
+export const forumStatsSchema = z.object({
+  totalPosts: z.number(),
+  publishedPosts: z.number(),
+  activePosts: z.number(),
+  lockedPosts: z.number(),
+  totalReplies: z.number(),
+  totalViews: z.number(),
+  totalLikes: z.number(),
+  categoriesCount: z.number(),
+  averagePostsPerCategory: z.number(),
+  mostActiveCategory: z.string().optional(),
+  recentActivity: z.object({
+    postsToday: z.number(),
+    postsThisWeek: z.number(),
+    postsThisMonth: z.number(),
+    repliesToday: z.number(),
+    repliesThisWeek: z.number(),
+    repliesThisMonth: z.number(),
+  }),
+})
+
+export type ForumStats = z.infer<typeof forumStatsSchema>
+
+// Forum Stats Response Schema
+export const forumStatsResponseSchema = z.object({
+  success: z.boolean(),
+  message: z.string().optional(),
+  data: forumStatsSchema,
+})
+
+export type ForumStatsResponse = z.infer<typeof forumStatsResponseSchema>
+
+// Forum Post Slug Parameter Schema (consistent with blog/wiki)
+export const forumSlugSchema = z.object({
+  slug: z.string().min(1, 'Slug is required'),
+})
+
+export type ForumSlugData = z.infer<typeof forumSlugSchema>

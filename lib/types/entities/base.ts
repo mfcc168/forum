@@ -31,7 +31,8 @@ export interface ContentStats {
   sharesCount: number           // Consistent with existing codebase
   repliesCount?: number         // Optional for blog/wiki
   helpfulsCount?: number        // Optional for wiki only - consistent plural naming
-  [key: string]: number | undefined  // Allow dynamic stat properties
+  // Additional stat properties for extensibility
+  [key: `${string}Count`]: number | undefined
 }
 
 /** User interaction state for content (client-side display) */

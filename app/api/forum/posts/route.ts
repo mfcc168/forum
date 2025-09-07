@@ -23,7 +23,7 @@ export const GET = withDALAndValidation(
     )
 
     return ApiResponse.success({
-      posts: result.data,
+      forumPosts: result.data,
       pagination: result.pagination,
       filters: { category, search, sortBy, status }
     })
@@ -97,7 +97,7 @@ export const POST = withDALAndValidation(
       revalidateTag('forum-categories')
 
       return ApiResponse.success(
-        { post },
+        { forumPost: post },
         'Post created successfully'
       )
       
