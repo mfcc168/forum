@@ -389,7 +389,7 @@ function SearchTipsPanel() {
                   <li><code className="bg-slate-100 px-1 rounded">author:username</code> - Find content by specific author</li>
                   <li><code className="bg-slate-100 px-1 rounded">category:builds</code> - Filter by category</li>
                   <li><code className="bg-slate-100 px-1 rounded">tag:redstone</code> - Filter by tags</li>
-                  <li><code className="bg-slate-100 px-1 rounded">"exact phrase"</code> - Search for exact phrases</li>
+                  <li><code className="bg-slate-100 px-1 rounded">&ldquo;exact phrase&rdquo;</code> - Search for exact phrases</li>
                 </ul>
               </div>
               

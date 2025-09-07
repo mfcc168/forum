@@ -80,6 +80,7 @@ const ClientNavigation = () => {
     { name: t.nav.wiki, path: '/wiki' },
     { name: t.nav.blog, path: '/blog' },
     { name: t.nav.forum, path: '/forum' },
+    { name: t.nav.dex, path: '/dex' },
   ];
 
   return (

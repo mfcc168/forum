@@ -10,6 +10,7 @@ import { ForumDAL } from './forum'
 import { BlogDAL } from './blog'
 import { UserDAL } from './user'
 import { WikiDAL } from './wiki'
+import { DexDAL } from './dex'
 import { 
   AnalyticsDAL, 
   ServerMetricsDAL, 
@@ -25,6 +26,7 @@ export {
   BlogDAL, 
   UserDAL, 
   WikiDAL,
+  DexDAL,
   AnalyticsDAL,
   ServerMetricsDAL,
   ActivityLogDAL,
@@ -77,6 +79,7 @@ export class DAL {
   private static _blog: BlogDAL
   private static _user: UserDAL
   private static _wiki: WikiDAL
+  private static _dex: DexDAL
   private static _analytics: AnalyticsDAL
 
   /**
@@ -117,6 +120,16 @@ export class DAL {
       this._wiki = new WikiDAL()
     }
     return this._wiki
+  }
+
+  /**
+   * Dex operations
+   */
+  static get dex(): DexDAL {
+    if (!this._dex) {
+      this._dex = new DexDAL()
+    }
+    return this._dex
   }
 
   /**

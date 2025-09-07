@@ -5,6 +5,7 @@ export const zhTW = {
     wiki: '遊戲指南',
     blog: '最新消息',
     forum: '討論區',
+    dex: '怪物圖鑑',
     serverName: '秘汐之嶼',
   },
   
@@ -318,6 +319,127 @@ export const zhTW = {
       creating: '建立中...',
       editing: '更新中...',
       helpful: '有幫助',
+      like: '喜歡',
+      bookmark: '書籤',
+      share: '分享'
+    }
+  },
+  
+  // Dex Page
+  dex: {
+    title: '怪物圖鑑',
+    subtitle: '發現我們 Minecraft 世界中的所有生物和怪物',
+    pageTitle: '怪物圖鑑',
+    pageDescription: '所有怪物和生物的完整指南',
+    
+    welcome: {
+      title: '歡迎來到怪物圖鑑',
+      description: '探索伺服器中所有生物的詳細資訊。了解牠們的行為、生成條件和掉落物品。',
+    },
+    
+    categories: {
+      hostile: '敵對',
+      passive: '被動',
+      neutral: '中立',
+      boss: '魔王'
+    },
+    
+    stats: {
+      health: '生命值',
+      damage: '攻擊力',
+      speed: '速度',
+      xpDrop: '經驗值',
+      monsters: '總怪物數',
+      totalViews: '總瀏覽量',
+      totalLikes: '總喜歡數',
+      categories: '分類'
+    },
+    
+    spawning: {
+      title: '生成資訊',
+      worlds: '世界',
+      biomes: '生態域',
+      conditions: '條件',
+      structures: '結構',
+      timeOfDay: '時間',
+      lightLevel: '亮度等級'
+    },
+    
+    behaviors: {
+      title: '行為'
+    },
+    
+    drops: {
+      title: '物品掉落',
+      rare: '稀有',
+      dropChance: '掉落機率',
+      quantity: '數量'
+    },
+    
+    tags: {
+      title: '標籤'
+    },
+    
+    detail: {
+      loading: '載入怪物資訊中...',
+      notFound: '找不到怪物',
+      notFoundDescription: '此怪物資訊不可用。',
+      backToDex: '← 返回圖鑑'
+    },
+    
+    forms: {
+      create: {
+        title: '新增怪物',
+        description: '向圖鑑新增怪物',
+        submitButton: '新增怪物',
+        nameLabel: '怪物名稱',
+        namePlaceholder: '輸入怪物名稱...',
+        descriptionLabel: '描述',
+        descriptionPlaceholder: '描述怪物...',
+        excerptLabel: '摘要',
+        excerptPlaceholder: '簡短描述...',
+        categoryLabel: '分類',
+        modelLabel: '模型',
+        behaviorsLabel: '行為',
+        healthLabel: '生命值',
+        damageLabel: '攻擊力',
+        speedLabel: '速度',
+        xpDropLabel: '經驗值',
+        worldsLabel: '世界',
+        biomesLabel: '生態域',
+        structuresLabel: '結構',
+        lightLevelLabel: '亮度等級',
+        timeOfDayLabel: '時間',
+        spawnRateLabel: '生成機率',
+        tagsLabel: '標籤',
+        statusLabel: '狀態'
+      }
+    },
+    
+    search: {
+      placeholder: '搜尋怪物...'
+    },
+    
+    filters: {
+      allCategories: '所有分類'
+    },
+    
+    actions: {
+      createMonster: '新增怪物'
+    },
+    
+    results: {
+      showing: '顯示',
+      of: '共',
+      monsters: '隻怪物'
+    },
+    
+    empty: {
+      title: '找不到怪物',
+      description: '請調整搜尋條件或篩選器以找到更多怪物。'
+    },
+    
+    interactions: {
       like: '喜歡',
       bookmark: '書籤',
       share: '分享'
@@ -682,6 +804,129 @@ export const zhTW = {
     memberNotice: {
       title: '參與討論',
       description: '登入以參與討論並與社群分享您的想法。'
+    }
+  },
+
+  // Dex (Monster) Page
+  dex: {
+    title: '怪物圖鑑',
+    subtitle: '探索我們 Minecraft 伺服器中的所有生物',
+    pageTitle: '怪物圖鑑',
+    pageDescription: '探索我們 Minecraft 伺服器中的所有生物',
+    welcome: {
+      title: '怪物圖鑑',
+      description: '探索我們伺服器中的怪物與生物'
+    },
+    
+    stats: {
+      monsters: '怪物總數',
+      totalViews: '總瀏覽量'
+    },
+    
+    search: {
+      placeholder: '搜尋怪物...'
+    },
+    
+    filters: {
+      allCategories: '所有分類'
+    },
+    
+    results: {
+      showing: '顯示',
+      of: '共',
+      monsters: '怪物'
+    },
+    
+    empty: {
+      title: '找不到怪物',
+      description: '請調整搜尋條件或篩選器以尋找更多怪物。'
+    },
+    
+    categories: {
+      hostile: '敵對',
+      passive: '被動',
+      neutral: '中立',
+      boss: '頭目'
+    },
+    
+    spawning: {
+      common: '常見',
+      uncommon: '不常見',
+      rare: '稀有',
+      legendary: '傳說'
+    },
+    
+    detail: {
+      combatStats: '戰鬥數據',
+      health: '血量',
+      damage: '傷害',
+      speed: '速度',
+      xpDrop: '經驗值',
+      behaviors: '行為',
+      spawningInfo: '生成資訊',
+      worlds: '世界',
+      biomes: '生態系',
+      structures: '結構',
+      conditions: '條件',
+      time: '時間',
+      light: '光照',
+      rarity: '稀有度',
+      drops: '掉落物',
+      chance: '機率',
+      quantity: '數量',
+      loading3d: '載入 3D 模型中...',
+      model3d: '3D 模型'
+    },
+    
+    forms: {
+      create: {
+        title: '建立怪物',
+        description: '新增生物至怪物圖鑑',
+        submitButton: '建立怪物',
+        nameLabel: '怪物名稱',
+        namePlaceholder: '輸入怪物名稱...',
+        modelLabel: '3D 模型',
+        modelPlaceholder: '選擇 3D 模型...',
+        modelHelp: '從可用的 GLTF 模型中選擇',
+        categoryLabel: '分類',
+        excerptLabel: '摘要',
+        excerptPlaceholder: '怪物的簡短描述...',
+        descriptionLabel: '描述',
+        descriptionPlaceholder: '描述怪物的能力和特徵...',
+        tagsLabel: '標籤',
+        tagsPlaceholder: '頭目, 火焰, 地獄...',
+        tagsHelp: '用逗號分隔相關標籤',
+        statusLabel: '狀態'
+      },
+      edit: {
+        title: '編輯怪物',
+        description: '更新怪物詳細資訊'
+      },
+      errors: {
+        nameRequired: '怪物名稱為必填',
+        modelRequired: '請選擇 3D 模型',
+        categoryRequired: '分類為必填',
+        descriptionRequired: '描述為必填',
+        healthRequired: '血量為必填',
+        damageRequired: '傷害為必填',
+        speedRequired: '速度為必填',
+        xpRequired: '經驗值為必填'
+      }
+    },
+    
+    actions: {
+      like: '喜歡',
+      bookmark: '收藏',
+      share: '分享',
+      favorite: '最愛',
+      edit: '編輯',
+      delete: '刪除',
+      deleting: '刪除中...',
+      createMonster: '建立怪物',
+      editMonster: '編輯怪物',
+      deleteMonster: '刪除怪物',
+      viewMonster: '查看怪物',
+      backToDex: '返回圖鑑'
     }
   },
 

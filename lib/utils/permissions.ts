@@ -21,6 +21,7 @@ export class PermissionChecker {
     switch (module) {
       case 'wiki':
       case 'blog':
+      case 'dex':
         return user.role === 'admin'
       case 'forum':
         return ['admin', 'moderator', 'vip', 'member'].includes(user.role)
@@ -42,6 +43,7 @@ export class PermissionChecker {
     switch (module) {
       case 'wiki':
       case 'blog':
+      case 'dex':
         return user.role === 'admin'
       case 'forum':
         const isAuthor = content?.author?.id === user.id
@@ -64,6 +66,7 @@ export class PermissionChecker {
     switch (module) {
       case 'wiki':
       case 'blog':
+      case 'dex':
         return user.role === 'admin'
       case 'forum':
         const isAuthor = content?.author?.id === user.id
@@ -85,6 +88,7 @@ export class PermissionChecker {
     switch (module) {
       case 'wiki':
       case 'blog':
+      case 'dex':
         return user.role === 'admin'
       case 'forum':
         return ['admin', 'moderator'].includes(user.role)

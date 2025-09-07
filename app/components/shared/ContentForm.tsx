@@ -45,7 +45,7 @@ export interface ContentFormConfig<T = ContentItem> {
     create: ZodSchema
     update: ZodSchema
   }
-  module: 'blog' | 'wiki' | 'forum' // Required for centralized permission checking
+  module: 'blog' | 'wiki' | 'forum' | 'dex' // Required for centralized permission checking
   submitText: {
     create: string
     edit: string

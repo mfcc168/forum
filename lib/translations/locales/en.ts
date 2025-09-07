@@ -5,6 +5,7 @@ export const en = {
     wiki: 'Wiki',
     blog: 'Blog',
     forum: 'Forum',
+    dex: 'Dex',
     serverName: 'Mystic Tidal Isle',
   },
   
@@ -305,6 +306,127 @@ export const en = {
       creating: 'Creating...',
       editing: 'Updating...',
       helpful: 'Helpful',
+      like: 'Like',
+      bookmark: 'Bookmark',
+      share: 'Share'
+    }
+  },
+  
+  // Dex Page
+  dex: {
+    title: 'Monster Dex',
+    subtitle: 'Discover all creatures and monsters in our Minecraft world',
+    pageTitle: 'Dex',
+    pageDescription: 'Complete guide to all monsters and creatures',
+    
+    welcome: {
+      title: 'Welcome to the Monster Dex',
+      description: 'Explore detailed information about all the creatures you can encounter on our server. Learn about their behaviors, spawning conditions, and drops.',
+    },
+    
+    categories: {
+      hostile: 'Hostile',
+      passive: 'Passive', 
+      neutral: 'Neutral',
+      boss: 'Boss'
+    },
+    
+    stats: {
+      health: 'Health',
+      damage: 'Damage',
+      speed: 'Speed',
+      xpDrop: 'XP Drop',
+      monsters: 'Total Monsters',
+      totalViews: 'Total Views',
+      totalLikes: 'Total Likes',
+      categories: 'Categories'
+    },
+    
+    spawning: {
+      title: 'Spawning Information',
+      worlds: 'Worlds',
+      biomes: 'Biomes',
+      conditions: 'Conditions',
+      structures: 'Structures',
+      timeOfDay: 'Time',
+      lightLevel: 'Light Level'
+    },
+    
+    behaviors: {
+      title: 'Behaviors'
+    },
+    
+    drops: {
+      title: 'Item Drops',
+      rare: 'RARE',
+      dropChance: 'Drop Chance',
+      quantity: 'Quantity'
+    },
+    
+    tags: {
+      title: 'Tags'
+    },
+    
+    detail: {
+      loading: 'Loading monster...',
+      notFound: 'Monster Not Found',
+      notFoundDescription: 'This monster information is not available.',
+      backToDex: '← Back to Dex'
+    },
+    
+    forms: {
+      create: {
+        title: 'Add Monster',
+        description: 'Add a new monster to the dex',
+        submitButton: 'Add Monster',
+        nameLabel: 'Monster Name',
+        namePlaceholder: 'Enter monster name...',
+        descriptionLabel: 'Description',
+        descriptionPlaceholder: 'Describe the monster...',
+        excerptLabel: 'Excerpt',
+        excerptPlaceholder: 'Short description...',
+        categoryLabel: 'Category',
+        modelLabel: 'Model',
+        behaviorsLabel: 'Behaviors',
+        healthLabel: 'Health',
+        damageLabel: 'Damage',
+        speedLabel: 'Speed',
+        xpDropLabel: 'XP Drop',
+        worldsLabel: 'Worlds',
+        biomesLabel: 'Biomes',
+        structuresLabel: 'Structures',
+        lightLevelLabel: 'Light Level',
+        timeOfDayLabel: 'Time of Day',
+        spawnRateLabel: 'Spawn Rate',
+        tagsLabel: 'Tags',
+        statusLabel: 'Status'
+      }
+    },
+    
+    search: {
+      placeholder: 'Search monsters...'
+    },
+    
+    filters: {
+      allCategories: 'All Categories'
+    },
+    
+    actions: {
+      createMonster: 'Create Monster'
+    },
+    
+    results: {
+      showing: 'Showing',
+      of: 'of',
+      monsters: 'monsters'
+    },
+    
+    empty: {
+      title: 'No monsters found',
+      description: 'Try adjusting your search or filters to find more monsters.'
+    },
+    
+    interactions: {
       like: 'Like',
       bookmark: 'Bookmark',
       share: 'Share'
@@ -669,6 +791,129 @@ export const en = {
     memberNotice: {
       title: 'Join the Discussion',
       description: 'Sign in to participate in discussions and share your thoughts with the community.'
+    }
+  },
+  
+  // Dex (Monster) Page
+  dex: {
+    title: 'Monster Dex',
+    subtitle: 'Discover all creatures in our Minecraft server',
+    pageTitle: 'Monster Dex',
+    pageDescription: 'Discover all creatures in our Minecraft server',
+    welcome: {
+      title: 'Monster Dex',
+      description: 'Explore monsters and creatures in our server'
+    },
+    
+    stats: {
+      monsters: 'Total Monsters',
+      totalViews: 'Total Views'
+    },
+    
+    search: {
+      placeholder: 'Search monsters...'
+    },
+    
+    filters: {
+      allCategories: 'All Categories'
+    },
+    
+    results: {
+      showing: 'Showing',
+      of: 'of',
+      monsters: 'monsters'
+    },
+    
+    empty: {
+      title: 'No monsters found',
+      description: 'Try adjusting your search or filters to find more monsters.'
+    },
+    
+    categories: {
+      hostile: 'Hostile',
+      passive: 'Passive',
+      neutral: 'Neutral',
+      boss: 'Boss'
+    },
+    
+    spawning: {
+      common: 'Common',
+      uncommon: 'Uncommon',
+      rare: 'Rare',
+      legendary: 'Legendary'
+    },
+    
+    detail: {
+      combatStats: 'Combat Stats',
+      health: 'Health',
+      damage: 'Damage',
+      speed: 'Speed',
+      xpDrop: 'XP Drop',
+      behaviors: 'Behaviors',
+      spawningInfo: 'Spawning Information',
+      worlds: 'Worlds',
+      biomes: 'Biomes',
+      structures: 'Structures',
+      conditions: 'Conditions',
+      time: 'Time',
+      light: 'Light',
+      rarity: 'Rarity',
+      drops: 'Drops',
+      chance: 'Chance',
+      quantity: 'Quantity',
+      loading3d: 'Loading 3D model...',
+      model3d: '3D Model'
+    },
+    
+    forms: {
+      create: {
+        title: 'Create Monster',
+        description: 'Add a new creature to the monster dex',
+        submitButton: 'Create Monster',
+        nameLabel: 'Monster Name',
+        namePlaceholder: 'Enter monster name...',
+        modelLabel: '3D Model',
+        modelPlaceholder: 'Select a 3D model...',
+        modelHelp: 'Choose from available GLTF models',
+        categoryLabel: 'Category',
+        excerptLabel: 'Excerpt',
+        excerptPlaceholder: 'Brief description of the monster...',
+        descriptionLabel: 'Description',
+        descriptionPlaceholder: 'Describe the monster, its abilities, and characteristics...',
+        tagsLabel: 'Tags',
+        tagsPlaceholder: 'boss, fire, nether...',
+        tagsHelp: 'Add relevant tags separated by commas',
+        statusLabel: 'Status'
+      },
+      edit: {
+        title: 'Edit Monster',
+        description: 'Update monster details and information'
+      },
+      errors: {
+        nameRequired: 'Monster name is required',
+        modelRequired: 'Please select a 3D model',
+        categoryRequired: 'Category is required',
+        descriptionRequired: 'Description is required',
+        healthRequired: 'Health is required',
+        damageRequired: 'Damage is required',
+        speedRequired: 'Speed is required',
+        xpRequired: 'XP drop is required'
+      }
+    },
+    
+    actions: {
+      like: 'Like',
+      bookmark: 'Bookmark',
+      share: 'Share',
+      favorite: 'Favorite',
+      edit: 'Edit',
+      delete: 'Delete',
+      deleting: 'Deleting...',
+      createMonster: 'Create Monster',
+      editMonster: 'Edit Monster',
+      deleteMonster: 'Delete Monster',
+      viewMonster: 'View Monster',
+      backToDex: 'Back to Dex'
     }
   },
   

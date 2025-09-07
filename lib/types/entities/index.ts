@@ -26,6 +26,20 @@ export type {
 } from './content'
 
 // ============================================================================
+// DEX ENTITIES
+// ============================================================================
+export type {
+  DexMonster,
+  MonsterStats,
+  MonsterDrop,
+  SpawningInfo,
+  DexCategory,
+  DexStats,
+  DexFilters,
+  MonsterInteractionState
+} from './dex'
+
+// ============================================================================
 // CATEGORIES
 // ============================================================================
 export type {

@@ -15,7 +15,7 @@ import type { ApiResponse } from './api'
 export type ContentStatus = 'draft' | 'published' | 'archived'
 
 /** Content module types for permission system */
-export type ContentModule = 'wiki' | 'blog' | 'forum'
+export type ContentModule = 'wiki' | 'blog' | 'forum' | 'dex'
 
 /** User role hierarchy */
 export type UserRole = 'admin' | 'moderator' | 'vip' | 'member' | 'banned'
