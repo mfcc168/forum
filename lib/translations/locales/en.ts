@@ -312,126 +312,6 @@ export const en = {
     }
   },
   
-  // Dex Page
-  dex: {
-    title: 'Monster Dex',
-    subtitle: 'Discover all creatures and monsters in our Minecraft world',
-    pageTitle: 'Dex',
-    pageDescription: 'Complete guide to all monsters and creatures',
-    
-    welcome: {
-      title: 'Welcome to the Monster Dex',
-      description: 'Explore detailed information about all the creatures you can encounter on our server. Learn about their behaviors, spawning conditions, and drops.',
-    },
-    
-    categories: {
-      hostile: 'Hostile',
-      passive: 'Passive', 
-      neutral: 'Neutral',
-      boss: 'Boss'
-    },
-    
-    stats: {
-      health: 'Health',
-      damage: 'Damage',
-      speed: 'Speed',
-      xpDrop: 'XP Drop',
-      monsters: 'Total Monsters',
-      totalViews: 'Total Views',
-      totalLikes: 'Total Likes',
-      categories: 'Categories'
-    },
-    
-    spawning: {
-      title: 'Spawning Information',
-      worlds: 'Worlds',
-      biomes: 'Biomes',
-      conditions: 'Conditions',
-      structures: 'Structures',
-      timeOfDay: 'Time',
-      lightLevel: 'Light Level'
-    },
-    
-    behaviors: {
-      title: 'Behaviors'
-    },
-    
-    drops: {
-      title: 'Item Drops',
-      rare: 'RARE',
-      dropChance: 'Drop Chance',
-      quantity: 'Quantity'
-    },
-    
-    tags: {
-      title: 'Tags'
-    },
-    
-    detail: {
-      loading: 'Loading monster...',
-      notFound: 'Monster Not Found',
-      notFoundDescription: 'This monster information is not available.',
-      backToDex: '← Back to Dex'
-    },
-    
-    forms: {
-      create: {
-        title: 'Add Monster',
-        description: 'Add a new monster to the dex',
-        submitButton: 'Add Monster',
-        nameLabel: 'Monster Name',
-        namePlaceholder: 'Enter monster name...',
-        descriptionLabel: 'Description',
-        descriptionPlaceholder: 'Describe the monster...',
-        excerptLabel: 'Excerpt',
-        excerptPlaceholder: 'Short description...',
-        categoryLabel: 'Category',
-        modelLabel: 'Model',
-        behaviorsLabel: 'Behaviors',
-        healthLabel: 'Health',
-        damageLabel: 'Damage',
-        speedLabel: 'Speed',
-        xpDropLabel: 'XP Drop',
-        worldsLabel: 'Worlds',
-        biomesLabel: 'Biomes',
-        structuresLabel: 'Structures',
-        lightLevelLabel: 'Light Level',
-        timeOfDayLabel: 'Time of Day',
-        spawnRateLabel: 'Spawn Rate',
-        tagsLabel: 'Tags',
-        statusLabel: 'Status'
-      }
-    },
-    
-    search: {
-      placeholder: 'Search monsters...'
-    },
-    
-    filters: {
-      allCategories: 'All Categories'
-    },
-    
-    actions: {
-      createMonster: 'Create Monster'
-    },
-    
-    results: {
-      showing: 'Showing',
-      of: 'of',
-      monsters: 'monsters'
-    },
-    
-    empty: {
-      title: 'No monsters found',
-      description: 'Try adjusting your search or filters to find more monsters.'
-    },
-    
-    interactions: {
-      like: 'Like',
-      bookmark: 'Bookmark',
-      share: 'Share'
-    }
-  },
   
   // Blog Page
   blog: {
@@ -836,6 +716,56 @@ export const en = {
       boss: 'Boss'
     },
     
+    elements: {
+      none: 'None',
+      fire: 'Fire',
+      water: 'Water',
+      earth: 'Earth',
+      air: 'Air',
+      light: 'Light',
+      dark: 'Dark',
+      ice: 'Ice',
+      lightning: 'Lightning'
+    },
+    
+    races: {
+      god: 'God',
+      dragon: 'Dragon',
+      goblin: 'Goblin',
+      orc: 'Orc',
+      elf: 'Elf',
+      dwarf: 'Dwarf',
+      troll: 'Troll',
+      giant: 'Giant',
+      undead: 'Undead',
+      skeleton: 'Skeleton',
+      zombie: 'Zombie',
+      vampire: 'Vampire',
+      ghost: 'Ghost',
+      demon: 'Demon',
+      angel: 'Angel',
+      fairy: 'Fairy',
+      phoenix: 'Phoenix',
+      beast: 'Beast',
+      wolf: 'Wolf',
+      bear: 'Bear',
+      cat: 'Cat',
+      bird: 'Bird',
+      fish: 'Fish',
+      snake: 'Snake',
+      spider: 'Spider',
+      insect: 'Insect',
+      slime: 'Slime',
+      golem: 'Golem',
+      construct: 'Construct',
+      robot: 'Robot',
+      elemental: 'Elemental',
+      plant: 'Plant',
+      humanoid: 'Humanoid',
+      alien: 'Alien',
+      void: 'Void'
+    },
+    
     spawning: {
       common: 'Common',
       uncommon: 'Uncommon',
@@ -876,6 +806,8 @@ export const en = {
         modelPlaceholder: 'Select a 3D model...',
         modelHelp: 'Choose from available GLTF models',
         categoryLabel: 'Category',
+        elementLabel: 'Element',
+        raceLabel: 'Race',
         excerptLabel: 'Excerpt',
         excerptPlaceholder: 'Brief description of the monster...',
         descriptionLabel: 'Description',
@@ -909,6 +841,9 @@ export const en = {
       edit: 'Edit',
       delete: 'Delete',
       deleting: 'Deleting...',
+      confirmDeleteTitle: 'Delete Monster',
+      confirmDeleteMessage: 'Are you sure you want to delete this monster? This action cannot be undone.',
+      deleteSuccess: 'Monster deleted successfully',
       createMonster: 'Create Monster',
       editMonster: 'Edit Monster',
       deleteMonster: 'Delete Monster',

@@ -98,14 +98,9 @@ export function ModelViewer({ modelPath, className = '' }: ModelViewerProps) {
             
             const model = gltf.scene
             
-            // Debug: log model structure
-            console.log('Loaded GLTF model:', model)
-            console.log('Model children:', model.children)
-            
             // Remove any problematic materials/objects
             model.traverse((child: any) => {
               if (child.isMesh) {
-                console.log('Found mesh:', child.name, child.material)
                 // Make sure materials are visible
                 if (child.material) {
                   child.material.transparent = false
@@ -125,11 +120,6 @@ export function ModelViewer({ modelPath, className = '' }: ModelViewerProps) {
             const isInCard = container.clientHeight < 500 // Detect if this is in a card (smaller height)
             const fixedScale = isInCard ? 40 : 50 // 20% smaller for cards (40 vs 50)
             
-            console.log('Model scaling:', {
-              originalSize: size,
-              maxDim: Math.max(size.x, size.y, size.z),
-              fixedScale: fixedScale
-            })
             
             model.scale.setScalar(fixedScale)
             
@@ -146,10 +136,6 @@ export function ModelViewer({ modelPath, className = '' }: ModelViewerProps) {
             // Use fixed close camera position
             const cameraDistance = 100 // Fixed distance
             
-            console.log('Camera positioning:', {
-              fixedDistance: cameraDistance,
-              cameraPosition: [50, 60, cameraDistance]
-            })
             
             // Position camera to look at the lowered model
             camera.position.set(50, 10, cameraDistance) // Lower camera Y position
@@ -175,7 +161,6 @@ export function ModelViewer({ modelPath, className = '' }: ModelViewerProps) {
           },
           (progress: any) => {
             // Loading progress - could show percentage if needed
-            console.log('Loading progress:', (progress.loaded / progress.total * 100) + '%')
           },
           (error: any) => {
             console.error('Error loading GLTF model:', error)
@@ -245,9 +230,9 @@ export function ModelViewer({ modelPath, className = '' }: ModelViewerProps) {
   }
 
   return (
-    <div className={`relative bg-slate-50 rounded-lg overflow-hidden ${className}`} style={{ height: '400px' }}>
+    <div className={`relative w-full h-full ${className}`}>
       {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-slate-50">
+        <div className="absolute inset-0 flex items-center justify-center bg-transparent">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500 mx-auto mb-2"></div>
             <p className="text-slate-600 text-sm">Loading 3D model...</p>
@@ -257,7 +242,6 @@ export function ModelViewer({ modelPath, className = '' }: ModelViewerProps) {
       <div 
         ref={containerRef} 
         className="w-full h-full"
-        style={{ minHeight: '400px' }}
       />
     </div>
   )

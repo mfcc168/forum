@@ -17,9 +17,12 @@ export interface DexMonster extends Entity {
   description: string              // Monster description
   excerpt: string                  // Short description for lists
   category: string                 // Monster category (e.g., 'hostile', 'passive', 'neutral')
+  element: string                  // Monster element (e.g., 'fire', 'water', 'earth', 'air', 'dark', 'light')
+  race: string                     // Monster race (e.g., 'undead', 'beast', 'dragon', 'humanoid')
   modelPath: string                // Path to GLTF model file
   author: UserRef                  // Creator/contributor
   stats: MonsterStats              // Monster-specific stats
+  interactions?: ContentInteractionState  // User interaction state (optional for lists)
   behaviors: string[]              // Monster behaviors
   drops: MonsterDrop[]             // Items this monster drops
   spawning: SpawningInfo           // Where/when the monster spawns  
@@ -31,7 +34,6 @@ export interface DexMonster extends Entity {
 export interface MonsterStats extends ContentStats {
   health: number                   // Monster health points
   damage: number                   // Monster damage
-  speed: number                    // Movement speed
   xpDrop: number                   // Experience points dropped
 }
 

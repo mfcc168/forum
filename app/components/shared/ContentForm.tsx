@@ -101,10 +101,10 @@ export function ContentForm<T extends ContentItem = ContentItem>({
   // Update form data when item changes (for edit mode)
   useEffect(() => {
     if (item) {
-      const initialData = createInitialFormState(config, item)
-      dispatch({ type: 'SET_INITIAL_DATA', data: initialData.formData })
+      const formState = createInitialFormState(config, item, initialData)
+      dispatch({ type: 'SET_INITIAL_DATA', data: formState.formData })
     }
-  }, [item, config])
+  }, [item, config, initialData])
 
   // Get hooks dynamically from config
   const createMutation = config.hooks.useCreate()

@@ -587,8 +587,6 @@ export const COMPREHENSIVE_INDEXES: IndexDefinition[] = [
 // =============================================
 
 export async function createAllIndexes(db: Db): Promise<void> {
-  console.log('🔧 Starting comprehensive index creation...')
-  console.log(`📊 Total indexes to create: ${COMPREHENSIVE_INDEXES.length}`)
   
   const results = []
   const newIndexes = []
@@ -604,7 +602,7 @@ export async function createAllIndexes(db: Db): Promise<void> {
         newIndexes.push(indexName)
       }
       
-      console.log(`Creating index ${indexName} on ${indexDef.collection}...`)
+      // Creating index
       
       const result = await collection.createIndex(
         indexDef.index,
@@ -618,13 +616,13 @@ export async function createAllIndexes(db: Db): Promise<void> {
         isNew: isNewIndex
       })
       
-      console.log(`✅ Created index: ${indexName}${isNewIndex ? ' (NEW OPTIMIZATION)' : ''}`)
+      // Index created successfully
       
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Unknown error'
       // Check if error is due to index already existing
       if (errorMsg.includes('already exists')) {
-        console.log(`⚠️ Index already exists: ${indexDef.options?.name || 'unnamed'} on ${indexDef.collection}`)
+        // Index already exists
         results.push({
           collection: indexDef.collection,
           index: indexDef.options?.name || 'unknown',
@@ -642,26 +640,11 @@ export async function createAllIndexes(db: Db): Promise<void> {
     }
   }
   
-  console.log('\n📊 Index Creation Summary:')
-  console.log(`✅ Successfully created: ${results.filter(r => r.status === 'created').length}`)
-  console.log(`⚠️ Already existed: ${results.filter(r => r.status === 'exists').length}`)
-  console.log(`❌ Failed: ${results.filter(r => r.status === 'failed').length}`)
-  console.log(`📈 Total processed: ${results.length}`)
-  
-  if (newIndexes.length > 0) {
-    console.log('\n🚀 New optimization indexes added:')
-    newIndexes.forEach(name => console.log(`  - ${name}`))
-  }
-  
-  const failed = results.filter(r => r.status === 'failed')
-  if (failed.length > 0) {
-    console.log('\n❌ Failed indexes:')
-    failed.forEach(f => console.log(`  - ${f.collection}.${f.index}: ${f.error}`))
-  }
+  // Index creation completed
 }
 
 export async function dropAllIndexes(db: Db): Promise<void> {
-  console.log('🗑️ Dropping all custom indexes...')
+  // Dropping all custom indexes
   
   const collections = [
     'users', 'forumCategories', 'forumPosts', 'forumReplies', 'userInteractions',
@@ -677,7 +660,7 @@ export async function dropAllIndexes(db: Db): Promise<void> {
       for (const index of indexes) {
         if (index.name && index.name !== '_id_') { // Don't drop the default _id index
           await collection.dropIndex(index.name)
-          console.log(`✅ Dropped index: ${collectionName}.${index.name}`)
+          // Index dropped successfully
         }
       }
     } catch (error) {
@@ -687,7 +670,6 @@ export async function dropAllIndexes(db: Db): Promise<void> {
 }
 
 export async function getIndexStats(db: Db): Promise<Record<string, IndexStats>> {
-  console.log('📊 Gathering index statistics...')
   
   const stats: Record<string, IndexStats> = {}
   
@@ -718,7 +700,6 @@ export async function getIndexStats(db: Db): Promise<Record<string, IndexStats>>
 }
 
 export async function validateIndexes(db: Db): Promise<boolean> {
-  console.log('🔍 Validating index performance...')
   
   let allValid = true
   
@@ -793,9 +774,9 @@ export async function validateIndexes(db: Db): Promise<boolean> {
       const indexUsed = executionStats.totalDocsExamined === executionStats.totalDocsReturned
       
       if (indexUsed) {
-        console.log(`✅ ${test.description}: Efficient index usage`)
+        // Efficient index usage
       } else {
-        console.log(`⚠️ ${test.description}: Inefficient query - examined ${executionStats.totalDocsExamined} docs, returned ${executionStats.totalDocsReturned}`)
+        // Inefficient query detected
         allValid = false
       }
     } catch (error) {

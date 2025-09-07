@@ -3,8 +3,10 @@ import { withDALAndValidation } from '@/lib/database/middleware'
 import { dexFiltersSchema, createMonsterSchema } from '@/lib/schemas/dex'
 import { ApiResponse } from '@/lib/utils/validation'
 import { z } from 'zod'
-import type { ServerUser } from '@/lib/types'
+import type { ServerUser, PermissionUser } from '@/lib/types'
 import { DAL } from '@/lib/database/dal'
+import { PermissionChecker } from '@/lib/utils/permissions'
+import { revalidateTag } from 'next/cache'
 
 // GET /api/dex/monsters - Get paginated monsters
 export const GET = withDALAndValidation(
@@ -22,7 +24,7 @@ export const GET = withDALAndValidation(
     )
 
     return ApiResponse.success({
-      monsters: result.data,
+      dexMonsters: result.data,
       pagination: result.pagination,
       filters
     }, 'Monsters retrieved successfully')
@@ -41,9 +43,14 @@ export const POST = withDALAndValidation(
     validatedData: z.infer<typeof createMonsterSchema>;
     dal: typeof DAL;
   }) => {
-    // Only admins can create monsters
-    if (!user || user.role !== 'admin') {
-      return ApiResponse.error('Access denied. Admin only.', 403)
+    if (!user) {
+      return ApiResponse.error('Authentication required', 401)
+    }
+
+    // Check permissions using centralized system
+    const permissionUser: PermissionUser = { id: user.id, role: user.role }
+    if (!PermissionChecker.canCreate(permissionUser, 'dex')) {
+      return ApiResponse.error('You do not have permission to create monsters', 403)
     }
 
     const monsterData = {
@@ -60,7 +67,6 @@ export const POST = withDALAndValidation(
       stats: {
         health: validatedData.stats.health,
         damage: validatedData.stats.damage,
-        speed: validatedData.stats.speed,
         xpDrop: validatedData.stats.xpDrop
       },
       author: {
@@ -73,9 +79,13 @@ export const POST = withDALAndValidation(
     const monsterId = await dal.dex.createMonster(monsterData)
     const createdMonster = await dal.dex.getMonsterWithStats(monsterId, user.id, true)
 
+    // Revalidate relevant cache tags after creating a monster
+    revalidateTag('dex-monsters')
+    revalidateTag('dex-stats')
+    revalidateTag('dex-categories')
+
     return ApiResponse.success({ 
-      monster: createdMonster,
-      slug: createdMonster?.slug 
+      dexMonster: createdMonster
     }, 'Monster created successfully')
   },
   {

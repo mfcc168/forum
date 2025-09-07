@@ -5,7 +5,7 @@ import type { DexMonster, DexStats } from '@/lib/types'
 async function getDexData() {
   const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000'
   
-  try {
+  try {    
     // Fetch all data in parallel (consistent with blog/forum/wiki)
     const [monstersRes, categoriesRes, statsRes] = await Promise.all([
       fetch(`${baseUrl}/api/dex/monsters`, { 
@@ -27,16 +27,21 @@ async function getDexData() {
         }
       })
     ])
-
+    
     const [monstersData, categoriesData, statsData] = await Promise.all([
-      monstersRes.ok ? monstersRes.json() : { success: false, data: [] },
-      categoriesRes.ok ? categoriesRes.json() : { success: false, data: [] },
-      statsRes.ok ? statsRes.json() : { success: false, data: null }
+      monstersRes.ok ? monstersRes.json() : { success: false, data: [], error: `HTTP ${monstersRes.status}` },
+      categoriesRes.ok ? categoriesRes.json() : { success: false, data: [], error: `HTTP ${categoriesRes.status}` },
+      statsRes.ok ? statsRes.json() : { success: false, data: null, error: `HTTP ${statsRes.status}` }
     ])
+    
+    // Log errors only if they occur
+    if (!monstersData.success) {
+      console.error('Failed to fetch dex monsters:', monstersData.error)
+    }
 
     // Handle response formats consistently (use module-specific response key)
     const monsters: DexMonster[] = monstersData.success 
-      ? (monstersData.data?.monsters || [])
+      ? (monstersData.data?.dexMonsters || [])
       : []
     const categories = categoriesData.success ? categoriesData.data : []
 

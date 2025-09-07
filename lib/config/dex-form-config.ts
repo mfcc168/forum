@@ -8,31 +8,7 @@ import type { ContentFormConfig, ContentFormField } from '@/app/components/share
 import type { DexMonster } from '@/lib/types'
 import type { TranslationObject } from '@/lib/translations/locales/en'
 import { useCreateDexMonster, useUpdateDexMonster } from '@/lib/hooks/useDex'
-
-// Flat form validation schema that matches form fields
-const flatDexFormSchema = z.object({
-  name: z.string().min(1, 'Monster name is required').max(100, 'Monster name too long'),
-  description: z.string().min(1, 'Description is required').max(5000, 'Description too long'),
-  excerpt: z.string().max(200, 'Excerpt too long').optional(),
-  category: z.string().min(1, 'Category is required'),
-  modelPath: z.string().min(1, 'Model path is required'),
-  behaviors: z.array(z.string()).default([]),
-  health: z.string().min(1, 'Health is required'),
-  damage: z.string().min(1, 'Damage is required'),
-  speed: z.string().min(1, 'Speed is required'),
-  xpDrop: z.string().min(1, 'XP drop is required'),
-  worlds: z.array(z.string()).min(1, 'At least one world is required'),
-  biomes: z.array(z.string()).min(1, 'At least one biome is required'),
-  structures: z.array(z.string()).default([]),
-  lightLevelMin: z.string().min(1, 'Light level min is required'),
-  lightLevelMax: z.string().min(1, 'Light level max is required'),
-  timeOfDay: z.enum(['day', 'night', 'any']),
-  spawnRate: z.enum(['common', 'uncommon', 'rare', 'legendary']),
-  tags: z.array(z.string()).default([]),
-  status: z.enum(['draft', 'published']).default('published')
-})
-
-const flatDexUpdateSchema = flatDexFormSchema.partial()
+import { flatDexFormSchema, flatDexUpdateSchema } from '@/lib/schemas/dex'
 
 /**
  * Get dex form fields with translations
@@ -61,6 +37,66 @@ export const getDexFormFields = (
       { value: 'passive', label: t?.dex?.categories?.passive || 'Passive' },
       { value: 'neutral', label: t?.dex?.categories?.neutral || 'Neutral' },
       { value: 'boss', label: t?.dex?.categories?.boss || 'Boss' }
+    ]
+  },
+  {
+    name: 'element',
+    label: t?.dex?.forms?.create?.elementLabel || 'Element',
+    type: 'select',
+    required: true,
+    options: [
+      { value: 'none', label: t?.dex?.elements?.none || 'None' },
+      { value: 'fire', label: t?.dex?.elements?.fire || 'Fire' },
+      { value: 'water', label: t?.dex?.elements?.water || 'Water' },
+      { value: 'earth', label: t?.dex?.elements?.earth || 'Earth' },
+      { value: 'air', label: t?.dex?.elements?.air || 'Air' },
+      { value: 'light', label: t?.dex?.elements?.light || 'Light' },
+      { value: 'dark', label: t?.dex?.elements?.dark || 'Dark' },
+      { value: 'ice', label: t?.dex?.elements?.ice || 'Ice' },
+      { value: 'lightning', label: t?.dex?.elements?.lightning || 'Lightning' }
+    ]
+  },
+  {
+    name: 'race',
+    label: t?.dex?.forms?.create?.raceLabel || 'Race',
+    type: 'select',
+    required: true,
+    options: [
+      { value: 'god', label: t?.dex?.races?.god || 'God' },
+      { value: 'dragon', label: t?.dex?.races?.dragon || 'Dragon' },
+      { value: 'goblin', label: t?.dex?.races?.goblin || 'Goblin' },
+      { value: 'orc', label: t?.dex?.races?.orc || 'Orc' },
+      { value: 'elf', label: t?.dex?.races?.elf || 'Elf' },
+      { value: 'dwarf', label: t?.dex?.races?.dwarf || 'Dwarf' },
+      { value: 'troll', label: t?.dex?.races?.troll || 'Troll' },
+      { value: 'giant', label: t?.dex?.races?.giant || 'Giant' },
+      { value: 'undead', label: t?.dex?.races?.undead || 'Undead' },
+      { value: 'skeleton', label: t?.dex?.races?.skeleton || 'Skeleton' },
+      { value: 'zombie', label: t?.dex?.races?.zombie || 'Zombie' },
+      { value: 'vampire', label: t?.dex?.races?.vampire || 'Vampire' },
+      { value: 'ghost', label: t?.dex?.races?.ghost || 'Ghost' },
+      { value: 'demon', label: t?.dex?.races?.demon || 'Demon' },
+      { value: 'angel', label: t?.dex?.races?.angel || 'Angel' },
+      { value: 'fairy', label: t?.dex?.races?.fairy || 'Fairy' },
+      { value: 'phoenix', label: t?.dex?.races?.phoenix || 'Phoenix' },
+      { value: 'beast', label: t?.dex?.races?.beast || 'Beast' },
+      { value: 'wolf', label: t?.dex?.races?.wolf || 'Wolf' },
+      { value: 'bear', label: t?.dex?.races?.bear || 'Bear' },
+      { value: 'cat', label: t?.dex?.races?.cat || 'Cat' },
+      { value: 'bird', label: t?.dex?.races?.bird || 'Bird' },
+      { value: 'fish', label: t?.dex?.races?.fish || 'Fish' },
+      { value: 'snake', label: t?.dex?.races?.snake || 'Snake' },
+      { value: 'spider', label: t?.dex?.races?.spider || 'Spider' },
+      { value: 'insect', label: t?.dex?.races?.insect || 'Insect' },
+      { value: 'slime', label: t?.dex?.races?.slime || 'Slime' },
+      { value: 'golem', label: t?.dex?.races?.golem || 'Golem' },
+      { value: 'construct', label: t?.dex?.races?.construct || 'Construct' },
+      { value: 'robot', label: t?.dex?.races?.robot || 'Robot' },
+      { value: 'elemental', label: t?.dex?.races?.elemental || 'Elemental' },
+      { value: 'plant', label: t?.dex?.races?.plant || 'Plant' },
+      { value: 'humanoid', label: t?.dex?.races?.humanoid || 'Humanoid' },
+      { value: 'alien', label: t?.dex?.races?.alien || 'Alien' },
+      { value: 'void', label: t?.dex?.races?.void || 'Void' }
     ]
   },
   {
@@ -105,14 +141,6 @@ export const getDexFormFields = (
     placeholder: '5',
     required: true,
     help: 'Monster damage points'
-  },
-  {
-    name: 'speed',
-    label: t?.dex?.detail?.speed || 'Speed',
-    type: 'text',
-    placeholder: '1.0',
-    required: true,
-    help: 'Monster movement speed'
   },
   {
     name: 'xpDrop',

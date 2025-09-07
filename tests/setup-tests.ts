@@ -15,7 +15,7 @@ beforeAll(async () => {
   if (process.env.TEST_TYPE === 'integration') {
     try {
       await setupTestEnvironment()
-      console.log('✅ Test database setup complete')
+      // Test database setup complete
     } catch (error) {
       console.error('❌ Failed to setup test database:', error)
       throw error // Fail integration tests if database setup fails
@@ -29,7 +29,7 @@ afterAll(async () => {
   if (process.env.TEST_TYPE === 'integration') {
     try {
       await teardownTestEnvironment()
-      console.log('✅ Test database cleanup complete')
+      // Test database cleanup complete
     } catch (error) {
       console.error('❌ Failed to cleanup test database:', error)
     }

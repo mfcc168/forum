@@ -186,8 +186,6 @@ async function storeAnalyticsEvents(events: SearchAnalyticsEvent[], request?: Ne
     
     // Update popular queries cache
     updatePopularQueries(events)
-    
-    console.log(`Stored ${events.length} search analytics events in database`)
   } catch (error) {
     console.error('Failed to store search analytics events:', error)
     // Don't throw error to avoid affecting search functionality
@@ -213,12 +211,6 @@ async function storeClickEvent(clickEvent: ClickAnalyticsEvent, request?: NextRe
       timestamp: typeof clickEvent.timestamp === 'string' ? new Date(clickEvent.timestamp).getTime() : (clickEvent.timestamp || Date.now()),
       userAgent: request?.headers.get('user-agent') || null,
       ip: request ? getClientIP(request) : 'unknown'
-    })
-    
-    console.log('Stored search click event in database:', {
-      query: clickEvent.query,
-      resultId: clickEvent.resultId,
-      position: clickEvent.position
     })
   } catch (error) {
     console.error('Failed to store search click event:', error)

@@ -144,15 +144,9 @@ export default function SearchPage() {
             {/* Main Search Bar */}
             <div className="max-w-2xl mx-auto">
               <SearchBar
-                value={query}
-                onChange={setQuery}
-                onSearch={handleAdvancedSearch}
+                initialQuery={query}
+                onSearch={(query: string) => handleSearch(query, filters)}
                 placeholder="Search guides, posts, tutorials..."
-                variant="hero"
-                showAdvanced={true}
-                modules={['forum', 'blog', 'wiki']}
-                autoFocus={!initialQuery}
-                className="mb-6"
               />
               
               {/* Quick Search Buttons */}
@@ -239,14 +233,8 @@ export default function SearchPage() {
         {showResults ? (
           <SearchResults
             results={results}
-            totalCount={totalCount}
-            searchTime={searchTime}
             query={query}
-            facets={facets}
             isLoading={isLoading}
-            onResultClick={handleResultClick}
-            onFacetChange={handleFacetChange}
-            selectedFacets={selectedFacets}
           />
         ) : hasQuery ? (
           <SearchLoadingState />

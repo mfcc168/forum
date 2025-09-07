@@ -137,7 +137,7 @@ class DatabaseConnectionManager {
       // Set up connection monitoring
       this.setupConnectionMonitoring()
 
-      console.log(`✅ MongoDB connected successfully to ${dbName}`)
+      // MongoDB connected successfully
       return database
 
     } catch (error) {
@@ -148,7 +148,7 @@ class DatabaseConnectionManager {
       // Retry with exponential backoff
       if (this.pool.connectionAttempts < this.maxRetries) {
         const delay = this.retryDelay * Math.pow(2, this.pool.connectionAttempts - 1)
-        console.log(`🔄 Retrying connection in ${delay}ms...`)
+        // Retrying connection
         
         await new Promise(resolve => setTimeout(resolve, delay))
         return this.establishConnection()
@@ -162,15 +162,15 @@ class DatabaseConnectionManager {
     if (!this.pool.client) return
 
     this.pool.client.on('connectionPoolCreated', () => {
-      console.log('📊 MongoDB connection pool created')
+      // MongoDB connection pool created
     })
 
     this.pool.client.on('connectionCreated', () => {
-      console.log('🔗 New MongoDB connection established')
+      // New MongoDB connection established
     })
 
     this.pool.client.on('connectionClosed', () => {
-      console.log('📴 MongoDB connection closed')
+      // MongoDB connection closed
     })
 
     this.pool.client.on('error', (error) => {
@@ -193,7 +193,7 @@ class DatabaseConnectionManager {
   async disconnect(): Promise<void> {
     if (this.pool.client) {
       await this.pool.client.close()
-      console.log('📴 MongoDB connection closed gracefully')
+      // MongoDB connection closed gracefully
     }
     
     this.pool.client = null
@@ -338,14 +338,14 @@ export async function cachedQuery<T>(
 
 // Graceful shutdown handler
 process.on('SIGINT', async () => {
-  console.log('🛑 Shutting down gracefully...')
+  // Shutting down gracefully
   await dbConnectionManager.disconnect()
   queryCache.destroy()
   process.exit(0)
 })
 
 process.on('SIGTERM', async () => {
-  console.log('🛑 Shutting down gracefully...')
+  // Shutting down gracefully
   await dbConnectionManager.disconnect() 
   queryCache.destroy()
   process.exit(0)

@@ -70,8 +70,8 @@ export interface RawSearchResult {
 // Transformed search result (for UI consumption)
 export interface SearchResult {
   id: string
-  module: 'forum' | 'blog' | 'wiki'
-  type: 'post' | 'guide' | 'reply'
+  module: 'forum' | 'blog' | 'wiki' | 'dex'
+  type: 'post' | 'guide' | 'reply' | 'monster'
   title: string
   excerpt: string
   content?: string

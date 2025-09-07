@@ -29,16 +29,17 @@ export const DexForm = memo(function DexForm({ monster, onSuccess, onCancel }: D
   const initialData = useMemo(() => {
     if (!monster) return undefined
     
-    return {
-      name: monster.name,
-      description: monster.description,
-      excerpt: monster.excerpt,
-      category: monster.category,
-      modelPath: monster.modelPath,
+    const formData = {
+      name: monster.name || '',
+      description: monster.description || '',
+      excerpt: monster.excerpt || '',
+      category: monster.category || 'hostile',
+      element: monster.element || 'none',
+      race: monster.race || 'beast',
+      modelPath: monster.modelPath || '',
       behaviors: monster.behaviors || [],
       health: monster.stats?.health?.toString() || '20',
       damage: monster.stats?.damage?.toString() || '5',
-      speed: monster.stats?.speed?.toString() || '1.0', 
       xpDrop: monster.stats?.xpDrop?.toString() || '5',
       worlds: monster.spawning?.worlds || [],
       biomes: monster.spawning?.biomes || [],
@@ -50,6 +51,8 @@ export const DexForm = memo(function DexForm({ monster, onSuccess, onCancel }: D
       tags: monster.tags || [],
       status: monster.status || 'published'
     }
+    
+    return formData
   }, [monster])
   
   // Don't render form until models are loaded (to prevent form flickering)

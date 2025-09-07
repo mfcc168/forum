@@ -17,6 +17,7 @@ import { handleMutationError } from '@/lib/utils/errors'
 import type { ContentStats, ContentModule } from '@/lib/types'
 import type { UseMutationResult } from '@tanstack/react-query'
 import { forumHooks, blogHooks, wikiHooks } from '@/lib/hooks/useContent'
+import { useDexMonsterInteraction } from '@/lib/hooks/useDex'
 
 type ContentMutation = UseMutationResult<unknown, Error, unknown>
 type DeleteMutation = UseMutationResult<unknown, Error, string>
@@ -146,6 +147,8 @@ export const ContentActions = memo(function ContentActions({
         return blogHooks.useContentInteraction()
       case 'wiki':
         return wikiHooks.useContentInteraction()
+      case 'dex':
+        return useDexMonsterInteraction()
       default:
         throw new Error(`Unsupported content type: ${config.contentType}`)
     }

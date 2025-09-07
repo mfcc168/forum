@@ -41,5 +41,6 @@ export interface ContentInteractionState {
   isBookmarked: boolean
   isShared: boolean
   isHelpful?: boolean           // For wiki only
+  isFavorited?: boolean         // For dex only
 }
 

@@ -54,7 +54,7 @@ export function useRealtimeStats(options: UseRealtimeStatsOptions = {}) {
 
   const log = useCallback((message: string, data?: unknown) => {
     if (debug) {
-      console.log(`[RealtimeStats] ${message}`, data)
+      // Debug logging removed for production
     }
   }, [debug])
 

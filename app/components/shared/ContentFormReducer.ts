@@ -35,7 +35,8 @@ export function createInitialFormState<T extends ContentItem>(
   const formData: Record<string, unknown> = {}
   
   config.fields.forEach(field => {
-    const value = item?.[field.name as keyof T] || initialData?.[field.name as keyof T]
+    // Prioritize initialData when provided, as it's often pre-processed/flattened
+    const value = initialData?.[field.name as keyof T] || item?.[field.name as keyof T]
     
     switch (field.type) {
       case 'tags':

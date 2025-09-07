@@ -64,7 +64,7 @@ export class ReferentialIntegrityManager {
         })
       ])
       
-      console.log(`Successfully cleaned up references for forum post ${postId}`)
+      // Successfully cleaned up references for forum post
     } catch (error) {
       console.error(`Error cleaning up forum post references for ${postId}:`, error)
       throw new Error(`Failed to clean up forum post references: ${error}`)
@@ -119,7 +119,7 @@ export class ReferentialIntegrityManager {
         })
       ])
       
-      console.log(`Successfully cleaned up references for blog post ${postId}`)
+      // Successfully cleaned up references for blog post
     } catch (error) {
       console.error(`Error cleaning up blog post references for ${postId}:`, error)
       throw new Error(`Failed to clean up blog post references: ${error}`)
@@ -158,7 +158,7 @@ export class ReferentialIntegrityManager {
         })
       ])
       
-      console.log(`Successfully cleaned up references for wiki guide ${guideId}`)
+      // Successfully cleaned up references for wiki guide
     } catch (error) {
       console.error(`Error cleaning up wiki guide references for ${guideId}:`, error)
       throw new Error(`Failed to clean up wiki guide references: ${error}`)
@@ -197,7 +197,7 @@ export class ReferentialIntegrityManager {
         })
       ])
       
-      console.log(`Successfully cleaned up references for forum reply ${replyId}`)
+      // Successfully cleaned up references for forum reply
     } catch (error) {
       console.error(`Error cleaning up forum reply references for ${replyId}:`, error)
       throw new Error(`Failed to clean up forum reply references: ${error}`)

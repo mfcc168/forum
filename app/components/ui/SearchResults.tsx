@@ -2,15 +2,7 @@
 
 import { LoadingSpinner } from './LoadingSpinner'
 import { EmptyState } from './EmptyState'
-
-interface SearchResult {
-  id: string
-  title: string
-  type: 'blog' | 'forum' | 'wiki' | 'monster'
-  excerpt?: string
-  url: string
-  category?: string
-}
+import type { SearchResult } from '@/lib/search/SearchEngine'
 
 interface SearchResultsProps {
   results?: SearchResult[]

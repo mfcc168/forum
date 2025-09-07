@@ -34,11 +34,10 @@ interface CreateMonsterData {
   drops?: MonsterDrop[] // Default in schema
   spawning: SpawningInfo
   tags?: string[] // Default in schema
-  status?: 'draft' | 'published' // Default in schema
+  status?: 'draft' | 'published' | 'archived' // Default in schema
   stats: {
     health: number
     damage: number
-    speed: number
     xpDrop: number
   }
   author: UserRef

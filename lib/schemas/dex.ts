@@ -6,6 +6,20 @@
  */
 
 import { z } from 'zod'
+import { 
+  htmlContentSchema,
+  titleSchema,
+  optionalExcerptSchema,
+  metaDescriptionSchema,
+  tagsSchema,
+  statusSchema,
+  defaultStatusSchema,
+  userRefSchema,
+  baseStatsSchema,
+  categoryStringSchema,
+  baseQuerySchema,
+  mongoIdTransform
+} from './common'
 
 // ============================================================================
 // MONSTER SCHEMAS
@@ -31,44 +45,35 @@ export const spawningInfoSchema = z.object({
   spawnRate: z.enum(['common', 'uncommon', 'rare', 'legendary'])
 })
 
-export const monsterStatsSchema = z.object({
+export const monsterStatsSchema = baseStatsSchema.extend({
   health: z.number().min(1),
   damage: z.number().min(0),
-  speed: z.number().min(0),
-  xpDrop: z.number().min(0),
-  viewsCount: z.number().min(0).default(0),
-  likesCount: z.number().min(0).default(0),
-  bookmarksCount: z.number().min(0).default(0),
-  sharesCount: z.number().min(0).default(0)
+  xpDrop: z.number().min(0)
 })
 
-export const userRefSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  avatar: z.string().optional()
-})
+// userRefSchema now imported from common
 
 // ============================================================================
 // CREATE MONSTER SCHEMA (for API routes)
 // ============================================================================
 
 export const createMonsterSchema = z.object({
-  name: z.string().min(1, 'Monster name is required').max(100, 'Monster name too long'),
-  description: z.string().min(1, 'Description is required').max(5000, 'Description too long'),
-  excerpt: z.string().max(200, 'Excerpt too long').optional(),
-  category: z.string().min(1, 'Category is required'),
+  name: titleSchema,
+  description: htmlContentSchema,
+  excerpt: optionalExcerptSchema,
+  category: categoryStringSchema,
   modelPath: z.string().min(1, 'Model path is required'),
   behaviors: z.array(z.string()).default([]),
   drops: z.array(monsterDropSchema).default([]),
   spawning: spawningInfoSchema,
-  tags: z.array(z.string()).default([]),
+  tags: tagsSchema,
   stats: z.object({
     health: z.number().min(1),
     damage: z.number().min(0),
-    speed: z.number().min(0),
     xpDrop: z.number().min(0)
   }),
-  status: z.enum(['draft', 'published']).default('published')
+  status: defaultStatusSchema,
+  metaDescription: metaDescriptionSchema
 })
 
 // ============================================================================
@@ -76,6 +81,39 @@ export const createMonsterSchema = z.object({
 // ============================================================================
 
 export const updateMonsterSchema = createMonsterSchema.partial()
+
+// ============================================================================
+// FLAT FORM SCHEMAS (for ContentForm compatibility)
+// ============================================================================
+
+/**
+ * Flat form schema that matches ContentForm field structure
+ * Used for form validation before transforming to nested monster structure
+ */
+export const flatDexFormSchema = z.object({
+  name: titleSchema,
+  description: htmlContentSchema,
+  excerpt: optionalExcerptSchema.default(''),
+  category: categoryStringSchema,
+  element: z.string().min(1, 'Element is required'),
+  race: z.string().min(1, 'Race is required'),
+  modelPath: z.string().min(1, 'Model path is required'),
+  behaviors: z.array(z.string()).default([]),
+  health: z.string().min(1, 'Health is required'),
+  damage: z.string().min(1, 'Damage is required'),
+  xpDrop: z.string().min(1, 'XP drop is required'),
+  worlds: z.array(z.string()).min(1, 'At least one world is required'),
+  biomes: z.array(z.string()).min(1, 'At least one biome is required'),
+  structures: z.array(z.string()).default([]),
+  lightLevelMin: z.string().min(1, 'Light level min is required'),
+  lightLevelMax: z.string().min(1, 'Light level max is required'),
+  timeOfDay: z.enum(['day', 'night', 'any']),
+  spawnRate: z.enum(['common', 'uncommon', 'rare', 'legendary']),
+  tags: tagsSchema,
+  status: defaultStatusSchema
+})
+
+export const flatDexUpdateSchema = flatDexFormSchema.partial()
 
 // ============================================================================
 // FILTER SCHEMAS (for query validation)

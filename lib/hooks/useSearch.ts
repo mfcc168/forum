@@ -216,7 +216,6 @@ export function useSearchAnalytics() {
   // Track search with no results
   const trackNoResults = useCallback((query: string, filters?: SearchFilters) => {
     // This could be enhanced to track specific no-results patterns
-    console.log('No results tracked:', { query, filters })
   }, [])
 
   // Get search history from localStorage

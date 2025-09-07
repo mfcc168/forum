@@ -6,6 +6,7 @@ import { formatNumber } from '@/lib/utils'
 import type { DexMonster } from '@/lib/types'
 import dynamic from 'next/dynamic'
 import { Icon } from '@/app/components/ui/Icon'
+import { DexActions } from '@/app/components/dex/DexActions'
 
 // Dynamically import the 3D model viewer with no SSR
 const ModelViewer = dynamic(() => import('@/app/components/dex/ModelViewer').then(mod => ({ default: mod.ModelViewer })), {
@@ -25,9 +26,10 @@ export function MonsterDetail({ monster }: MonsterDetailProps) {
   const combatStatsTitle = isZhTW ? '戰鬥數據' : 'Combat Statistics'
   const healthLabel = isZhTW ? '生命值' : 'Health'
   const damageLabel = isZhTW ? '攻擊力' : 'Damage'
-  const speedLabel = isZhTW ? '速度' : 'Speed'
   const xpDropLabel = isZhTW ? '經驗值' : 'XP Drop'
-  const spawningTitle = isZhTW ? '生成資訊' : 'Spawning Information'
+  const elementLabel = isZhTW ? '屬性' : 'Element'
+  const raceLabel = isZhTW ? '種族' : 'Race'
+  const monsterInfoTitle = isZhTW ? '怪物資訊' : 'Monster Information'
   const worldsLabel = isZhTW ? '世界' : 'Worlds'
   const biomesLabel = isZhTW ? '生態域' : 'Biomes'
   const conditionsLabel = isZhTW ? '條件' : 'Conditions'
@@ -74,68 +76,363 @@ export function MonsterDetail({ monster }: MonsterDetailProps) {
     }
   }
 
-  const getCategoryIcon = (category: string) => {
-    switch (category.toLowerCase()) {
-      case 'hostile': return <Icon name="monster" className="w-8 h-8 text-red-500" />
-      case 'passive': return <Icon name="monster" className="w-8 h-8 text-green-500" />
-      case 'neutral': return <Icon name="monster" className="w-8 h-8 text-yellow-500" />
-      case 'boss': return <Icon name="monster" className="w-8 h-8 text-purple-500" />
-      default: return <Icon name="monster" className="w-8 h-8 text-gray-500" />
+  const getElementLabel = (element: string) => {
+    if (!isZhTW) return element.charAt(0).toUpperCase() + element.slice(1)
+    switch (element.toLowerCase()) {
+      case 'fire': return '火'
+      case 'water': return '水'
+      case 'earth': return '土'
+      case 'air': return '風'
+      case 'light': return '光'
+      case 'dark': return '暗'
+      case 'ice': return '冰'
+      case 'lightning': return '雷'
+      case 'none': return '無'
+      default: return element
     }
   }
 
-  const getRarityColor = (rarity: string) => {
-    switch (rarity.toLowerCase()) {
-      case 'common': return 'bg-gray-100 text-gray-800 border-gray-200'
-      case 'uncommon': return 'bg-green-100 text-green-800 border-green-200'
-      case 'rare': return 'bg-blue-100 text-blue-800 border-blue-200'
-      case 'legendary': return 'bg-purple-100 text-purple-800 border-purple-200'
-      default: return 'bg-gray-100 text-gray-800 border-gray-200'
+  const getRaceLabel = (race: string) => {
+    if (!isZhTW) return race.charAt(0).toUpperCase() + race.slice(1)
+    switch (race.toLowerCase()) {
+      case 'god': return '神'
+      case 'dragon': return '龍'
+      case 'goblin': return '哥布林'
+      case 'orc': return '獸人'
+      case 'elf': return '精靈'
+      case 'dwarf': return '矮人'
+      case 'troll': return '巨魔'
+      case 'giant': return '巨人'
+      case 'undead': return '不死族'
+      case 'skeleton': return '骷髏'
+      case 'zombie': return '殭屍'
+      case 'vampire': return '吸血鬼'
+      case 'ghost': return '幽靈'
+      case 'demon': return '惡魔'
+      case 'angel': return '天使'
+      case 'fairy': return '妖精'
+      case 'phoenix': return '鳳凰'
+      case 'beast': return '野獸'
+      case 'wolf': return '狼'
+      case 'bear': return '熊'
+      case 'cat': return '貓'
+      case 'bird': return '鳥'
+      case 'fish': return '魚'
+      case 'snake': return '蛇'
+      case 'spider': return '蜘蛛'
+      case 'insect': return '昆蟲'
+      case 'slime': return '史萊姆'
+      case 'golem': return '魔像'
+      case 'construct': return '構造體'
+      case 'robot': return '機器人'
+      case 'elemental': return '元素'
+      case 'plant': return '植物'
+      case 'humanoid': return '人形'
+      case 'alien': return '外星人'
+      case 'void': return '虛無'
+      default: return race
     }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
       {/* Hero Section */}
-      <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-emerald-600/10 to-blue-600/10"></div>
-        <div className="relative max-w-7xl mx-auto px-4 py-12">
-          <div className="flex flex-col lg:flex-row items-start gap-8">
-            {/* Monster Info */}
-            <div className="flex-1">
-              <div className="mb-4">
-                <div>
-                  <h1 className="text-4xl lg:text-5xl font-bold text-slate-900 mb-2">
-                    {monster.name}
-                  </h1>
-                  <div className="flex items-center gap-2">
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getRarityColor(monster.spawning.spawnRate)}`}>
-                      {getCategoryLabel(monster.category)}
-                    </span>
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getRarityColor(monster.spawning.spawnRate)}`}>
-                      {getSpawnRateLabel(monster.spawning.spawnRate)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-              
-              <p className="text-lg text-slate-600 leading-relaxed mb-6 max-w-2xl">
-                {monster.excerpt || monster.description}
-              </p>
-
+      <div className="relative overflow-hidden bg-gradient-to-r from-white via-slate-50 to-white border-b border-slate-200/50">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48Y2lyY2xlIGN4PSIzMCIgY3k9IjMwIiByPSIyIi8+PC9nPjwvZz48L3N2Zz4=')] opacity-30"></div>
+        <div className="relative max-w-7xl mx-auto px-4 py-16">
+          <div className="max-w-4xl mx-auto text-center">
+            
+            
+            {/* Monster Title */}
+            <h1 className="text-5xl lg:text-6xl font-black mb-6 tracking-tight leading-none">
+              <span className="minecraft-gradient-text">{monster.name}</span>
+            </h1>
+            
+            {/* Attributes */}
+            <div className="flex flex-wrap justify-center gap-3 mb-8">
+              {monster.element && (
+                <span className="inline-flex items-center px-4 py-2 bg-blue-50/80 text-blue-700 rounded-xl text-sm font-semibold border border-blue-200/50 shadow-sm backdrop-blur-sm">
+                  <span className="mr-2 text-lg">⚡</span>
+                  {getElementLabel(monster.element)}
+                </span>
+              )}
+              {monster.race && (
+                <span className="inline-flex items-center px-4 py-2 bg-purple-50/80 text-purple-700 rounded-xl text-sm font-semibold border border-purple-200/50 shadow-sm backdrop-blur-sm">
+                  <span className="mr-2 text-lg">👤</span>
+                  {getRaceLabel(monster.race)}
+                </span>
+              )}
+            </div>
+            
+            {/* Description */}
+            <div className="text-xl text-slate-600 leading-relaxed max-w-3xl mx-auto prose prose-slate prose-xl">
+              <div dangerouslySetInnerHTML={{ __html: monster.description }} />
             </div>
           </div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-          {/* Left Column - 3D Model */}
-          <div className="xl:col-span-1">
-            <div className="rounded-2xl overflow-hidden">
-              <div className="p-6">
-                <div className="aspect-square rounded-xl overflow-hidden">
+      {/* Content Sections - Side by Side Layout */}
+      <div className="max-w-7xl mx-auto px-4 py-16">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+          
+          {/* Left Side - Monster Information (2 columns) */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* Monster Information */}
+            <div className="bg-white rounded-3xl shadow-xl border border-slate-200/50 p-8 backdrop-blur-sm">
+              <div className="flex items-center gap-3 mb-8">
+                <div className="p-3 bg-emerald-100 rounded-2xl">
+                  <Icon name="info" className="w-6 h-6 text-emerald-600" />
+                </div>
+                <h2 className="text-3xl font-bold text-slate-900">{monsterInfoTitle}</h2>
+              </div>
+              
+              <div className="space-y-8">
+                {/* Basic Information Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {/* Category */}
+                  <div className="p-4 bg-slate-50/50 rounded-xl border border-slate-200/50">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-slate-600 font-semibold text-sm">Category</span>
+                      <Icon name="tag" className="w-4 h-4 text-slate-500" />
+                    </div>
+                    <div className="text-slate-800 font-bold text-lg">{getCategoryLabel(monster.category)}</div>
+                  </div>
+                  
+                  {/* Element */}
+                  {monster.element && (
+                    <div className="p-4 bg-blue-50/50 rounded-xl border border-blue-200/50">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-blue-600 font-semibold text-sm">{elementLabel}</span>
+                        <span className="text-lg">⚡</span>
+                      </div>
+                      <div className="text-blue-800 font-bold text-lg">{getElementLabel(monster.element)}</div>
+                    </div>
+                  )}
+                  
+                  {/* Race */}
+                  {monster.race && (
+                    <div className="p-4 bg-purple-50/50 rounded-xl border border-purple-200/50">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-purple-600 font-semibold text-sm">{raceLabel}</span>
+                        <span className="text-lg">👤</span>
+                      </div>
+                      <div className="text-purple-800 font-bold text-lg">{getRaceLabel(monster.race)}</div>
+                    </div>
+                  )}
+                  
+                  {/* Health */}
+                  <div className="p-4 bg-red-50/50 rounded-xl border border-red-200/50">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-red-600 font-semibold text-sm">{healthLabel}</span>
+                      <Icon name="heart" className="w-4 h-4 text-red-500" />
+                    </div>
+                    <div className="text-red-800 font-bold text-lg">{monster.stats.health} HP</div>
+                  </div>
+                  
+                  {/* Damage */}
+                  <div className="p-4 bg-orange-50/50 rounded-xl border border-orange-200/50">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-orange-600 font-semibold text-sm">{damageLabel}</span>
+                      <Icon name="sword" className="w-4 h-4 text-orange-500" />
+                    </div>
+                    <div className="text-orange-800 font-bold text-lg">{monster.stats.damage} DMG</div>
+                  </div>
+                  
+                  {/* XP Drop */}
+                  <div className="p-4 bg-yellow-50/50 rounded-xl border border-yellow-200/50">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-yellow-600 font-semibold text-sm">{xpDropLabel}</span>
+                      <Icon name="star" className="w-4 h-4 text-yellow-500" />
+                    </div>
+                    <div className="text-yellow-800 font-bold text-lg">{monster.stats.xpDrop} XP</div>
+                  </div>
+                </div>
+
+                {/* Spawning Information Section */}
+                <div className="border-t border-slate-200/50 pt-6">
+                  <h3 className="text-emerald-600 font-bold text-xl mb-6 flex items-center gap-2">
+                    <Icon name="globe" className="w-6 h-6" />
+                    {isZhTW ? '生成條件' : 'Spawning Conditions'}
+                  </h3>
+                  
+                  <div className="space-y-6">
+                    {/* Worlds */}
+                    {monster.spawning?.worlds && monster.spawning.worlds.length > 0 && (
+                      <div>
+                        <h4 className="text-emerald-600 font-bold text-lg mb-3 flex items-center gap-2">
+                          <Icon name="globe" className="w-5 h-5" />
+                          {worldsLabel}
+                        </h4>
+                        <div className="flex flex-wrap gap-2">
+                          {monster.spawning.worlds.map((world) => (
+                            <span key={world} className="inline-flex items-center gap-2 px-3 py-2 bg-emerald-50/50 rounded-lg border border-emerald-200/50">
+                              <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                              <span className="font-medium text-emerald-800">{world}</span>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Biomes */}
+                    {monster.spawning?.biomes && monster.spawning.biomes.length > 0 && (
+                      <div>
+                        <h4 className="text-green-600 font-bold text-lg mb-3 flex items-center gap-2">
+                          <Icon name="mountain" className="w-5 h-5" />
+                          {biomesLabel}
+                        </h4>
+                        <div className="flex flex-wrap gap-2">
+                          {monster.spawning.biomes.map((biome) => (
+                            <span key={biome} className="inline-flex items-center gap-2 px-3 py-2 bg-green-50/50 rounded-lg border border-green-200/50">
+                              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                              <span className="font-medium text-green-800">{biome}</span>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Structures */}
+                    {monster.spawning?.structures && monster.spawning.structures.length > 0 && (
+                      <div>
+                        <h4 className="text-purple-600 font-bold text-lg mb-3 flex items-center gap-2">
+                          <Icon name="building" className="w-5 h-5" />
+                          {structuresLabel}
+                        </h4>
+                        <div className="flex flex-wrap gap-2">
+                          {monster.spawning.structures.map((structure) => (
+                            <span key={structure} className="inline-flex items-center gap-2 px-3 py-2 bg-purple-50/50 rounded-lg border border-purple-200/50">
+                              <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                              <span className="font-medium text-purple-800">{structure}</span>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Environmental Conditions */}
+                    <div>
+                      <h4 className="text-blue-600 font-bold text-lg mb-4 flex items-center gap-2">
+                        <Icon name="sun" className="w-5 h-5" />
+                        {conditionsLabel}
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                        {monster.spawning?.timeOfDay && (
+                          <div className="p-4 bg-blue-50/50 rounded-xl border border-blue-200/50">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-blue-600 font-semibold text-sm">{timeLabel}</span>
+                              <Icon name="clock" className="w-4 h-4 text-blue-500" />
+                            </div>
+                            <div className="text-blue-800 font-bold text-lg">{getTimeOfDayLabel(monster.spawning.timeOfDay)}</div>
+                          </div>
+                        )}
+                        {monster.spawning?.lightLevel && (
+                          <div className="p-4 bg-yellow-50/50 rounded-xl border border-yellow-200/50">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-yellow-600 font-semibold text-sm">{lightLevelLabel}</span>
+                              <Icon name="sun" className="w-4 h-4 text-yellow-500" />
+                            </div>
+                            <div className="text-yellow-800 font-bold text-lg">{monster.spawning.lightLevel.min}-{monster.spawning.lightLevel.max}</div>
+                          </div>
+                        )}
+                        {monster.spawning?.spawnRate && (
+                          <div className="p-4 bg-indigo-50/50 rounded-xl border border-indigo-200/50">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-indigo-600 font-semibold text-sm">{isZhTW ? '稀有度' : 'Spawn Rate'}</span>
+                              <Icon name="activity" className="w-4 h-4 text-indigo-500" />
+                            </div>
+                            <div className="text-indigo-800 font-bold text-lg">{getSpawnRateLabel(monster.spawning.spawnRate)}</div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="bg-white rounded-3xl shadow-xl border border-slate-200/50 p-6 backdrop-blur-sm">
+              <DexActions monster={monster} />
+            </div>
+
+            {/* Behaviors */}
+            {monster.behaviors && monster.behaviors.length > 0 && (
+              <div className="bg-white rounded-3xl shadow-xl border border-slate-200/50 p-8 backdrop-blur-sm">
+                <div className="flex items-center gap-3 mb-8">
+                  <div className="p-3 bg-indigo-100 rounded-2xl">
+                    <Icon name="activity" className="w-6 h-6 text-indigo-600" />
+                  </div>
+                  <h2 className="text-3xl font-bold text-slate-900">{behaviorsTitle}</h2>
+                </div>
+                
+                <div className="space-y-4">
+                  {monster.behaviors.map((behavior, index) => (
+                    <div key={index} className="flex items-center gap-4 p-4 bg-indigo-50/50 rounded-2xl border border-indigo-200/50">
+                      <div className="w-3 h-3 bg-indigo-500 rounded-full flex-shrink-0"></div>
+                      <span className="text-slate-700 font-medium">{behavior}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Item Drops */}
+            {monster.drops && monster.drops.length > 0 && (
+              <div className="bg-white rounded-3xl shadow-xl border border-slate-200/50 p-8 backdrop-blur-sm">
+                <div className="flex items-center gap-3 mb-8">
+                  <div className="p-3 bg-amber-100 rounded-2xl">
+                    <Icon name="diamond" className="w-6 h-6 text-amber-600" />
+                  </div>
+                  <h2 className="text-3xl font-bold text-slate-900">{dropsTitle}</h2>
+                </div>
+                
+                <div className="space-y-4">
+                  {monster.drops.map((drop, index) => (
+                    <div key={index} className="p-6 bg-slate-50/50 rounded-2xl border border-slate-200/50">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="font-bold text-slate-900 text-lg">{drop.itemName}</h3>
+                        {drop.isRare && (
+                          <span className="px-3 py-1 bg-amber-100 text-amber-700 rounded-lg text-xs font-bold border border-amber-300">{rareLabel}</span>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="flex justify-between items-center">
+                          <span className="text-slate-600">{dropChanceLabel}</span>
+                          <span className="font-bold text-emerald-600 text-lg">{(drop.dropChance * 100).toFixed(1)}%</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-slate-600">{quantityLabel}</span>
+                          <span className="font-bold text-blue-600 text-lg">{drop.minQuantity}-{drop.maxQuantity}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Tags */}
+            {monster.tags && monster.tags.length > 0 && (
+              <div className="bg-white rounded-3xl shadow-xl border border-slate-200/50 p-8 backdrop-blur-sm">
+                <h2 className="text-2xl font-bold text-slate-900 mb-6">{tagsTitle}</h2>
+                <div className="flex flex-wrap gap-3">
+                  {monster.tags.map((tag) => (
+                    <span key={tag} className="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl font-medium hover:bg-slate-200 transition-colors">
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Right Side - 3D Model (1 column, sticky) */}
+          <div className="lg:col-span-1">
+            <div className="sticky top-8">
+              <div className="relative">
+                <div className="w-full h-96 lg:h-[600px] bg-gradient-to-br from-white to-slate-100 rounded-3xl shadow-2xl border border-slate-200/50 overflow-hidden">
                   <Suspense fallback={<ModelViewerSkeleton />}>
                     <ModelViewer 
                       modelPath={monster.modelPath} 
@@ -143,243 +440,13 @@ export function MonsterDetail({ monster }: MonsterDetailProps) {
                     />
                   </Suspense>
                 </div>
+                {/* Decorative Glow */}
+                <div className="absolute -inset-4 bg-gradient-to-r from-emerald-400/20 via-blue-400/20 to-purple-400/20 rounded-3xl blur-xl -z-10"></div>
               </div>
             </div>
-          </div>
-
-          {/* Right Column - Details */}
-          <div className="xl:col-span-2 space-y-8">
-            {/* Combat Statistics */}
-            <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
-              <div className="p-6 border-b border-slate-100">
-                <h2 className="text-xl font-bold text-slate-900">
-                  {combatStatsTitle}
-                </h2>
-              </div>
-              <div className="p-6">
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-                  <StatCard 
-                    icon={<Icon name="heart" className="w-8 h-8" />}
-                    label={healthLabel} 
-                    value={monster.stats.health}
-                    color="red"
-                  />
-                  <StatCard 
-                    icon={<Icon name="sword" className="w-8 h-8" />}
-                    label={damageLabel} 
-                    value={monster.stats.damage}
-                    color="orange"
-                  />
-                  <StatCard 
-                    icon={<Icon name="flash" className="w-8 h-8" />}
-                    label={speedLabel} 
-                    value={monster.stats.speed}
-                    color="blue"
-                  />
-                  <StatCard 
-                    icon={<Icon name="diamond" className="w-8 h-8" />}
-                    label={xpDropLabel} 
-                    value={monster.stats.xpDrop}
-                    color="yellow"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Spawning Information */}
-            <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
-              <div className="p-6 border-b border-slate-100">
-                <h2 className="text-xl font-bold text-slate-900">
-                  {spawningTitle}
-                </h2>
-              </div>
-              <div className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Worlds */}
-                  {monster.spawning?.worlds && monster.spawning.worlds.length > 0 && (
-                    <div>
-                      <h3 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
-                        <Icon name="globe" className="w-5 h-5 text-slate-600" />
-                        {worldsLabel}
-                      </h3>
-                      <div className="flex flex-wrap gap-2">
-                        {monster.spawning.worlds.map((world) => (
-                          <span key={world} className="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-lg text-sm font-medium border border-emerald-200">
-                            {world}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Biomes */}
-                  {monster.spawning?.biomes && monster.spawning.biomes.length > 0 && (
-                    <div>
-                      <h3 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
-                        <Icon name="terrain" className="w-5 h-5 text-slate-600" />
-                        {biomesLabel}
-                      </h3>
-                      <div className="flex flex-wrap gap-2">
-                        {monster.spawning.biomes.map((biome) => (
-                          <span key={biome} className="px-3 py-1 bg-green-100 text-green-800 rounded-lg text-sm font-medium border border-green-200">
-                            {biome}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Spawn Conditions */}
-                  {monster.spawning && (
-                    <div>
-                      <h3 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
-                        <Icon name="clock" className="w-5 h-5 text-slate-600" />
-                        {conditionsLabel}
-                      </h3>
-                      <div className="space-y-2">
-                        {monster.spawning.timeOfDay && (
-                          <div className="flex items-center gap-2 text-sm">
-                            <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                            <span className="text-slate-600">{timeLabel}:</span>
-                            <span className="font-medium text-slate-900">{getTimeOfDayLabel(monster.spawning.timeOfDay)}</span>
-                          </div>
-                        )}
-                        {monster.spawning.lightLevel && (
-                          <div className="flex items-center gap-2 text-sm">
-                            <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
-                            <span className="text-slate-600">{lightLevelLabel}:</span>
-                            <span className="font-medium text-slate-900">{monster.spawning.lightLevel.min}-{monster.spawning.lightLevel.max}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Structures (if any) */}
-                  {monster.spawning?.structures && monster.spawning.structures.length > 0 && (
-                    <div>
-                      <h3 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
-                        <Icon name="build" className="w-5 h-5 text-slate-600" />
-                        {structuresLabel}
-                      </h3>
-                      <div className="flex flex-wrap gap-2">
-                        {monster.spawning.structures.map((structure) => (
-                          <span key={structure} className="px-3 py-1 bg-purple-100 text-purple-800 rounded-lg text-sm font-medium border border-purple-200">
-                            {structure}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Behaviors */}
-            {monster.behaviors.length > 0 && (
-              <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
-                <div className="p-6 border-b border-slate-100">
-                  <h2 className="text-xl font-bold text-slate-900">
-                    {behaviorsTitle}
-                  </h2>
-                </div>
-                <div className="p-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {monster.behaviors.map((behavior, index) => (
-                      <div key={index} className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
-                        <div className="w-2 h-2 bg-indigo-500 rounded-full flex-shrink-0"></div>
-                        <span className="text-slate-700 font-medium">{behavior}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Drops */}
-            {monster.drops.length > 0 && (
-              <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
-                <div className="p-6 border-b border-slate-100">
-                  <h2 className="text-xl font-bold text-slate-900">
-                    {dropsTitle}
-                  </h2>
-                </div>
-                <div className="p-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {monster.drops.map((drop, index) => (
-                      <div key={index} className="p-4 bg-gradient-to-r from-slate-50 to-slate-100 rounded-xl border border-slate-200">
-                        <div className="flex items-center justify-between mb-3">
-                          <h3 className="font-bold text-slate-900">{drop.itemName}</h3>
-                          {drop.isRare && (
-                            <span className="px-2 py-1 bg-amber-100 text-amber-800 rounded-lg text-xs font-bold border border-amber-200 flex items-center gap-1">
-                              <Icon name="diamond" className="w-3 h-3" /> {rareLabel}
-                            </span>
-                          )}
-                        </div>
-                        <div className="space-y-1">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-slate-600">{dropChanceLabel}:</span>
-                            <span className="font-semibold text-slate-900">{(drop.dropChance * 100).toFixed(1)}%</span>
-                          </div>
-                          <div className="flex justify-between text-sm">
-                            <span className="text-slate-600">{quantityLabel}:</span>
-                            <span className="font-semibold text-slate-900">{drop.minQuantity}-{drop.maxQuantity}</span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Tags */}
-            {monster.tags.length > 0 && (
-              <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
-                <div className="p-6 border-b border-slate-100">
-                  <h2 className="text-xl font-bold text-slate-900">
-                    {tagsTitle}
-                  </h2>
-                </div>
-                <div className="p-6">
-                  <div className="flex flex-wrap gap-2">
-                    {monster.tags.map((tag) => (
-                      <span key={tag} className="px-3 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm font-medium border border-slate-200 hover:bg-slate-200 transition-colors">
-                        #{tag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>
-    </div>
-  )
-}
-
-// Reusable Stat Card Component
-interface StatCardProps {
-  icon: React.ReactNode
-  label: string
-  value: number
-  color: 'red' | 'orange' | 'blue' | 'yellow'
-}
-
-function StatCard({ icon, label, value, color }: StatCardProps) {
-  const colorClasses = {
-    red: 'text-red-600 bg-red-50 border-red-200',
-    orange: 'text-orange-600 bg-orange-50 border-orange-200',
-    blue: 'text-blue-600 bg-blue-50 border-blue-200',
-    yellow: 'text-yellow-600 bg-yellow-50 border-yellow-200'
-  }
-
-  return (
-    <div className={`p-4 rounded-xl border-2 ${colorClasses[color]} text-center`}>
-      <div className="flex justify-center mb-2">{icon}</div>
-      <div className="text-2xl font-bold mb-1">{value}</div>
-      <div className="text-sm font-medium opacity-80">{label}</div>
     </div>
   )
 }
@@ -389,9 +456,9 @@ function ModelViewerSkeleton() {
     <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 animate-pulse">
       <div className="text-center">
         <div className="mb-4 flex justify-center">
-          <Icon name="model3d" className="w-16 h-16 text-slate-400" />
+          <Icon name="model3d" className="w-16 h-16 text-slate-500" />
         </div>
-        <div className="text-slate-500 font-medium">Loading 3D Model...</div>
+        <div className="text-slate-600 font-medium">Loading 3D Model...</div>
       </div>
     </div>
   )

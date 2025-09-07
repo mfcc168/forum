@@ -11,7 +11,8 @@ import { toast } from 'react-hot-toast'
 import type { 
   ForumPost, 
   BlogPost, 
-  WikiGuide, 
+  WikiGuide,
+  DexMonster,
   ContentFilters,
   PaginationMeta,
   DetailedInteractionResponse,
@@ -24,30 +25,33 @@ import type {
 // ============================================================================
 
 /** Supported content types */
-export type ContentType = 'forum' | 'blog' | 'wiki'
+export type ContentType = 'forum' | 'blog' | 'wiki' | 'dex'
 
 /** Generic content item union */
-export type ContentItem = ForumPost | BlogPost | WikiGuide
+export type ContentItem = ForumPost | BlogPost | WikiGuide | DexMonster
 
 /** Content type mapping */
 type ContentTypeMap = {
   forum: ForumPost
   blog: BlogPost
   wiki: WikiGuide
+  dex: DexMonster
 }
 
 /** Content API endpoints mapping */
 const ENDPOINTS = {
   forum: '/api/forum/posts',
   blog: '/api/blog/posts', 
-  wiki: '/api/wiki/guides'
+  wiki: '/api/wiki/guides',
+  dex: '/api/dex/monsters'
 } as const
 
 /** Content names for UI messages */
 const CONTENT_NAMES = {
   forum: 'post',
   blog: 'blog post',
-  wiki: 'guide'
+  wiki: 'guide',
+  dex: 'monster'
 } as const
 
 // ============================================================================
@@ -124,6 +128,9 @@ export function useContent<T extends ContentType>(
       if (result.data?.wikiGuides !== undefined) {
         return result.data.wikiGuides
       }
+      if (result.data?.dexMonsters !== undefined) {
+        return result.data.dexMonsters
+      }
       return result.data || []
     },
     enabled,
@@ -187,7 +194,7 @@ export function useInfiniteContent<T extends ContentType>(
       }
       
       return {
-        items: result.data?.blogPosts || result.data?.forumPosts || result.data?.wikiGuides || result.data || [],
+        items: result.data?.blogPosts || result.data?.forumPosts || result.data?.wikiGuides || result.data?.dexMonsters || result.data || [],
         pagination: result.data?.pagination || { 
           page: pageParam, 
           pages: 1, 
@@ -243,7 +250,7 @@ export function useContentItem<T extends ContentType>(
         throw new Error(result.error || `Failed to fetch ${CONTENT_NAMES[type]}`)
       }
       
-      const contentData = result.data?.blogPost || result.data?.forumPost || result.data?.wikiGuide || result.data
+      const contentData = result.data?.blogPost || result.data?.forumPost || result.data?.wikiGuide || result.data?.dexMonster || result.data
       
       // Extract the actual content item from the API response structure
       return contentData
@@ -285,7 +292,7 @@ export function useCreateContent<T extends ContentType>(type: T) {
       }
       
       // Extract the created item from the nested response
-      // API responses are { blogPost: post }, { wikiGuide: guide }, { forumPost: post }
+      // API responses are { blogPost: post }, { wikiGuide: guide }, { forumPost: post }, { dexMonster: monster }
       const responseData = result.data as Record<string, unknown>
       if (type === 'blog' && 'blogPost' in responseData) {
         return responseData.blogPost as ContentTypeMap[T]
@@ -293,6 +300,8 @@ export function useCreateContent<T extends ContentType>(type: T) {
         return responseData.wikiGuide as ContentTypeMap[T]
       } else if (type === 'forum' && 'forumPost' in responseData) {
         return responseData.forumPost as ContentTypeMap[T]
+      } else if (type === 'dex' && 'dexMonster' in responseData) {
+        return responseData.dexMonster as ContentTypeMap[T]
       }
       
       // Fallback for unexpected response structure
@@ -359,7 +368,7 @@ export function useUpdateContent<T extends ContentType>(type: T) {
       }
       
       // Extract the updated item from the nested response
-      // API responses are { blogPost: post }, { wikiGuide: guide }, { forumPost: post }
+      // API responses are { blogPost: post }, { wikiGuide: guide }, { forumPost: post }, { dexMonster: monster }
       const responseData = result.data as Record<string, unknown>
       if (type === 'blog' && 'blogPost' in responseData) {
         return responseData.blogPost as ContentTypeMap[T]
@@ -367,6 +376,8 @@ export function useUpdateContent<T extends ContentType>(type: T) {
         return responseData.wikiGuide as ContentTypeMap[T]
       } else if (type === 'forum' && 'forumPost' in responseData) {
         return responseData.forumPost as ContentTypeMap[T]
+      } else if (type === 'dex' && 'dexMonster' in responseData) {
+        return responseData.dexMonster as ContentTypeMap[T]
       }
       
       // Fallback for unexpected response structure
@@ -537,7 +548,7 @@ export function useContentInteraction<T extends ContentType>(type: T) {
             items = old.data
           } else if (typeof old.data === 'object' && old.data !== null) {
             const dataObj = old.data as Record<string, unknown>
-            items = (dataObj.posts || dataObj.guides || dataObj) as unknown[]
+            items = (dataObj.posts || dataObj.guides || dataObj.monsters || dataObj) as unknown[]
           } else {
             return oldQuery
           }
@@ -605,6 +616,7 @@ export function useContentInteraction<T extends ContentType>(type: T) {
             const newData = { ...dataObj }
             if (dataObj.posts) newData.posts = updatedItems
             if (dataObj.guides) newData.guides = updatedItems
+            if (dataObj.monsters) newData.monsters = updatedItems
             
             return {
               ...old,
@@ -661,7 +673,7 @@ export function useContentInteraction<T extends ContentType>(type: T) {
             items = old.data
           } else if (typeof old.data === 'object' && old.data !== null) {
             const dataObj = old.data as Record<string, unknown>
-            items = (dataObj.posts || dataObj.guides || dataObj) as unknown[]
+            items = (dataObj.posts || dataObj.guides || dataObj.monsters || dataObj) as unknown[]
           } else {
             return oldQuery
           }
@@ -689,6 +701,7 @@ export function useContentInteraction<T extends ContentType>(type: T) {
             const newData = { ...dataObj }
             if (dataObj.posts) newData.posts = updatedItems
             if (dataObj.guides) newData.guides = updatedItems
+            if (dataObj.monsters) newData.monsters = updatedItems
             
             return {
               ...old,
@@ -729,3 +742,4 @@ export function createContentHooks<T extends ContentType>(type: T) {
 export const forumHooks = createContentHooks('forum')
 export const blogHooks = createContentHooks('blog')
 export const wikiHooks = createContentHooks('wiki')
+export const dexHooks = createContentHooks('dex')

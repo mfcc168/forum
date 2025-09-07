@@ -325,126 +325,6 @@ export const zhTW = {
     }
   },
   
-  // Dex Page
-  dex: {
-    title: '怪物圖鑑',
-    subtitle: '發現我們 Minecraft 世界中的所有生物和怪物',
-    pageTitle: '怪物圖鑑',
-    pageDescription: '所有怪物和生物的完整指南',
-    
-    welcome: {
-      title: '歡迎來到怪物圖鑑',
-      description: '探索伺服器中所有生物的詳細資訊。了解牠們的行為、生成條件和掉落物品。',
-    },
-    
-    categories: {
-      hostile: '敵對',
-      passive: '被動',
-      neutral: '中立',
-      boss: '魔王'
-    },
-    
-    stats: {
-      health: '生命值',
-      damage: '攻擊力',
-      speed: '速度',
-      xpDrop: '經驗值',
-      monsters: '總怪物數',
-      totalViews: '總瀏覽量',
-      totalLikes: '總喜歡數',
-      categories: '分類'
-    },
-    
-    spawning: {
-      title: '生成資訊',
-      worlds: '世界',
-      biomes: '生態域',
-      conditions: '條件',
-      structures: '結構',
-      timeOfDay: '時間',
-      lightLevel: '亮度等級'
-    },
-    
-    behaviors: {
-      title: '行為'
-    },
-    
-    drops: {
-      title: '物品掉落',
-      rare: '稀有',
-      dropChance: '掉落機率',
-      quantity: '數量'
-    },
-    
-    tags: {
-      title: '標籤'
-    },
-    
-    detail: {
-      loading: '載入怪物資訊中...',
-      notFound: '找不到怪物',
-      notFoundDescription: '此怪物資訊不可用。',
-      backToDex: '← 返回圖鑑'
-    },
-    
-    forms: {
-      create: {
-        title: '新增怪物',
-        description: '向圖鑑新增怪物',
-        submitButton: '新增怪物',
-        nameLabel: '怪物名稱',
-        namePlaceholder: '輸入怪物名稱...',
-        descriptionLabel: '描述',
-        descriptionPlaceholder: '描述怪物...',
-        excerptLabel: '摘要',
-        excerptPlaceholder: '簡短描述...',
-        categoryLabel: '分類',
-        modelLabel: '模型',
-        behaviorsLabel: '行為',
-        healthLabel: '生命值',
-        damageLabel: '攻擊力',
-        speedLabel: '速度',
-        xpDropLabel: '經驗值',
-        worldsLabel: '世界',
-        biomesLabel: '生態域',
-        structuresLabel: '結構',
-        lightLevelLabel: '亮度等級',
-        timeOfDayLabel: '時間',
-        spawnRateLabel: '生成機率',
-        tagsLabel: '標籤',
-        statusLabel: '狀態'
-      }
-    },
-    
-    search: {
-      placeholder: '搜尋怪物...'
-    },
-    
-    filters: {
-      allCategories: '所有分類'
-    },
-    
-    actions: {
-      createMonster: '新增怪物'
-    },
-    
-    results: {
-      showing: '顯示',
-      of: '共',
-      monsters: '隻怪物'
-    },
-    
-    empty: {
-      title: '找不到怪物',
-      description: '請調整搜尋條件或篩選器以找到更多怪物。'
-    },
-    
-    interactions: {
-      like: '喜歡',
-      bookmark: '書籤',
-      share: '分享'
-    }
-  },
   
   // Blog Page
   blog: {
@@ -849,6 +729,56 @@ export const zhTW = {
       boss: '頭目'
     },
     
+    elements: {
+      none: '無',
+      fire: '火',
+      water: '水',
+      earth: '土',
+      air: '風',
+      light: '光',
+      dark: '暗',
+      ice: '冰',
+      lightning: '雷'
+    },
+    
+    races: {
+      god: '神',
+      dragon: '龍',
+      goblin: '哥布林',
+      orc: '獸人',
+      elf: '精靈',
+      dwarf: '矮人',
+      troll: '巨魔',
+      giant: '巨人',
+      undead: '不死族',
+      skeleton: '骷髏',
+      zombie: '殭屍',
+      vampire: '吸血鬼',
+      ghost: '幽靈',
+      demon: '惡魔',
+      angel: '天使',
+      fairy: '妖精',
+      phoenix: '鳳凰',
+      beast: '野獸',
+      wolf: '狼',
+      bear: '熊',
+      cat: '貓',
+      bird: '鳥',
+      fish: '魚',
+      snake: '蛇',
+      spider: '蜘蛛',
+      insect: '昆蟲',
+      slime: '史萊姆',
+      golem: '魔像',
+      construct: '構造體',
+      robot: '機器人',
+      elemental: '元素',
+      plant: '植物',
+      humanoid: '人形',
+      alien: '外星人',
+      void: '虛無'
+    },
+    
     spawning: {
       common: '常見',
       uncommon: '不常見',
@@ -889,6 +819,8 @@ export const zhTW = {
         modelPlaceholder: '選擇 3D 模型...',
         modelHelp: '從可用的 GLTF 模型中選擇',
         categoryLabel: '分類',
+        elementLabel: '屬性',
+        raceLabel: '種族',
         excerptLabel: '摘要',
         excerptPlaceholder: '怪物的簡短描述...',
         descriptionLabel: '描述',
@@ -922,6 +854,9 @@ export const zhTW = {
       edit: '編輯',
       delete: '刪除',
       deleting: '刪除中...',
+      confirmDeleteTitle: '刪除怪物',
+      confirmDeleteMessage: '確定要刪除這隻怪物嗎？此操作無法復原。',
+      deleteSuccess: '怪物刪除成功',
       createMonster: '建立怪物',
       editMonster: '編輯怪物',
       deleteMonster: '刪除怪物',

@@ -13,7 +13,7 @@ process.setMaxListeners(20)
 
 export function initializeWebSocketServer(): void {
   if (isInitialized) {
-    console.log('WebSocket server already initialized')
+    // WebSocket server already initialized
     return
   }
   
@@ -23,7 +23,7 @@ export function initializeWebSocketServer(): void {
     const sigIntListeners = process.listenerCount('SIGINT')
     
     if (sigTermListeners > 5 || sigIntListeners > 5) {
-      console.warn(`⚠️  High listener count detected: SIGTERM(${sigTermListeners}) SIGINT(${sigIntListeners})`)
+      // High listener count detected
     }
   }
 
@@ -41,7 +41,7 @@ export function initializeWebSocketServer(): void {
     
     // Create shutdown handler
     shutdownHandler = () => {
-      console.log('Shutting down WebSocket server...')
+      // Shutting down WebSocket server
       statsBroadcaster.shutdown()
       
       // Clean up listeners
