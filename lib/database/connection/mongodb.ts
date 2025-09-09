@@ -19,7 +19,6 @@ const options = {
   // Reliability settings for serverless
   retryWrites: true,
   retryReads: true,
-  bufferMaxEntries: 0, // Fail fast instead of buffering
 }
 
 let client

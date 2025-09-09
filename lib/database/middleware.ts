@@ -25,7 +25,8 @@ export function withDALAndValidation<T = Record<string, unknown>>(
   handler: RouteHandlerWithDAL<T>,
   options?: {
     auth?: 'required' | 'optional'
-    schema?: unknown
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    schema?: any
     rateLimit?: { requests: number; window: string }
   }
 ) {

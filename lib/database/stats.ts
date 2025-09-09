@@ -110,12 +110,13 @@ export class StatsManager {
       action: isRemoving ? 'removed' : 'added',
       currentState: !isRemoving,
       isNew: !isRemoving,
-      stats: updatedPost.stats || {
-        likesCount: 0,
-        bookmarksCount: 0,
-        sharesCount: 0,
-        viewsCount: 0,
-        repliesCount: 0
+      stats: {
+        viewsCount: updatedPost.stats?.viewsCount || 0,
+        likesCount: updatedPost.stats?.likesCount || 0,
+        bookmarksCount: updatedPost.stats?.bookmarksCount || 0,
+        sharesCount: updatedPost.stats?.sharesCount || 0,
+        repliesCount: updatedPost.stats?.repliesCount || 0,
+        helpfulsCount: updatedPost.stats?.helpfulsCount || 0
       },
       interactions: {
         isLiked: userInteractions.has('like'),

@@ -163,12 +163,18 @@ export const POST = withDALAndValidation(
                 },
                 category: post.categoryName,
                 tags: post.tags || [],
-                stats: post.stats || {},
+                stats: {
+                  viewsCount: post.stats?.viewsCount || 0,
+                  likesCount: post.stats?.likesCount || 0,
+                  repliesCount: post.stats?.repliesCount
+                },
                 createdAt: post.createdAt,
                 updatedAt: post.updatedAt,
                 slug: post.slug,
-                score: calculateRelevanceScore(post, query),
-                highlights: highlight ? generateHighlights(post, query) : undefined
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                score: calculateRelevanceScore(post as any, query),
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                highlights: highlight ? generateHighlights(post as any, query) : undefined
               }))
               break
 
@@ -190,20 +196,30 @@ export const POST = withDALAndValidation(
 
               moduleResults = blogResults.map(post => ({
                 id: post.id,
-                module: 'blog',
-                type: 'post',
+                module: 'blog' as const,
+                type: 'post' as const,
                 title: post.title,
                 excerpt: post.excerpt,
                 content: post.content,
-                author: post.author,
+                author: { 
+                  id: post.author?.id || '', 
+                  name: post.author?.name || '',
+                  avatar: post.author?.avatar 
+                },
                 category: post.category,
                 tags: post.tags || [],
-                stats: post.stats,
+                stats: {
+                  viewsCount: post.stats?.viewsCount || 0,
+                  likesCount: post.stats?.likesCount || 0,
+                  repliesCount: post.stats?.repliesCount
+                },
                 createdAt: post.createdAt,
                 updatedAt: post.updatedAt,
                 slug: post.slug,
-                score: calculateRelevanceScore(post, query),
-                highlights: highlight ? generateHighlights(post, query) : undefined
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                score: calculateRelevanceScore(post as any, query),
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                highlights: highlight ? generateHighlights(post as any, query) : undefined
               }))
               break
 
@@ -226,20 +242,30 @@ export const POST = withDALAndValidation(
 
               moduleResults = wikiResults.map(guide => ({
                 id: guide.id,
-                module: 'wiki',
-                type: 'guide',
+                module: 'wiki' as const,
+                type: 'guide' as const,
                 title: guide.title,
                 excerpt: guide.excerpt,
                 content: guide.content,
-                author: guide.author,
+                author: { 
+                  id: guide.author?.id || '', 
+                  name: guide.author?.name || '',
+                  avatar: guide.author?.avatar 
+                },
                 category: guide.category,
                 tags: guide.tags || [],
-                stats: guide.stats,
+                stats: {
+                  viewsCount: guide.stats?.viewsCount || 0,
+                  likesCount: guide.stats?.likesCount || 0,
+                  repliesCount: guide.stats?.repliesCount
+                },
                 createdAt: guide.createdAt,
                 updatedAt: guide.updatedAt,
                 slug: guide.slug,
-                score: calculateRelevanceScore(guide, query),
-                highlights: highlight ? generateHighlights(guide, query) : undefined,
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                score: calculateRelevanceScore(guide as any, query),
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                highlights: highlight ? generateHighlights(guide as any, query) : undefined,
                 difficulty: guide.difficulty
               }))
               break
