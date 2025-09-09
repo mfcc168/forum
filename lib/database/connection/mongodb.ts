@@ -1,10 +1,11 @@
 import { MongoClient } from 'mongodb'
 
-if (!process.env.MONGODB_URI) {
+// Only validate on server-side (not in browser)
+if (typeof window === 'undefined' && !process.env.MONGODB_URI) {
   throw new Error('Invalid/Missing environment variable: "MONGODB_URI"')
 }
 
-const uri = process.env.MONGODB_URI
+const uri = process.env.MONGODB_URI || ''
 const options = {
   // Serverless-optimized timeouts (increased for cold starts)
   serverSelectionTimeoutMS: 30000, // 30 seconds (was 10)
@@ -45,6 +46,11 @@ if (process.env.NODE_ENV === 'development') {
 export default clientPromise
 
 export async function connectToDatabase() {
+  // Only allow database connections on server-side
+  if (typeof window !== 'undefined') {
+    throw new Error('Database connections are not allowed on the client-side')
+  }
+  
   const client = await clientPromise
   const db = client.db(process.env.MONGODB_DB || 'minecraft_server')
   return { client, db }

@@ -83,9 +83,19 @@ export class DAL {
   private static _analytics: AnalyticsDAL
 
   /**
+   * Server-side validation
+   */
+  private static validateServerSide(): void {
+    if (typeof window !== 'undefined') {
+      throw new Error('DAL operations are not allowed on the client-side')
+    }
+  }
+
+  /**
    * Forum operations
    */
   static get forum(): ForumDAL {
+    this.validateServerSide()
     if (!this._forum) {
       this._forum = new ForumDAL()
     }
@@ -96,6 +106,7 @@ export class DAL {
    * Blog operations
    */
   static get blog(): BlogDAL {
+    this.validateServerSide()
     if (!this._blog) {
       this._blog = new BlogDAL()
     }
@@ -106,6 +117,7 @@ export class DAL {
    * User operations
    */
   static get user(): UserDAL {
+    this.validateServerSide()
     if (!this._user) {
       this._user = new UserDAL()
     }
@@ -116,6 +128,7 @@ export class DAL {
    * Wiki operations
    */
   static get wiki(): WikiDAL {
+    this.validateServerSide()
     if (!this._wiki) {
       this._wiki = new WikiDAL()
     }
@@ -126,6 +139,7 @@ export class DAL {
    * Dex operations
    */
   static get dex(): DexDAL {
+    this.validateServerSide()
     if (!this._dex) {
       this._dex = new DexDAL()
     }
@@ -136,6 +150,7 @@ export class DAL {
    * Analytics operations
    */
   static get analytics(): AnalyticsDAL {
+    this.validateServerSide()
     if (!this._analytics) {
       this._analytics = new AnalyticsDAL()
     }
