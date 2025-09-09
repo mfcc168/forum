@@ -28,6 +28,39 @@ import type {
   PostFilters,
   PaginatedResponse
 } from '@/lib/types'
+import type { ForumStats } from '@/lib/types/entities/stats'
+import { FORUM_CATEGORIES } from '@/lib/config/forum-categories'
+
+// MongoDB aggregation pipeline interfaces
+interface MongoMatchConditions {
+  $or?: Array<{ [key: string]: { $regex: string; $options: string } }>
+  isDeleted?: { $ne: boolean }
+  isLocked?: { $ne: boolean }
+  status?: string
+  categoryName?: { $in: string[] }
+  tags?: { $in: string[] }
+  'author.name'?: { $in: string[] }
+  createdAt?: {
+    $gte?: string
+    $lte?: string
+  }
+}
+
+interface MongoSortStage {
+  'stats.likesCount'?: -1 | 1
+  'stats.repliesCount'?: -1 | 1
+  'stats.viewsCount'?: -1 | 1
+  createdAt?: -1 | 1
+  title?: -1 | 1
+  'author.name'?: -1 | 1
+}
+
+interface MongoAggregationStage {
+  $match?: MongoMatchConditions
+  $sort?: MongoSortStage
+  $skip?: number
+  $limit?: number
+}
 
 // Concrete DAL implementations
 class InteractionDAL extends BaseDAL<UserInteraction> {
@@ -75,10 +108,9 @@ export class ForumDAL extends BaseDAL<ForumPost> {
       // Calculate pagination info
       const paginationInfo = calculatePagination(page, limit, total)
 
-      // Use simplified aggregation pipeline
-      const collection = await this.getCollection()
+      // Use simplified aggregation pipeline (consistent with wiki pattern)
       const pipeline = createPostsAggregationPipeline(filter, sort, paginationInfo.skip, limit, userId)
-      const rawPosts = await collection.aggregate(pipeline).toArray()
+      const rawPosts = await this.aggregate(pipeline)
 
       // Parse and validate MongoDB documents with Zod schema
       const posts = rawPosts.map(doc => MongoForumPostSchema.parse(doc))
@@ -93,6 +125,123 @@ export class ForumDAL extends BaseDAL<ForumPost> {
   }
 
   /**
+   * Enhanced search for forum posts with advanced filtering and ranking
+   */
+  async searchPosts(searchParams: {
+    query: string
+    categories?: string[]
+    tags?: string[]
+    authors?: string[]
+    status?: string
+    dateRange?: { from?: Date; to?: Date }
+    sortBy?: 'latest' | 'popular' | 'views' | 'replies'
+    limit?: number
+    offset?: number
+  }): Promise<ForumPost[]> {
+    try {
+      const {
+        query,
+        categories,
+        tags,
+        authors,
+        status = 'active',
+        dateRange,
+        sortBy = 'latest',
+        limit = 20,
+        offset = 0
+      } = searchParams
+
+      // Build search aggregation pipeline
+      const pipeline: MongoAggregationStage[] = []
+
+      // Match stage with search and filters
+      const matchConditions: MongoMatchConditions = {}
+
+      // Text search across title and content
+      if (query) {
+        matchConditions.$or = [
+          { title: { $regex: query, $options: 'i' } },
+          { content: { $regex: query, $options: 'i' } },
+          { excerpt: { $regex: query, $options: 'i' } }
+        ]
+      }
+
+      // Status filter
+      if (status === 'active') {
+        matchConditions.isDeleted = { $ne: true }
+        matchConditions.isLocked = { $ne: true }
+      } else if (status !== 'all') {
+        matchConditions.status = status
+      }
+
+      // Category filter
+      if (categories && categories.length > 0) {
+        matchConditions.categoryName = { $in: categories }
+      }
+
+      // Tags filter
+      if (tags && tags.length > 0) {
+        matchConditions.tags = { $in: tags }
+      }
+
+      // Author filter
+      if (authors && authors.length > 0) {
+        matchConditions['author.name'] = { $in: authors }
+      }
+
+      // Date range filter
+      if (dateRange) {
+        const dateFilter: { $gte?: string; $lte?: string } = {}
+        if (dateRange.from) {
+          dateFilter.$gte = dateRange.from.toISOString()
+        }
+        if (dateRange.to) {
+          dateFilter.$lte = dateRange.to.toISOString()
+        }
+        if (Object.keys(dateFilter).length > 0) {
+          matchConditions.createdAt = dateFilter
+        }
+      }
+
+      pipeline.push({ $match: matchConditions })
+
+      // Sort stage
+      let sortStage: MongoSortStage = {}
+      switch (sortBy) {
+        case 'popular':
+          sortStage = { 'stats.likesCount': -1, 'stats.repliesCount': -1 }
+          break
+        case 'views':
+          sortStage = { 'stats.viewsCount': -1 }
+          break
+        case 'replies':
+          sortStage = { 'stats.repliesCount': -1 }
+          break
+        default: // 'latest'
+          sortStage = { createdAt: -1 }
+      }
+
+      pipeline.push({ $sort: sortStage })
+
+      // Pagination
+      if (offset > 0) {
+        pipeline.push({ $skip: offset })
+      }
+      pipeline.push({ $limit: limit })
+
+      // Execute search
+      const results = await this.aggregate(pipeline)
+      
+      // Parse and validate results
+      return results.map(doc => MongoForumPostSchema.parse(doc))
+
+    } catch (error) {
+      console.error('Forum search error:', error)
+      handleDatabaseError(error, 'search forum posts')
+    }
+  }
+
+  /**
    * Get single post with stats
    */
   async getPostWithStats(postId: string | ObjectId, userId?: string, includeAllStatuses = false): Promise<ForumPost | null> {
@@ -103,10 +252,8 @@ export class ForumDAL extends BaseDAL<ForumPost> {
         return null // Invalid ObjectId
       }
       
-      const collection = await this.getCollection()
       const pipeline = createSingleForumPostPipeline(matchStage, userId)
-      
-      const results = await collection.aggregate(pipeline).toArray()
+      const results = await this.aggregate(pipeline)
       const rawPost = results[0]
       
       if (!rawPost) {
@@ -166,10 +313,8 @@ export class ForumDAL extends BaseDAL<ForumPost> {
     try {
       const additionalFilters = includeAllStatuses ? {} : { status: 'published' }
       const matchStage = createSlugMatch(slug, additionalFilters)
-      const collection = await this.getCollection()
       const pipeline = createSingleForumPostPipeline(matchStage, userId)
-      
-      const results = await collection.aggregate(pipeline).toArray()
+      const results = await this.aggregate(pipeline)
       const rawPost = results[0]
       
       if (!rawPost) {
@@ -319,7 +464,6 @@ export class ForumDAL extends BaseDAL<ForumPost> {
     
     // If no categories in database, use static config
     if (baseCategories.length === 0) {
-      const { FORUM_CATEGORIES } = await import('@/lib/config/forum-categories')
       return FORUM_CATEGORIES
         .sort((a, b) => a.order - b.order)
         .map((cat) => ({
@@ -365,25 +509,33 @@ export class ForumDAL extends BaseDAL<ForumPost> {
   /**
    * Get forum statistics
    */
-  async getStats(): Promise<{
-    totalTopics: number
-    totalPosts: number
-    totalMembers: number
-    onlineMembers: number
-    categories: Array<{
-      name: string
-      description: string
-      postCount: number
-      slug: string
-    }>
-  }> {
+  async getStats(): Promise<ForumStats> {
     // Initialize database connection
     await this.init()
     
     // Get forum statistics using optimized queries
-    const [totalTopics, totalMembers, onlineMembers, categories] = await Promise.all([
+    const collection = await this.getCollection()
+    const [totalTopics, totalViews, totalLikes, totalShares, totalMembers, onlineMembers, categories] = await Promise.all([
       // Count active forum posts (topics)
       this.count({ status: 'published' } as Filter<ForumPost>),
+      
+      // Sum total views from all published posts
+      collection.aggregate<{ total: number }>([
+        { $match: { status: 'published', isDeleted: { $ne: true } } },
+        { $group: { _id: null, total: { $sum: '$stats.viewsCount' } } }
+      ]).toArray().then((result) => result[0]?.total || 0),
+      
+      // Sum total likes from all published posts
+      collection.aggregate<{ total: number }>([
+        { $match: { status: 'published', isDeleted: { $ne: true } } },
+        { $group: { _id: null, total: { $sum: '$stats.likesCount' } } }
+      ]).toArray().then((result) => result[0]?.total || 0),
+      
+      // Sum total shares from all published posts
+      collection.aggregate<{ total: number }>([
+        { $match: { status: 'published', isDeleted: { $ne: true } } },
+        { $group: { _id: null, total: { $sum: '$stats.sharesCount' } } }
+      ]).toArray().then((result) => result[0]?.total || 0),
       
       // Count total active users
       this.db.collection('users').countDocuments({ status: 'active' }),
@@ -404,21 +556,27 @@ export class ForumDAL extends BaseDAL<ForumPost> {
     })
 
     return {
+      // Base StatsResponse fields
+      totalPosts: totalTopics,
+      totalViews,
+      totalLikes,
+      totalShares,
+      totalUsers: totalMembers,
+      activeUsers: onlineMembers,
+      categoriesCount: categories.length,
+      // ForumStats-specific fields
       totalTopics,
-      totalPosts: totalTopics + totalReplies,
+      totalReplies,
       totalMembers,
       onlineMembers,
-      categories: categories.map(cat => {
-        // Temporary workaround for backward compatibility with mixed category formats
-        const postCount = cat.stats?.postsCount || 0
-        
-        return {
-          name: cat.name,
-          description: cat.description,
-          postCount,
-          slug: cat.slug
-        }
-      })
+      categories: categories.map(cat => ({
+        name: cat.name,
+        slug: cat.slug,
+        postsCount: cat.stats?.postsCount || 0,
+        order: cat.order
+      })),
+      popularPosts: [],
+      recentPosts: []
     }
   }
 

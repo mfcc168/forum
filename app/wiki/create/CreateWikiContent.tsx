@@ -37,8 +37,9 @@ export default function CreateWikiContent() {
           
           <div className="p-8">
             <WikiForm 
-              onSuccess={() => {
-                router.push('/wiki')
+              onSuccess={(guideSlug: string) => {
+                // Redirect to the newly created guide's detail page
+                router.push(`/wiki/${guideSlug}`)
               }}
               onCancel={() => {
                 router.push('/wiki')

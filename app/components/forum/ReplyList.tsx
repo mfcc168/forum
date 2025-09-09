@@ -9,7 +9,7 @@ import { Button } from '@/app/components/ui/Button'
 import { ReplyForm } from '@/app/components/forum/ReplyForm'
 import { WysiwygEditor } from '@/app/components/ui/WysiwygEditor'
 import { sanitizeHtml } from '@/lib/utils/html'
-import { formatDateSimple } from '@/lib/utils'
+import { formatSimpleDate } from '@/lib/utils'
 import { useReplies, useUpdateReply, useDeleteReply } from '@/lib/hooks/useReplies'
 import type { ForumReply } from '@/lib/types'
 import { useTranslation } from '@/lib/contexts/LanguageContext'
@@ -166,7 +166,7 @@ export const ReplyList = memo(function ReplyList({
               </div>
               <strong className="text-slate-800">{reply.author?.name || 'Unknown User'}</strong>
             </div>
-            <span>{formatDateSimple(reply.createdAt || new Date().toISOString())}</span>
+            <span>{formatSimpleDate(reply.createdAt || new Date().toISOString())}</span>
             {reply.createdAt && reply.updatedAt && reply.createdAt !== reply.updatedAt && (
               <span className="text-xs">(edited)</span>
             )}

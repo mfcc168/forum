@@ -63,6 +63,7 @@ export const getWikiFormFields = (t: TranslationObject): ContentFormField[] => [
     name: 'tags',
     label: t?.wiki?.forms?.createGuide?.tagsLabel || 'Tags',
     type: 'tags',
+    required: false,
     placeholder: t?.wiki?.forms?.createGuide?.tagsPlaceholder || 'Add tags...',
     help: t?.wiki?.forms?.createGuide?.tagsHelp || 'Press Enter to add tags'
   },

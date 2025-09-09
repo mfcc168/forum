@@ -6,7 +6,7 @@
  * - Forum: Member creation, author/admin editing
  */
 
-import type { ContentModule, ContentItem, PermissionUser } from '@/lib/types'
+import type { ContentModule, ContentItem, PartialContentItem, PermissionUser } from '@/lib/types'
 
 export class PermissionChecker {
   /**
@@ -21,6 +21,7 @@ export class PermissionChecker {
     switch (module) {
       case 'wiki':
       case 'blog':
+      case 'dex':
         return user.role === 'admin'
       case 'forum':
         return ['admin', 'moderator', 'vip', 'member'].includes(user.role)
@@ -36,12 +37,13 @@ export class PermissionChecker {
    * @param content - Content item being edited (required for forum ownership check)
    * @returns True if user can edit content
    */
-  static canEdit(user: PermissionUser | null, module: ContentModule, content?: ContentItem): boolean {
+  static canEdit(user: PermissionUser | null, module: ContentModule, content?: ContentItem | PartialContentItem): boolean {
     if (!user) return false
 
     switch (module) {
       case 'wiki':
       case 'blog':
+      case 'dex':
         return user.role === 'admin'
       case 'forum':
         const isAuthor = content?.author?.id === user.id
@@ -58,12 +60,13 @@ export class PermissionChecker {
    * @param content - Content item being deleted (required for forum ownership check)
    * @returns True if user can delete content
    */
-  static canDelete(user: PermissionUser | null, module: ContentModule, content?: ContentItem): boolean {
+  static canDelete(user: PermissionUser | null, module: ContentModule, content?: ContentItem | PartialContentItem): boolean {
     if (!user) return false
 
     switch (module) {
       case 'wiki':
       case 'blog':
+      case 'dex':
         return user.role === 'admin'
       case 'forum':
         const isAuthor = content?.author?.id === user.id
@@ -85,6 +88,7 @@ export class PermissionChecker {
     switch (module) {
       case 'wiki':
       case 'blog':
+      case 'dex':
         return user.role === 'admin'
       case 'forum':
         return ['admin', 'moderator'].includes(user.role)
@@ -101,7 +105,7 @@ export class PermissionChecker {
     return user ? ['admin', 'moderator'].includes(user.role) : false
   }
 
-  static isAuthor(user: PermissionUser | null, content?: ContentItem): boolean {
+  static isAuthor(user: PermissionUser | null, content?: ContentItem | PartialContentItem): boolean {
     return !!(user && content?.author?.id === user.id)
   }
 
@@ -112,7 +116,7 @@ export class PermissionChecker {
    * @param content - Content item (for ownership checks)
    * @returns Object with all permission flags
    */
-  static getContentPermissions(user: PermissionUser | null, module: ContentModule, content?: ContentItem) {
+  static getContentPermissions(user: PermissionUser | null, module: ContentModule, content?: ContentItem | PartialContentItem) {
     return {
       canCreate: this.canCreate(user, module),
       canEdit: this.canEdit(user, module, content),
@@ -125,18 +129,3 @@ export class PermissionChecker {
   }
 }
 
-
-/**
- * Legacy compatibility - gradually migrate from these
- * @deprecated Use PermissionChecker.getContentPermissions instead
- */
-export const legacyPermissionHelpers = {
-  isAdmin: (session: { user?: { role: string } } | null) => 
-    session?.user?.role === 'admin',
-  
-  isModerator: (session: { user?: { role: string } } | null) => 
-    session?.user?.role === 'moderator',
-    
-  isAuthor: (session: { user?: { id: string } } | null, authorId?: string) =>
-    !!(session?.user?.id && session.user.id === authorId)
-}

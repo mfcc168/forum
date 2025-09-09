@@ -1,6 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { z } from 'zod'
-import clientPromise from '@/lib/database/connection/mongodb'
+import { withDALAndValidation } from '@/lib/database/middleware'
+import { ApiResponse } from '@/lib/utils/validation'
+import type { ServerUser } from '@/lib/types'
 
 export const runtime = 'nodejs'
 
@@ -11,79 +13,92 @@ const metricSchema = z.object({
   timestamp: z.number()
 })
 
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json()
-    const validatedData = metricSchema.parse(body)
-    
-    const client = await clientPromise
-    const db = client.db('minecraft_server')
-    
-    // Store metric in analytics collection
-    const analyticsDoc = {
-      ...validatedData,
-      userAgent: request.headers.get('user-agent'),
-      ip: request.headers.get('x-forwarded-for') || 
-          request.headers.get('x-real-ip') || 
-          'unknown',
-      createdAt: new Date(validatedData.timestamp)
-    }
-    
-    await db.collection('analytics').insertOne(analyticsDoc)
-    
-    return NextResponse.json({ success: true })
-    
-  } catch (error) {
-    console.error('Analytics error:', error)
-    // Return success to avoid affecting user experience
-    return NextResponse.json({ success: true })
-  }
-}
+// Query schema for GET requests
+const analyticsQuerySchema = z.object({
+  type: z.string().optional(),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+  limit: z.coerce.number().min(1).max(1000).default(100)
+})
 
-export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url)
-    const type = searchParams.get('type')
-    const startDate = searchParams.get('startDate')
-    const endDate = searchParams.get('endDate')
-    const limit = parseInt(searchParams.get('limit') || '100')
-    
-    const client = await clientPromise
-    const db = client.db('minecraft_server')
-    
-    // Build query filter
-    const filter: Record<string, unknown> = {}
-    
-    if (type) {
-      filter.type = type
-    }
-    
-    if (startDate && endDate) {
-      filter.createdAt = {
-        $gte: new Date(startDate),
-        $lte: new Date(endDate)
+/**
+ * POST /api/analytics/metrics
+ * Store analytics metrics
+ */
+export const POST = withDALAndValidation(
+  async (request: NextRequest, { validatedData, dal }: { 
+    validatedData: z.infer<typeof metricSchema>;
+    dal: typeof import('@/lib/database/dal').DAL;
+  }) => {
+    try {
+      // Store metric in analytics collection via DAL
+      const analyticsDoc = {
+        ...validatedData,
+        userAgent: request.headers.get('user-agent'),
+        ip: request.headers.get('x-forwarded-for') || 
+            request.headers.get('x-real-ip') || 
+            'unknown',
+        createdAt: new Date(validatedData.timestamp)
       }
+      
+      // Store metric using DAL
+      await dal.analytics.createMetric(analyticsDoc)
+      
+      return ApiResponse.success(null, 'Metric stored successfully')
+      
+    } catch (error) {
+      console.error('Analytics error:', error)
+      // Return success to avoid affecting user experience for analytics
+      return ApiResponse.success(null, 'Metric processed')
     }
-    
-    // Get analytics data
-    const analytics = await db
-      .collection('analytics')
-      .find(filter)
-      .sort({ createdAt: -1 })
-      .limit(limit)
-      .toArray()
-    
-    return NextResponse.json({
-      success: true,
-      data: analytics,
-      total: analytics.length
-    })
-    
-  } catch (error) {
-    console.error('Analytics retrieval error:', error)
-    return NextResponse.json(
-      { error: 'Failed to retrieve analytics' },
-      { status: 500 }
-    )
+  },
+  {
+    schema: metricSchema,
+    auth: 'optional',
+    rateLimit: { requests: 100, window: '1m' }
   }
-}
+)
+
+/**
+ * GET /api/analytics/metrics
+ * Retrieve analytics metrics (admin only)
+ */
+export const GET = withDALAndValidation(
+  async (_request: NextRequest, { validatedData, user, dal }: { 
+    validatedData: z.infer<typeof analyticsQuerySchema>;
+    user?: ServerUser;
+    dal: typeof import('@/lib/database/dal').DAL;
+  }) => {
+    // Only admins can view analytics
+    if (!user || user.role !== 'admin') {
+      return ApiResponse.error('Admin access required', 403)
+    }
+
+    try {
+      const { type, startDate, endDate, limit } = validatedData
+      
+      // Get analytics data using DAL
+      const result = await dal.analytics.getMetrics({
+        type,
+        startDate: startDate ? new Date(startDate) : undefined,
+        endDate: endDate ? new Date(endDate) : undefined,
+        limit
+      })
+      
+      return ApiResponse.success({
+        metrics: result.metrics,
+        total: result.total,
+        filters: { type, startDate, endDate, limit }
+      }, 'Analytics metrics retrieved successfully')
+      
+    } catch (error) {
+      console.error('Analytics retrieval error:', error)
+      return ApiResponse.error('Failed to retrieve analytics metrics', 500)
+    }
+  },
+  {
+    schema: analyticsQuerySchema,
+    auth: 'required',
+    rateLimit: { requests: 30, window: '1m' }
+  }
+)

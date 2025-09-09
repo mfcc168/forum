@@ -37,8 +37,9 @@ export default function CreateBlogContent() {
           
           <div className="p-8">
             <BlogForm 
-              onSuccess={() => {
-                router.push('/blog')
+              onSuccess={(postSlug: string) => {
+                // Redirect to the newly created blog post's detail page
+                router.push(`/blog/${postSlug}`)
               }}
               onCancel={() => {
                 router.push('/blog')

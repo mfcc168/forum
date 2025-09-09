@@ -23,9 +23,40 @@ import {
 } from '@/lib/database/query-builder'
 import type { 
   BlogCategory, 
-  UserInteraction, 
+  BlogStats,
   PaginatedResponse
 } from '@/lib/types'
+import type { UserInteraction } from '@/lib/database/models'
+import { BLOG_CATEGORIES } from '@/lib/config/blog-categories'
+
+// MongoDB aggregation pipeline interfaces
+interface MongoMatchConditions {
+  $or?: Array<{ [key: string]: { $regex: string; $options: string } }>
+  status?: string | { $in: string[] }
+  category?: { $in: string[] }
+  tags?: { $in: string[] }
+  'author.name'?: { $in: string[] }
+  createdAt?: {
+    $gte?: string
+    $lte?: string
+  }
+}
+
+interface MongoSortStage {
+  'stats.likesCount'?: -1 | 1
+  'stats.bookmarksCount'?: -1 | 1
+  'stats.viewsCount'?: -1 | 1
+  createdAt?: -1 | 1
+  title?: -1 | 1
+  'author.name'?: -1 | 1
+}
+
+interface MongoAggregationStage {
+  $match?: MongoMatchConditions
+  $sort?: MongoSortStage
+  $skip?: number
+  $limit?: number
+}
 
 // Concrete DAL implementations
 class BlogInteractionDAL extends BaseDAL<UserInteraction> {
@@ -58,10 +89,8 @@ export class BlogDAL extends BaseDAL<BlogPost> {
     try {
       const additionalFilters = includeAllStatuses ? {} : { status: 'published' }
       const matchStage = createSlugMatch(slug, additionalFilters)
-      const collection = await this.getCollection()
       const pipeline = createSingleBlogPostPipeline(matchStage, userId)
-      
-      const results = await collection.aggregate(pipeline).toArray()
+      const results = await this.aggregate(pipeline)
       const doc = results[0]
       
       
@@ -94,10 +123,9 @@ export class BlogDAL extends BaseDAL<BlogPost> {
       // Calculate pagination info
       const paginationInfo = calculatePagination(page, limit, total)
 
-      // Use simplified aggregation pipeline
-      const collection = await this.getCollection()
+      // Use simplified aggregation pipeline (consistent with wiki pattern)
       const pipeline = createBlogPostsAggregationPipeline(filter, sort, paginationInfo.skip, limit, userId)
-      const rawPosts = await collection.aggregate(pipeline).toArray()
+      const rawPosts = await this.aggregate(pipeline)
 
       // Parse and validate MongoDB document with Zod schema
       const posts = rawPosts.map(doc => MongoBlogPostSchema.parse(doc))
@@ -108,6 +136,115 @@ export class BlogDAL extends BaseDAL<BlogPost> {
       }
     } catch (error) {
       handleDatabaseError(error, 'fetch blog posts')
+    }
+  }
+
+  /**
+   * Enhanced search for blog posts with advanced filtering and ranking
+   */
+  async searchPosts(searchParams: {
+    query: string
+    categories?: string[]
+    tags?: string[]
+    authors?: string[]
+    status?: string
+    dateRange?: { from?: Date; to?: Date }
+    sortBy?: 'latest' | 'popular' | 'views'
+    limit?: number
+    offset?: number
+  }): Promise<BlogPost[]> {
+    try {
+      const {
+        query,
+        categories,
+        tags,
+        authors,
+        status = 'published',
+        dateRange,
+        sortBy = 'latest',
+        limit = 20,
+        offset = 0
+      } = searchParams
+
+      // Build search aggregation pipeline
+      const pipeline: MongoAggregationStage[] = []
+
+      // Match stage with search and filters
+      const matchConditions: MongoMatchConditions = {}
+
+      // Text search across title, content, and excerpt
+      if (query) {
+        matchConditions.$or = [
+          { title: { $regex: query, $options: 'i' } },
+          { content: { $regex: query, $options: 'i' } },
+          { excerpt: { $regex: query, $options: 'i' } }
+        ]
+      }
+
+      // Status filter
+      matchConditions.status = status === 'all' ? { $in: ['published', 'draft', 'archived'] } : status
+
+      // Category filter
+      if (categories && categories.length > 0) {
+        matchConditions.category = { $in: categories }
+      }
+
+      // Tags filter
+      if (tags && tags.length > 0) {
+        matchConditions.tags = { $in: tags }
+      }
+
+      // Author filter
+      if (authors && authors.length > 0) {
+        matchConditions['author.name'] = { $in: authors }
+      }
+
+      // Date range filter
+      if (dateRange) {
+        const dateFilter: { $gte?: string; $lte?: string } = {}
+        if (dateRange.from) {
+          dateFilter.$gte = dateRange.from.toISOString()
+        }
+        if (dateRange.to) {
+          dateFilter.$lte = dateRange.to.toISOString()
+        }
+        if (Object.keys(dateFilter).length > 0) {
+          matchConditions.createdAt = dateFilter
+        }
+      }
+
+      pipeline.push({ $match: matchConditions })
+
+      // Sort stage
+      let sortStage: MongoSortStage = {}
+      switch (sortBy) {
+        case 'popular':
+          sortStage = { 'stats.likesCount': -1, 'stats.bookmarksCount': -1 }
+          break
+        case 'views':
+          sortStage = { 'stats.viewsCount': -1 }
+          break
+        default: // 'latest'
+          sortStage = { createdAt: -1 }
+      }
+
+      pipeline.push({ $sort: sortStage })
+
+      // Pagination
+      if (offset > 0) {
+        pipeline.push({ $skip: offset })
+      }
+      pipeline.push({ $limit: limit })
+
+      // Execute search
+      const results = await this.aggregate(pipeline)
+      
+      // Parse and validate results
+      return results.map(doc => MongoBlogPostSchema.parse(doc))
+
+    } catch (error) {
+      console.error('Blog search error:', error)
+      handleDatabaseError(error, 'search blog posts')
     }
   }
 
@@ -286,7 +423,6 @@ export class BlogDAL extends BaseDAL<BlogPost> {
     
     // If no categories in database, use static config
     if (baseCategories.length === 0) {
-      const { BLOG_CATEGORIES } = await import('@/lib/config/blog-categories')
       return BLOG_CATEGORIES
         .sort((a, b) => a.order - b.order)
         .map((cat) => ({
@@ -317,37 +453,98 @@ export class BlogDAL extends BaseDAL<BlogPost> {
 
 
   /**
+   * Get active users count (users who interacted with blog content in the last 30 days)
+   */
+  private async getBlogActiveUsersCount(): Promise<number> {
+    const thirtyDaysAgo = new Date()
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
+    try {
+      const interactionsCollection = await this.interactionsDAL.getCollectionPublic()
+      
+      const activeUsers = await interactionsCollection.distinct('userId', {
+        targetType: 'post',
+        createdAt: { $gte: thirtyDaysAgo }
+      })
+
+      return activeUsers.length
+    } catch (error) {
+      console.warn('Failed to get active blog users count:', error)
+      return 0 // Return 0 on error to avoid breaking stats
+    }
+  }
+
+  /**
    * Get blog stats
    */
-  async getStats(): Promise<{
-    totalPosts: number
-    totalViews: number
-    categoriesCount: number
-    totalUsers: number
-    categories: BlogCategory[]
-  }> {
+  async getStats(): Promise<BlogStats> {
     const collection = await this.getCollection()
     const [
       totalPosts,
       totalViews,
+      totalLikes,
+      totalShares,
+      totalDrafts,
       categories,
-      totalAuthors
+      totalAuthors,
+      recentPosts,
+      mostPopular
     ] = await Promise.all([
       this.count({ status: 'published' as const, isDeleted: { $ne: true } }),
       collection.aggregate<{ total: number }>([
         { $match: { status: 'published', isDeleted: { $ne: true } } },
-        { $group: { _id: null, total: { $sum: '$viewCount' } } }
+        { $group: { _id: null, total: { $sum: '$stats.viewsCount' } } }
       ]).toArray().then((result) => result[0]?.total || 0),
+      collection.aggregate<{ total: number }>([
+        { $match: { status: 'published', isDeleted: { $ne: true } } },
+        { $group: { _id: null, total: { $sum: '$stats.likesCount' } } }
+      ]).toArray().then((result) => result[0]?.total || 0),
+      collection.aggregate<{ total: number }>([
+        { $match: { status: 'published', isDeleted: { $ne: true } } },
+        { $group: { _id: null, total: { $sum: '$stats.sharesCount' } } }
+      ]).toArray().then((result) => result[0]?.total || 0),
+      this.count({ status: 'draft' as const, isDeleted: { $ne: true } }),
       this.getCategories(),
-      collection.distinct('author', { status: 'published', isDeleted: { $ne: true } }).then((authors: unknown[]) => authors.length)
+      collection.distinct('author', { status: 'published', isDeleted: { $ne: true } }).then((authors: unknown[]) => authors.length),
+      collection.find(
+        { status: 'published', isDeleted: { $ne: true } },
+        { sort: { createdAt: -1 }, limit: 5, projection: { title: 1, slug: 1, 'stats.viewsCount': 1, createdAt: 1 } }
+      ).toArray().then(posts => posts.map(post => ({
+        title: post.title,
+        slug: post.slug,
+        viewsCount: post.stats?.viewsCount || 0,
+        publishedAt: post.createdAt
+      }))),
+      this.find(
+        { status: 'published' as const, isDeleted: { $ne: true } },
+        { sort: { 'stats.viewsCount': -1 }, limit: 5 }
+      ).then(posts => posts.map(post => ({
+        title: post.title,
+        slug: post.slug,
+        viewsCount: post.stats?.viewsCount || 0,
+        likesCount: post.stats?.likesCount || 0
+      })))
     ])
 
     return {
+      // Base StatsResponse fields
       totalPosts,
       totalViews,
-      categoriesCount: categories.length,
+      totalLikes,
+      totalShares,
       totalUsers: totalAuthors,
-      categories
+      activeUsers: await this.getBlogActiveUsersCount(),
+      categoriesCount: categories.length,
+      // BlogStats-specific fields
+      totalDrafts,
+      categories: categories.map(cat => ({
+        name: cat.name,
+        slug: cat.slug,
+        postsCount: cat.stats?.postsCount || 0,
+        order: cat.order
+      })),
+      popularPosts: mostPopular,
+      recentPosts
     }
   }
 

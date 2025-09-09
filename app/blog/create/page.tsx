@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getServerUser } from '@/lib/auth/server';
 import { PermissionChecker } from '@/lib/utils/permissions';
-import CreateBlogContent from './CreateBlogContent';
+import CreateBlogContent from '@/app/blog/create/CreateBlogContent';
 
 export default async function CreateBlogPage() {
   // Server-side authentication check

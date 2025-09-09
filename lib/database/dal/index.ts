@@ -10,9 +10,29 @@ import { ForumDAL } from './forum'
 import { BlogDAL } from './blog'
 import { UserDAL } from './user'
 import { WikiDAL } from './wiki'
+import { DexDAL } from './dex'
+import { 
+  AnalyticsDAL, 
+  ServerMetricsDAL, 
+  ActivityLogDAL, 
+  NotificationDAL, 
+  SearchIndexDAL 
+} from './analytics'
 import type { ServerInfo } from '@/lib/types'
 
-export { BaseDAL, ForumDAL, BlogDAL, UserDAL, WikiDAL }
+export { 
+  BaseDAL, 
+  ForumDAL, 
+  BlogDAL, 
+  UserDAL, 
+  WikiDAL,
+  DexDAL,
+  AnalyticsDAL,
+  ServerMetricsDAL,
+  ActivityLogDAL,
+  NotificationDAL,
+  SearchIndexDAL
+}
 
 export type {
   UserWithActivity
@@ -59,6 +79,8 @@ export class DAL {
   private static _blog: BlogDAL
   private static _user: UserDAL
   private static _wiki: WikiDAL
+  private static _dex: DexDAL
+  private static _analytics: AnalyticsDAL
 
   /**
    * Forum operations
@@ -101,6 +123,26 @@ export class DAL {
   }
 
   /**
+   * Dex operations
+   */
+  static get dex(): DexDAL {
+    if (!this._dex) {
+      this._dex = new DexDAL()
+    }
+    return this._dex
+  }
+
+  /**
+   * Analytics operations
+   */
+  static get analytics(): AnalyticsDAL {
+    if (!this._analytics) {
+      this._analytics = new AnalyticsDAL()
+    }
+    return this._analytics
+  }
+
+  /**
    * Server operations
    */
   static async getServerInfo(): Promise<ServerInfo | null> {
@@ -119,6 +161,7 @@ export class DAL {
     this._blog = undefined as unknown as BlogDAL
     this._user = undefined as unknown as UserDAL
     this._wiki = undefined as unknown as WikiDAL
+    this._analytics = undefined as unknown as AnalyticsDAL
   }
 }
 

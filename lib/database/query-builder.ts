@@ -89,7 +89,12 @@ export class ForumPostQueryBuilder {
    */
   withSearch(searchTerm?: string): this {
     if (searchTerm) {
-      this.filter.$text = { $search: searchTerm }
+      // Use regex search instead of MongoDB text search to avoid index dependencies
+      this.filter.$or = [
+        { title: { $regex: searchTerm, $options: 'i' } },
+        { content: { $regex: searchTerm, $options: 'i' } },
+        { excerpt: { $regex: searchTerm, $options: 'i' } }
+      ]
     }
     return this
   }
@@ -135,11 +140,10 @@ export class ForumPostQueryBuilder {
    */
   sortBy(sortBy: string, searchTerm?: string): this {
     if (searchTerm) {
-      // Search relevance sorting
+      // For regex search, sort by relevance factors instead of textScore
       this.sortOptions = { 
-        score: { $meta: 'textScore' } as unknown as 1, 
         isPinned: -1, 
-        lastReplyAt: -1, 
+        'stats.viewsCount': -1,
         createdAt: -1 
       }
     } else {

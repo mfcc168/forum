@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { paginationSchema } from '@/lib/utils/validation'
 
 // Content validation helper (consistent with forum/blog)
 const htmlContentSchema = z.string()
@@ -66,10 +67,8 @@ export const updateWikiGuideSchema = z.object({
 
 export type UpdateWikiGuideData = z.infer<typeof updateWikiGuideSchema>
 
-// Wiki Query Parameters Schema (consistent with blog/forum)
-export const wikiQuerySchema = z.object({
-  page: z.coerce.number().min(1).default(1),
-  limit: z.coerce.number().min(1).max(100).default(20),
+// Wiki Query Parameters Schema (consistent with blog/forum pattern)
+export const wikiQuerySchema = paginationSchema.extend({
   category: z.enum(['getting-started', 'gameplay', 'features', 'community', 'all']).optional(),
   difficulty: z.enum(['beginner', 'intermediate', 'advanced']).optional(),
   search: z.string().min(1).optional(),
@@ -79,10 +78,11 @@ export const wikiQuerySchema = z.object({
 
 export type WikiQueryData = z.infer<typeof wikiQuerySchema>
 
-// Wiki Guide Interaction Schema
+// Wiki Guide Interaction Schema (consistent with forum pattern)
 export const wikiInteractionSchema = z.object({
   interactionType: z.enum(['like', 'bookmark', 'helpful', 'share', 'view']),
-  guideSlug: z.string().min(1),
+  targetId: z.string().min(1),
+  targetType: z.enum(['guide']).default('guide'),
 })
 
 export type WikiInteractionData = z.infer<typeof wikiInteractionSchema>
@@ -96,13 +96,13 @@ export type WikiSlugData = z.infer<typeof wikiSlugSchema>
 
 // Note: Legacy response schemas removed - use proper API types from @/lib/types instead
 
-// Wiki Category Schema (for admin/internal use)
+// Wiki Category Schema (for admin/internal use - consistent with blog pattern)
 export const wikiCategorySchema = z.object({
   id: z.string(),
   name: z.string(),
   slug: z.string(),
   description: z.string().optional(),
-  guideCount: z.number().default(0),
+  postCount: z.number().default(0), // Consistent naming with blog schema
   color: z.string().optional(),
   isActive: z.boolean().default(true),
   order: z.number().default(0),
@@ -172,9 +172,7 @@ export const wikiStatsResponseSchema = z.object({
 export type WikiStatsResponse = z.infer<typeof wikiStatsResponseSchema>
 
 // Validation helpers (consistent with blog patterns)
-// DEPRECATED: Use validateSlug and generateSlug from @/lib/utils/slug instead
-// These functions will be removed in a future version
-export { validateSlug as validateWikiSlug, generateSlug as generateWikiSlug } from '@/lib/utils/slug'
+export { validateSlug, generateSlug } from '@/lib/utils/slug'
 
 // Content validation helpers
 export const validateWikiContent = (content: string): { isValid: boolean; errors: string[] } => {

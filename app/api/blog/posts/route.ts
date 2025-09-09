@@ -37,9 +37,9 @@ export const GET = withDALAndValidation(
     // Posts already in correct format from DAL
     const transformedPosts = result.data
     
-    // Return consistent format with pagination and filters (like forum/wiki)
+    // Return consistent format with pagination and filters (use module-specific key)
     return ApiResponse.success({
-      posts: transformedPosts,
+      blogPosts: transformedPosts,
       pagination: result.pagination,
       filters: { category, search, sortBy, status }
     })
@@ -94,7 +94,7 @@ export const POST = withDALAndValidation(
     revalidateTag('blog-categories')
     
     return ApiResponse.success(
-      { post },
+      { blogPost: post },
       'Blog post created successfully'
     )
   },

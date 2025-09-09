@@ -12,12 +12,24 @@ const ClientNavigation = () => {
   const pathname = usePathname();
   const { t, locale, changeLanguage } = useTranslation();
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
   const { data: session, status } = useSession();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Close mobile menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      if (showMobileMenu) setShowMobileMenu(false);
+      if (showLanguageMenu) setShowLanguageMenu(false);
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [showMobileMenu, showLanguageMenu]);
 
   // Prevent hydration mismatches
   if (!mounted) {
@@ -80,27 +92,31 @@ const ClientNavigation = () => {
     { name: t.nav.wiki, path: '/wiki' },
     { name: t.nav.blog, path: '/blog' },
     { name: t.nav.forum, path: '/forum' },
+    { name: t.nav.dex, path: '/dex' },
   ];
 
   return (
     <nav className="minecraft-nav sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
+          {/* Logo and Brand */}
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-2">
               <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-blue-500 rounded-xl flex items-center justify-center relative overflow-hidden shadow-lg">
-                {/* Sky Island SVG */}
                 <Icon name="skyIsland" className="w-8 h-8 text-white" />
-                
-                {/* Subtle glow effect */}
                 <div className="absolute inset-0 bg-gradient-to-t from-transparent via-transparent to-white opacity-20 rounded-xl"></div>
               </div>
-              <span className="minecraft-gradient-text text-xl font-bold">
+              <span className="minecraft-gradient-text text-xl font-bold hidden sm:inline">
                 {t.nav.serverName}
+              </span>
+              <span className="minecraft-gradient-text text-lg font-bold sm:hidden">
+                秘汐之嶼
               </span>
             </Link>
           </div>
-          <div className="flex items-center space-x-2">
+
+          {/* Desktop Navigation */}
+          <div className="hidden lg:flex items-center space-x-2">
             {navItems.map((item) => (
               <Link
                 key={item.path}
@@ -115,10 +131,13 @@ const ClientNavigation = () => {
               </Link>
             ))}
             
-            {/* Language Switcher */}
+            {/* Language Switcher - Desktop */}
             <div className="relative">
               <button
-                onClick={() => setShowLanguageMenu(!showLanguageMenu)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowLanguageMenu(!showLanguageMenu);
+                }}
                 className="flex items-center space-x-1 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all"
               >
                 <Icon name="language" className="w-4 h-4" />
@@ -154,7 +173,7 @@ const ClientNavigation = () => {
               )}
             </div>
 
-            {/* Auth Section */}
+            {/* Auth Section - Desktop */}
             <div className="ml-4 flex items-center space-x-2">
               {status === "loading" ? (
                 <div className="animate-pulse bg-slate-200 rounded-lg h-8 w-16"></div>
@@ -192,7 +211,147 @@ const ClientNavigation = () => {
               )}
             </div>
           </div>
+
+          {/* Mobile Menu Button */}
+          <div className="lg:hidden flex items-center space-x-2">
+            {/* Mobile Auth Quick Access */}
+            {status === "loading" ? (
+              <div className="animate-pulse bg-slate-200 rounded-lg h-8 w-8"></div>
+            ) : session ? (
+              <div className="flex items-center">
+                {(session.user?.avatar || session.user?.image) && (
+                  <Image
+                    src={session.user?.avatar || session.user?.image || ''}
+                    alt="Avatar"
+                    width={28}
+                    height={28}
+                    className="w-7 h-7 rounded-full"
+                  />
+                )}
+              </div>
+            ) : null}
+            
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowMobileMenu(!showMobileMenu);
+              }}
+              className="inline-flex items-center justify-center p-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+              aria-expanded="false"
+            >
+              <span className="sr-only">Open main menu</span>
+              {showMobileMenu ? (
+                <Icon name="x" className="h-6 w-6" />
+              ) : (
+                <Icon name="menu" className="h-6 w-6" />
+              )}
+            </button>
+          </div>
         </div>
+
+        {/* Mobile Menu */}
+        {showMobileMenu && (
+          <div className="lg:hidden">
+            <div className="px-2 pt-2 pb-3 space-y-1 bg-white border-t border-slate-200">
+              {navItems.map((item) => (
+                <Link
+                  key={item.path}
+                  href={item.path}
+                  onClick={() => setShowMobileMenu(false)}
+                  className={`block px-3 py-2 rounded-lg text-base font-medium transition-all ${
+                    pathname === item.path
+                      ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  }`}
+                >
+                  {item.name}
+                </Link>
+              ))}
+              
+              {/* Mobile Language Switcher */}
+              <div className="border-t border-slate-200 pt-3 mt-3">
+                <div className="px-3 py-2">
+                  <span className="text-sm font-medium text-slate-700 block mb-2">
+                    Language
+                  </span>
+                  <div className="space-y-1">
+                    <button
+                      onClick={() => {
+                        changeLanguage('zh-TW');
+                        setShowMobileMenu(false);
+                      }}
+                      className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                        locale === 'zh-TW' ? 'text-emerald-600 font-medium bg-emerald-50' : 'text-slate-700 hover:bg-slate-50'
+                      }`}
+                    >
+                      繁體中文
+                    </button>
+                    <button
+                      onClick={() => {
+                        changeLanguage('en');
+                        setShowMobileMenu(false);
+                      }}
+                      className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                        locale === 'en' ? 'text-emerald-600 font-medium bg-emerald-50' : 'text-slate-700 hover:bg-slate-50'
+                      }`}
+                    >
+                      English
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Mobile Auth Section */}
+              <div className="border-t border-slate-200 pt-3">
+                {session ? (
+                  <div className="px-3 py-2 space-y-3">
+                    <div className="flex items-center space-x-3">
+                      {(session.user?.avatar || session.user?.image) && (
+                        <Image
+                          src={session.user?.avatar || session.user?.image || ''}
+                          alt="Avatar"
+                          width={40}
+                          height={40}
+                          className="w-10 h-10 rounded-full"
+                        />
+                      )}
+                      <div>
+                        <span className="text-base font-medium text-slate-900">
+                          {session.user?.name}
+                        </span>
+                        <span className="block text-sm text-slate-500">
+                          {session.user?.email}
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        signOut();
+                        setShowMobileMenu(false);
+                      }}
+                      className="w-full text-left px-3 py-2 text-base font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
+                    >
+                      {t.auth.signOut}
+                    </button>
+                  </div>
+                ) : (
+                  <div className="px-3 py-2">
+                    <button
+                      onClick={() => {
+                        signIn('discord');
+                        setShowMobileMenu(false);
+                      }}
+                      className="w-full px-4 py-3 bg-[#5865F2] hover:bg-[#4752C4] text-white text-base font-medium rounded-lg transition-colors flex items-center justify-center space-x-2"
+                    >
+                      <Icon name="discord" className="w-5 h-5" />
+                      <span>{t.auth.signIn}</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </nav>
   );

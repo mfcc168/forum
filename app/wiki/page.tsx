@@ -34,9 +34,9 @@ async function getWikiData() {
       statsRes.ok ? statsRes.json() : { success: false, data: null }
     ])
 
-    // Handle response formats consistently
+    // Handle response formats consistently (use module-specific response key)
     const guides: WikiGuide[] = guidesData.success 
-      ? (Array.isArray(guidesData.data) ? guidesData.data : guidesData.data?.guides || [])
+      ? (guidesData.data?.wikiGuides || [])
       : []
     const categories = categoriesData.success ? categoriesData.data : []
 
@@ -99,11 +99,12 @@ async function getWikiData() {
         categoriesCount: 0,
         // WikiStats-specific properties
         totalGuides: 0,
-        guidesCountByCategory: {},
-        guidesCountByDifficulty: { beginner: 0, intermediate: 0, advanced: 0 },
+        totalDrafts: 0,
         averageHelpfulRating: 0,
-        mostHelpfulGuides: [],
-        recentGuides: []
+        guidesCountByDifficulty: { beginner: 0, intermediate: 0, advanced: 0 },
+        categories: [],
+        popularPosts: [],
+        recentPosts: []
       } as WikiStats
     }
   }

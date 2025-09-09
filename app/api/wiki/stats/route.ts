@@ -9,7 +9,7 @@ export const runtime = 'nodejs'
  * Get wiki statistics
  */
 export const GET = withDALAndValidation(
-  async (request: NextRequest, { dal }) => {
+  async (_request: NextRequest, { dal }) => {
     try {
       const stats = await dal.wiki.getStats()
       return ApiResponse.success(stats, 'Wiki statistics retrieved successfully')

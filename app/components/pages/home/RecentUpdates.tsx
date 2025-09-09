@@ -2,7 +2,7 @@ import React from 'react';
 import { Card } from '@/app/components/ui/Card';
 import { Badge } from '@/app/components/ui/Badge';
 import { Icon } from '@/app/components/ui/Icon';
-import type { TranslationStructure } from '@/lib/types/translations';
+import type { TranslationStructure } from '@/lib/types';
 
 interface Update {
   id: string

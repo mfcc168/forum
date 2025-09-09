@@ -11,7 +11,6 @@ import {
   type CreateWikiGuideData,
   type WikiQueryData
 } from '@/lib/schemas/wiki'
-import { generateWikiMetaDescription } from '@/lib/utils/meta'
 
 export const runtime = 'nodejs'
 
@@ -39,9 +38,9 @@ export const GET = withDALAndValidation(
     // Guides already in correct format from DAL
     const transformedGuides = result.data
     
-    // Return consistent format with pagination and filters (like blog/forum)
+    // Return consistent format with pagination and filters (use module-specific key)
     return ApiResponse.success({
-      posts: transformedGuides,
+      wikiGuides: transformedGuides,
       pagination: result.pagination,
       filters: { category, difficulty, search, sortBy, status }
     })
@@ -69,7 +68,6 @@ export const POST = withDALAndValidation(
 
     // Create wiki guide using DAL with automatic slug generation and stats updates
     const excerpt = validatedData.excerpt || validatedData.content.replace(/<[^>]*>/g, '').trim().substring(0, 200)
-    const metaDescription = generateWikiMetaDescription(validatedData.content, validatedData.excerpt)
     
     const guideId = await dal.wiki.createGuide({
       id: '', // Will be set by the DAL
@@ -94,7 +92,7 @@ export const POST = withDALAndValidation(
     revalidateTag('wiki-categories')
     
     return ApiResponse.success(
-      { guide },
+      { wikiGuide: guide },
       'Wiki guide created successfully'
     )
   },

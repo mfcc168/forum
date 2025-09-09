@@ -8,6 +8,7 @@ import { useTranslation } from '@/lib/contexts/LanguageContext'
 import { Button } from '@/app/components/ui/Button'
 import { Icon } from '@/app/components/ui/Icon'
 import { HydrationCheck, useHydration } from '@/app/components/ui/HydrationCheck'
+import { SearchInput, SearchResultsHeader } from '@/app/components/shared/SearchInput'
 import { 
   useWikiGuides,
   useWikiStats, 
@@ -31,16 +32,8 @@ export function WikiContent({
   const { t } = useTranslation()
   const { data: session } = useSession()
   const [searchQuery, setSearchQuery] = useState<string>('')
-  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState<string>('')
+  const [isSearching, setIsSearching] = useState(false)
   const isHydrated = useHydration()
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearchQuery(searchQuery)
-    }, 300)
-
-    return () => clearTimeout(timer)
-  }, [searchQuery])
 
   // Ensure initial guides is always an array
   const safeInitialGuides = Array.isArray(initialGuides) ? initialGuides : []
@@ -69,9 +62,15 @@ export function WikiContent({
   })
 
   // Search functionality
-  const searchResults = useWikiSearch(debouncedSearchQuery, { 
-    enabled: !!debouncedSearchQuery 
+  const searchResults = useWikiSearch(searchQuery, { 
+    enabled: !!searchQuery.trim()
   })
+  
+  // Determine search states
+  // CRITICAL: Only show results when query is valid AND complete AND not loading
+  const isQueryValid = !!searchQuery && searchQuery.length >= 1;
+  const shouldShowSearchLoading = Boolean(searchQuery) && (isSearching || (isQueryValid && searchResults.isLoading)) && isHydrated;
+  const shouldShowSearchResults = Boolean(searchQuery) && isQueryValid && !isSearching && !searchResults.isLoading && isHydrated;
 
   // Helper to render guide cards
   const renderGuideCard = (guide: WikiGuide) => {
@@ -245,16 +244,16 @@ export function WikiContent({
         <div className="max-w-6xl mx-auto">
           {/* Search Bar */}
           <HydrationCheck>
-            <div className="relative w-full">
-              <input
-                type="text"
-                placeholder={t.wiki?.searchPlaceholder || 'Search guides...'}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-4 py-3 pl-12 bg-white border border-slate-200 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-colors"
-              />
-              <Icon name="search" className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
-            </div>
+            <SearchInput
+              value={searchQuery}
+              onChange={setSearchQuery}
+              onSearchStateChange={setIsSearching}
+              placeholder={t.wiki?.searchPlaceholder || 'Search guides...'}
+              className="w-full"
+              showSuggestions={true}
+              debounceMs={200}
+              module="wiki"
+            />
           </HydrationCheck>
         </div>
       </div>
@@ -276,25 +275,19 @@ export function WikiContent({
         </HydrationCheck>
 
         {/* Search Results */}
-        {debouncedSearchQuery && isHydrated && (
+        {shouldShowSearchResults && (
           <div className="mb-12">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-slate-800">
-                {t.wiki?.searchResultsFor || 'Search Results for'} &ldquo;{debouncedSearchQuery}&rdquo;
-              </h2>
-              <button
-                onClick={() => setSearchQuery('')}
-                className="text-sm text-slate-500 hover:text-slate-700 flex items-center space-x-1"
-              >
-                <Icon name="x" className="w-4 h-4" />
-                <span>{t.wiki?.clearSearch || 'Clear search'}</span>
-              </button>
-            </div>
+            <SearchResultsHeader
+              query={searchQuery}
+              resultCount={searchResults.data?.length || 0}
+              onClear={() => setSearchQuery('')}
+              module="wiki"
+            />
             
             <ListRenderer
               state={{
                 data: searchResults.data || [],
-                isLoading: searchResults.isLoading && !searchResults.data,
+                isLoading: shouldShowSearchLoading,
                 error: searchResults.error,
                 refetch: searchResults.refetch
               }}
@@ -311,9 +304,13 @@ export function WikiContent({
               }}
               empty={{
                 title: t.wiki?.noGuidesFound || 'No guides found for',
-                description: `${t.wiki?.searchSuggestion || 'Try different keywords or browse categories below'} "${debouncedSearchQuery}"`,
+                description: `${t.wiki?.searchSuggestion || 'Try different keywords or browse categories below'} "${searchQuery}"`,
                 icon: 'search',
                 variant: 'card',
+                action: {
+                  label: t.common.clear || 'Clear Search',
+                  onClick: () => setSearchQuery('')
+                }
               }}
             >
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -324,7 +321,7 @@ export function WikiContent({
         )}
 
         {/* Category Sections (original design) */}
-        {!debouncedSearchQuery && (
+        {!searchQuery && (
           <div>
             {(Object.keys(categoryInfo) as Array<keyof typeof categoryInfo>).map(renderCategorySection)}
           </div>

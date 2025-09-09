@@ -33,9 +33,9 @@ async function getBlogData() {
       statsRes.ok ? statsRes.json() : { success: false, data: { totalPosts: 0, totalViews: 0, categoriesCount: 0, totalUsers: 0, categories: [] } }
     ])
 
-    // Handle different response formats and add debugging
+    // Handle response formats consistently (use module-specific response key)
     const posts = postsData.success 
-      ? (Array.isArray(postsData.data) ? postsData.data : postsData.data?.posts || [])
+      ? (postsData.data?.blogPosts || [])
       : []
     const categories = categoriesData.success ? categoriesData.data : []
     const stats = statsData.success ? statsData.data : {

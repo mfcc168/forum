@@ -847,6 +847,78 @@ export class StatsManager {
   }
 
   /**
+   * Record a dex monster view with duplicate detection
+   */
+  async recordDexView(userId: string, monsterId: string): Promise<boolean> {
+    const db = await this.getDb()
+
+    // Check if user already viewed this monster recently (last 24h)
+    const recentView = await db.collection<UserInteraction>('userInteractions').findOne({
+      userId: userId,
+      targetId: monsterId,
+      targetType: 'monster',
+      interactionType: 'view',
+      createdAt: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() }
+    })
+
+    if (recentView) {
+      return false // Don't count duplicate views
+    }
+
+    // Start transaction
+    const client = await clientPromise
+    const session = client.startSession()
+    
+    try {
+      await session.withTransaction(async () => {
+        // Use upsert to handle potential race conditions
+        const result = await db.collection<UserInteraction>('userInteractions').updateOne(
+          {
+            userId: userId,
+            targetId: monsterId,
+            targetType: 'monster',
+            interactionType: 'view'
+          },
+          {
+            $setOnInsert: {
+              _id: new ObjectId(),
+              id: new ObjectId().toString(),
+              userId: userId,
+              targetId: monsterId,
+              targetType: 'monster',
+              interactionType: 'view',
+              createdAt: new Date().toISOString()
+            },
+            $set: {
+              updatedAt: new Date().toISOString()
+            }
+          },
+          { 
+            upsert: true,
+            session 
+          }
+        )
+
+        // Only increment view count if this is a new view record
+        if (result.upsertedCount > 0) {
+          await db.collection('dexMonsters').updateOne(
+            { _id: new ObjectId(monsterId) },
+            { 
+              $inc: { 'stats.viewsCount': 1 },
+              $set: { updatedAt: new Date().toISOString() }
+            },
+            { session }
+          )
+        }
+      })
+      
+      return true
+    } finally {
+      await session.endSession()
+    }
+  }
+
+  /**
    * Get user interactions for specific wiki guides
    */
   private async getWikiUserInteractions(userId: string, guideIds: string[]): Promise<Set<string>> {

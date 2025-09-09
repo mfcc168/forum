@@ -5,6 +5,7 @@ export const en = {
     wiki: 'Wiki',
     blog: 'Blog',
     forum: 'Forum',
+    dex: 'Dex',
     serverName: 'Mystic Tidal Isle',
   },
   
@@ -237,7 +238,8 @@ export const en = {
     forms: {
       create: {
         title: 'Create Wiki Guide',
-        description: 'Share your knowledge with the community'
+        description: 'Share your knowledge with the community',
+        submitButton: 'Create New Guide'
       },
       createGuide: {
         title: 'Create Wiki Guide',
@@ -252,8 +254,8 @@ export const en = {
         categoryPlaceholder: 'Select a category',
         difficultyLabel: 'Difficulty',
         difficultyPlaceholder: 'Select difficulty level',
-        tagsLabel: 'Tags',
-        tagsPlaceholder: 'Enter tags separated by commas',
+        tagsLabel: 'Tags (optional)',
+        tagsPlaceholder: 'Enter tags separated by commas (optional)',
         tagsHelp: 'Add relevant tags to help players find your guide',
         estimatedTimeLabel: 'Estimated Reading Time',
         estimatedTimePlaceholder: 'e.g., 5 minutes',
@@ -276,6 +278,12 @@ export const en = {
         categoryRequired: 'Category is required',
         difficultyRequired: 'Difficulty is required'
       }
+    },
+    
+    emptyState: {
+      title: 'No guides found',
+      description: 'There are no guides to display at this time.',
+      actionLabel: 'Create Guide'
     },
     
     status: {
@@ -303,6 +311,7 @@ export const en = {
       share: 'Share'
     }
   },
+  
   
   // Blog Page
   blog: {
@@ -665,6 +674,305 @@ export const en = {
     }
   },
   
+  // Dex (Monster) Page
+  dex: {
+    title: 'Monster Dex',
+    subtitle: 'Discover all creatures in our Minecraft server',
+    pageTitle: 'Monster Dex',
+    pageDescription: 'Discover all creatures in our Minecraft server',
+    welcome: {
+      title: 'Monster Dex',
+      description: 'Explore monsters and creatures in our server'
+    },
+    
+    stats: {
+      monsters: 'Total Monsters',
+      totalViews: 'Total Views'
+    },
+    
+    search: {
+      placeholder: 'Search monsters...'
+    },
+    
+    filters: {
+      allCategories: 'All Categories'
+    },
+    
+    results: {
+      showing: 'Showing',
+      of: 'of',
+      monsters: 'monsters'
+    },
+    
+    empty: {
+      title: 'No monsters found',
+      description: 'Try adjusting your search or filters to find more monsters.'
+    },
+    
+    categories: {
+      hostile: 'Hostile',
+      passive: 'Passive',
+      neutral: 'Neutral',
+      boss: 'Boss'
+    },
+    
+    elements: {
+      none: 'None',
+      fire: 'Fire',
+      water: 'Water',
+      earth: 'Earth',
+      air: 'Air',
+      light: 'Light',
+      dark: 'Dark',
+      ice: 'Ice',
+      lightning: 'Lightning'
+    },
+    
+    races: {
+      god: 'God',
+      dragon: 'Dragon',
+      goblin: 'Goblin',
+      orc: 'Orc',
+      elf: 'Elf',
+      dwarf: 'Dwarf',
+      troll: 'Troll',
+      giant: 'Giant',
+      undead: 'Undead',
+      skeleton: 'Skeleton',
+      zombie: 'Zombie',
+      vampire: 'Vampire',
+      ghost: 'Ghost',
+      demon: 'Demon',
+      angel: 'Angel',
+      fairy: 'Fairy',
+      phoenix: 'Phoenix',
+      beast: 'Beast',
+      wolf: 'Wolf',
+      bear: 'Bear',
+      cat: 'Cat',
+      bird: 'Bird',
+      fish: 'Fish',
+      snake: 'Snake',
+      spider: 'Spider',
+      insect: 'Insect',
+      slime: 'Slime',
+      golem: 'Golem',
+      construct: 'Construct',
+      robot: 'Robot',
+      elemental: 'Elemental',
+      plant: 'Plant',
+      humanoid: 'Humanoid',
+      alien: 'Alien',
+      void: 'Void'
+    },
+    
+    spawning: {
+      common: 'Common',
+      uncommon: 'Uncommon',
+      rare: 'Rare',
+      legendary: 'Legendary'
+    },
+    
+    worlds: {
+      overworld: 'Overworld',
+      nether: 'Nether', 
+      end: 'End',
+      magic: 'Magic World',
+      heaven: 'Heaven',
+      dungeon: 'Dungeon'
+    },
+    
+    timeOfDay: {
+      day: 'Day',
+      night: 'Night',
+      any: 'Any Time'
+    },
+    
+    detail: {
+      combatStats: 'Combat Stats',
+      health: 'Health',
+      damage: 'Damage',
+      speed: 'Speed',
+      xpDrop: 'XP Drop',
+      behaviors: 'Behaviors',
+      spawningInfo: 'Spawning Information',
+      worlds: 'Worlds',
+      biomes: 'Biomes',
+      structures: 'Structures',
+      conditions: 'Conditions',
+      time: 'Time',
+      light: 'Light',
+      rarity: 'Rarity',
+      drops: 'Drops',
+      chance: 'Chance',
+      quantity: 'Quantity',
+      loading3d: 'Loading 3D model...',
+      model3d: '3D Model'
+    },
+    
+    forms: {
+      create: {
+        title: 'Create Monster',
+        description: 'Add a new creature to the monster dex',
+        submitButton: 'Create Monster',
+        nameLabel: 'Monster Name',
+        namePlaceholder: 'Enter monster name...',
+        modelLabel: '3D Model',
+        modelPlaceholder: 'Select a 3D model...',
+        modelHelp: 'Choose from available GLTF models',
+        categoryLabel: 'Category',
+        elementLabel: 'Element',
+        raceLabel: 'Race',
+        excerptLabel: 'Excerpt',
+        excerptPlaceholder: 'Brief description of the monster...',
+        descriptionLabel: 'Description',
+        descriptionPlaceholder: 'Describe the monster, its abilities, and characteristics...',
+        healthHelp: 'Monster health points',
+        damageHelp: 'Monster damage points',
+        xpDropHelp: 'Experience points dropped when killed',
+        biomesPlaceholder: 'plains, forest, desert...',
+        biomesHelp: 'Biomes where this monster spawns (comma separated)',
+        structuresPlaceholder: 'dungeon, stronghold, village...',
+        structuresHelp: 'Specific structures where this monster spawns (comma separated)',
+        lightLevelMinLabel: 'Light Level Min',
+        lightLevelMinHelp: 'Minimum light level (0-15)',
+        lightLevelMaxLabel: 'Light Level Max',
+        lightLevelMaxHelp: 'Maximum light level (0-15)',
+        timeOfDayLabel: 'Time of Day',
+        spawnRateLabel: 'Spawn Rate',
+        behaviorsLabel: 'Behaviors',
+        behaviorsPlaceholder: 'aggressive, territorial, flying...',
+        behaviorsHelp: 'Monster behaviors (comma separated)',
+        tagsLabel: 'Tags',
+        tagsPlaceholder: 'boss, fire, nether...',
+        tagsHelp: 'Add relevant tags separated by commas',
+        statusLabel: 'Status'
+      },
+      edit: {
+        title: 'Edit Monster',
+        description: 'Update monster details and information'
+      },
+      errors: {
+        nameRequired: 'Monster name is required',
+        modelRequired: 'Please select a 3D model',
+        categoryRequired: 'Category is required',
+        descriptionRequired: 'Description is required',
+        healthRequired: 'Health is required',
+        damageRequired: 'Damage is required',
+        speedRequired: 'Speed is required',
+        xpRequired: 'XP drop is required'
+      }
+    },
+    
+    biomes: {
+      // Overworld Biomes
+      plains: 'Plains',
+      forest: 'Forest',
+      birch_forest: 'Birch Forest',
+      dark_forest: 'Dark Forest',
+      old_growth_birch_forest: 'Old Growth Birch Forest',
+      old_growth_pine_taiga: 'Old Growth Pine Taiga',
+      old_growth_spruce_taiga: 'Old Growth Spruce Taiga',
+      taiga: 'Taiga',
+      snowy_taiga: 'Snowy Taiga',
+      savanna: 'Savanna',
+      savanna_plateau: 'Savanna Plateau',
+      windswept_hills: 'Windswept Hills',
+      windswept_gravelly_hills: 'Windswept Gravelly Hills',
+      windswept_forest: 'Windswept Forest',
+      windswept_savanna: 'Windswept Savanna',
+      jungle: 'Jungle',
+      sparse_jungle: 'Sparse Jungle',
+      bamboo_jungle: 'Bamboo Jungle',
+      desert: 'Desert',
+      swamp: 'Swamp',
+      mangrove_swamp: 'Mangrove Swamp',
+      mushroom_fields: 'Mushroom Fields',
+      ice_spikes: 'Ice Spikes',
+      snowy_plains: 'Snowy Plains',
+      snowy_slopes: 'Snowy Slopes',
+      frozen_peaks: 'Frozen Peaks',
+      jagged_peaks: 'Jagged Peaks',
+      stony_peaks: 'Stony Peaks',
+      meadow: 'Meadow',
+      grove: 'Grove',
+      cherry_grove: 'Cherry Grove',
+      stony_shore: 'Stony Shore',
+      beach: 'Beach',
+      snowy_beach: 'Snowy Beach',
+      ocean: 'Ocean',
+      deep_ocean: 'Deep Ocean',
+      lukewarm_ocean: 'Lukewarm Ocean',
+      deep_lukewarm_ocean: 'Deep Lukewarm Ocean',
+      warm_ocean: 'Warm Ocean',
+      cold_ocean: 'Cold Ocean',
+      deep_cold_ocean: 'Deep Cold Ocean',
+      frozen_ocean: 'Frozen Ocean',
+      deep_frozen_ocean: 'Deep Frozen Ocean',
+      river: 'River',
+      frozen_river: 'Frozen River',
+      dripstone_caves: 'Dripstone Caves',
+      lush_caves: 'Lush Caves',
+      deep_dark: 'Deep Dark',
+      // Nether Biomes
+      nether_wastes: 'Nether Wastes',
+      soul_sand_valley: 'Soul Sand Valley',
+      crimson_forest: 'Crimson Forest',
+      warped_forest: 'Warped Forest',
+      basalt_deltas: 'Basalt Deltas',
+      // End Biomes
+      the_end: 'The End',
+      small_end_islands: 'Small End Islands',
+      end_midlands: 'End Midlands',
+      end_highlands: 'End Highlands',
+      end_barrens: 'End Barrens'
+    },
+    
+    structures: {
+      // Generated Structures
+      village: 'Village',
+      desert_pyramid: 'Desert Pyramid',
+      igloo: 'Igloo',
+      jungle_pyramid: 'Jungle Pyramid',
+      swamp_hut: 'Swamp Hut',
+      pillager_outpost: 'Pillager Outpost',
+      mansion: 'Woodland Mansion',
+      monument: 'Ocean Monument',
+      stronghold: 'Stronghold',
+      mineshaft: 'Mineshaft',
+      dungeon: 'Dungeon',
+      buried_treasure: 'Buried Treasure',
+      shipwreck: 'Shipwreck',
+      ocean_ruin: 'Ocean Ruin',
+      ruined_portal: 'Ruined Portal',
+      ancient_city: 'Ancient City',
+      trail_ruins: 'Trail Ruins',
+      // Nether Structures
+      nether_fortress: 'Nether Fortress',
+      bastion_remnant: 'Bastion Remnant',
+      // End Structures
+      end_city: 'End City'
+    },
+    
+    actions: {
+      like: 'Like',
+      bookmark: 'Bookmark',
+      share: 'Share',
+      favorite: 'Favorite',
+      edit: 'Edit',
+      delete: 'Delete',
+      deleting: 'Deleting...',
+      confirmDeleteTitle: 'Delete Monster',
+      confirmDeleteMessage: 'Are you sure you want to delete this monster? This action cannot be undone.',
+      deleteSuccess: 'Monster deleted successfully',
+      createMonster: 'Create Monster',
+      editMonster: 'Edit Monster',
+      deleteMonster: 'Delete Monster',
+      viewMonster: 'View Monster',
+      backToDex: 'Back to Dex'
+    }
+  },
+  
   // Authentication
   auth: {
     signIn: 'Sign In',
@@ -700,6 +1008,10 @@ export const en = {
     postCreatedSuccessfully: 'Post created successfully!',
     postDeletedSuccessfully: 'Post deleted successfully',
     replyCreatedSuccessfully: 'Reply posted successfully!',
+    searchPlaceholder: 'Search...',
+    noResults: 'No search results',
+    tryDifferentTerms: 'Try different search terms',
+    clear: 'Clear',
     replyUpdatedSuccessfully: 'Reply updated successfully!',
     replyDeletedSuccessfully: 'Reply deleted successfully!',
     networkError: 'Network error occurred',

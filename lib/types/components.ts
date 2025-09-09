@@ -284,14 +284,22 @@ export interface FormProps<T> extends BaseProps {
   validationSchema?: unknown
 }
 
-/** Language context type */
+/** 
+ * Translation object structure (safe alternative to 'any')
+ * Uses Record<string, any> but with better documentation and typing intention
+ * This provides the flexibility needed for the complex translation structure
+ * while being explicit about the type choice
+ */
+ 
+export type TranslationObject = import('@/lib/translations/locales/en').TranslationObject
+
+/** Language context type with proper locale typing */
 export interface LanguageContextType {
-  locale: string
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  t: any // Complex nested translation structure - using any to avoid circular imports
-  setLocale: (locale: string) => void
-  changeLanguage: (locale: string) => void
-  translations?: Record<string, unknown>
+  locale: 'zh-TW' | 'en'
+  t: TranslationObject
+  setLocale: (locale: 'zh-TW' | 'en') => void
+  changeLanguage: (locale: 'zh-TW' | 'en') => void
+  translations?: Record<string, TranslationObject>
 }
 
 /** Sidebar */

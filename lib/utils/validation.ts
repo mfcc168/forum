@@ -100,10 +100,25 @@ export function withApiRoute<T extends z.ZodSchema>(
           if (request.method === 'POST' || request.method === 'PUT') {
             const body = await request.json()
             validatedData = options.schema.parse(body)
-          } else if (request.method === 'GET') {
+          } else if (request.method === 'GET' || request.method === 'DELETE') {
+            // For GET/DELETE, validate path parameters first, then query parameters
+            let dataToValidate = {}
+            
+            // Add path parameters (like slug) if they exist
+            if (context.params) {
+              // Handle both sync and async params (Next.js 15 compatibility)
+              const resolvedParams = context.params instanceof Promise 
+                ? await context.params 
+                : context.params
+              dataToValidate = { ...resolvedParams }
+            }
+            
+            // Add query parameters
             const { searchParams } = new URL(request.url)
             const queryObject = Object.fromEntries(searchParams.entries())
-            validatedData = options.schema.parse(queryObject)
+            dataToValidate = { ...dataToValidate, ...queryObject }
+            
+            validatedData = options.schema.parse(dataToValidate)
           }
           
           // Sanitize HTML content if present

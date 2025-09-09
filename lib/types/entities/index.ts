@@ -26,6 +26,20 @@ export type {
 } from './content'
 
 // ============================================================================
+// DEX ENTITIES
+// ============================================================================
+export type {
+  DexMonster,
+  MonsterStats,
+  MonsterDrop,
+  SpawningInfo,
+  DexCategory,
+  DexStats,
+  DexFilters,
+  MonsterInteractionState
+} from './dex'
+
+// ============================================================================
 // CATEGORIES
 // ============================================================================
 export type {
@@ -55,6 +69,7 @@ export type {
   ApiResponse,
   PaginationMeta,
   ContentFilters,
+  BlogFilters,
   PostFilters,
   WikiFilters,
   UserFilters,
@@ -67,7 +82,7 @@ export type {
   PaginatedResponse,
   PaginatedResult,
   ContentResponse,
-  BaseInteractionResponse,
+  InteractionResponse,
   DetailedInteractionResponse
 } from './api'
 
@@ -124,6 +139,7 @@ export type {
   ExtractResponseData,
   FilterOptions,
   ContentItem,
+  PartialContentItem,
   PermissionUser,
   // Error handling
   AppError,
@@ -136,3 +152,13 @@ export type {
   IndexDefinition,
   IndexStats
 } from './utils'
+
+// ============================================================================
+// TRANSLATIONS
+// ============================================================================
+export type {
+  TranslationStructure,
+  TranslationKey,
+  TranslationFunction,
+  TranslationContext
+} from './translations'

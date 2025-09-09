@@ -81,7 +81,7 @@ export type ServerUser = Pick<User, 'id' | 'name' | 'email' | 'role' | 'status' 
 /** User interaction record (database entity for analytics) */
 export interface UserInteraction extends Entity {
   userId: string
-  targetType: 'post' | 'reply' | 'comment' | 'user' | 'blog' | 'wiki' | 'guide'
+  targetType: 'post' | 'reply' | 'comment' | 'user' | 'blog' | 'wiki' | 'guide' | 'monster'
   targetId: string
   interactionType: 'like' | 'dislike' | 'bookmark' | 'share' | 'report' | 'view' | 'helpful'
 }

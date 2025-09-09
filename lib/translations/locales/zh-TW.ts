@@ -5,6 +5,7 @@ export const zhTW = {
     wiki: '遊戲指南',
     blog: '最新消息',
     forum: '討論區',
+    dex: '怪物圖鑑',
     serverName: '秘汐之嶼',
   },
   
@@ -250,7 +251,8 @@ export const zhTW = {
     forms: {
       create: {
         title: '建立知識庫指南',
-        description: '與社群分享你的知識'
+        description: '與社群分享你的知識',
+        submitButton: '建立新指南'
       },
       createGuide: {
         title: '建立知識庫指南',
@@ -265,8 +267,8 @@ export const zhTW = {
         categoryPlaceholder: '選擇一個分類',
         difficultyLabel: '難度',
         difficultyPlaceholder: '選擇難度等級',
-        tagsLabel: '標籤',
-        tagsPlaceholder: '輸入標籤，以逗號分隔',
+        tagsLabel: '標籤（選填）',
+        tagsPlaceholder: '輸入標籤，以逗號分隔（選填）',
         tagsHelp: '新增相關標籤以幫助玩家找到你的指南',
         estimatedTimeLabel: '預估閱讀時間',
         estimatedTimePlaceholder: '例如：5 分鐘',
@@ -289,6 +291,12 @@ export const zhTW = {
         categoryRequired: '分類為必填',
         difficultyRequired: '難度為必填'
       }
+    },
+    
+    emptyState: {
+      title: '未找到指南',
+      description: '目前沒有指南可以顯示。',
+      actionLabel: '建立指南'
     },
     
     status: {
@@ -316,6 +324,7 @@ export const zhTW = {
       share: '分享'
     }
   },
+  
   
   // Blog Page
   blog: {
@@ -678,6 +687,305 @@ export const zhTW = {
     }
   },
 
+  // Dex (Monster) Page
+  dex: {
+    title: '怪物圖鑑',
+    subtitle: '探索我們 Minecraft 伺服器中的所有生物',
+    pageTitle: '怪物圖鑑',
+    pageDescription: '探索我們 Minecraft 伺服器中的所有生物',
+    welcome: {
+      title: '怪物圖鑑',
+      description: '探索我們伺服器中的怪物與生物'
+    },
+    
+    stats: {
+      monsters: '怪物總數',
+      totalViews: '總瀏覽量'
+    },
+    
+    search: {
+      placeholder: '搜尋怪物...'
+    },
+    
+    filters: {
+      allCategories: '所有分類'
+    },
+    
+    results: {
+      showing: '顯示',
+      of: '共',
+      monsters: '怪物'
+    },
+    
+    empty: {
+      title: '找不到怪物',
+      description: '請調整搜尋條件或篩選器以尋找更多怪物。'
+    },
+    
+    categories: {
+      hostile: '敵對',
+      passive: '被動',
+      neutral: '中立',
+      boss: '頭目'
+    },
+    
+    elements: {
+      none: '無',
+      fire: '火',
+      water: '水',
+      earth: '土',
+      air: '風',
+      light: '光',
+      dark: '暗',
+      ice: '冰',
+      lightning: '雷'
+    },
+    
+    races: {
+      god: '神',
+      dragon: '龍',
+      goblin: '哥布林',
+      orc: '獸人',
+      elf: '精靈',
+      dwarf: '矮人',
+      troll: '巨魔',
+      giant: '巨人',
+      undead: '不死族',
+      skeleton: '骷髏',
+      zombie: '殭屍',
+      vampire: '吸血鬼',
+      ghost: '幽靈',
+      demon: '惡魔',
+      angel: '天使',
+      fairy: '妖精',
+      phoenix: '鳳凰',
+      beast: '野獸',
+      wolf: '狼',
+      bear: '熊',
+      cat: '貓',
+      bird: '鳥',
+      fish: '魚',
+      snake: '蛇',
+      spider: '蜘蛛',
+      insect: '昆蟲',
+      slime: '史萊姆',
+      golem: '魔像',
+      construct: '構造體',
+      robot: '機器人',
+      elemental: '元素',
+      plant: '植物',
+      humanoid: '人形',
+      alien: '外星人',
+      void: '虛無'
+    },
+    
+    spawning: {
+      common: '常見',
+      uncommon: '不常見',
+      rare: '稀有',
+      legendary: '傳說'
+    },
+    
+    worlds: {
+      overworld: '主世界',
+      nether: '地獄',
+      end: '終界',
+      magic: '魔界',
+      heaven: '天界',
+      dungeon: '副本'
+    },
+    
+    timeOfDay: {
+      day: '白天',
+      night: '夜晚',
+      any: '任意時間'
+    },
+    
+    detail: {
+      combatStats: '戰鬥數據',
+      health: '血量',
+      damage: '傷害',
+      speed: '速度',
+      xpDrop: '經驗值',
+      behaviors: '行為',
+      spawningInfo: '生成資訊',
+      worlds: '世界',
+      biomes: '生態系',
+      structures: '結構',
+      conditions: '條件',
+      time: '時間',
+      light: '光照',
+      rarity: '稀有度',
+      drops: '掉落物',
+      chance: '機率',
+      quantity: '數量',
+      loading3d: '載入 3D 模型中...',
+      model3d: '3D 模型'
+    },
+    
+    forms: {
+      create: {
+        title: '建立怪物',
+        description: '新增生物至怪物圖鑑',
+        submitButton: '建立怪物',
+        nameLabel: '怪物名稱',
+        namePlaceholder: '輸入怪物名稱...',
+        modelLabel: '3D 模型',
+        modelPlaceholder: '選擇 3D 模型...',
+        modelHelp: '從可用的 GLTF 模型中選擇',
+        categoryLabel: '分類',
+        elementLabel: '屬性',
+        raceLabel: '種族',
+        excerptLabel: '摘要',
+        excerptPlaceholder: '怪物的簡短描述...',
+        descriptionLabel: '描述',
+        descriptionPlaceholder: '描述怪物的能力和特徵...',
+        healthHelp: '怪物血量',
+        damageHelp: '怪物傷害',
+        xpDropHelp: '被擊殺時掉落的經驗值',
+        biomesPlaceholder: '平原, 森林, 沙漠...',
+        biomesHelp: '怪物生成的生態系 (逗號分隔)',
+        structuresPlaceholder: '地牢, 要塞, 村莊...',
+        structuresHelp: '怪物生成的特定結構 (逗號分隔)',
+        lightLevelMinLabel: '最低光照等級',
+        lightLevelMinHelp: '最低光照等級 (0-15)',
+        lightLevelMaxLabel: '最高光照等級',
+        lightLevelMaxHelp: '最高光照等級 (0-15)',
+        timeOfDayLabel: '時間',
+        spawnRateLabel: '生成頻率',
+        behaviorsLabel: '行為',
+        behaviorsPlaceholder: '攻擊性, 領域性, 飛行...',
+        behaviorsHelp: '怪物行為 (逗號分隔)',
+        tagsLabel: '標籤',
+        tagsPlaceholder: '頭目, 火焰, 地獄...',
+        tagsHelp: '用逗號分隔相關標籤',
+        statusLabel: '狀態'
+      },
+      edit: {
+        title: '編輯怪物',
+        description: '更新怪物詳細資訊'
+      },
+      errors: {
+        nameRequired: '怪物名稱為必填',
+        modelRequired: '請選擇 3D 模型',
+        categoryRequired: '分類為必填',
+        descriptionRequired: '描述為必填',
+        healthRequired: '血量為必填',
+        damageRequired: '傷害為必填',
+        speedRequired: '速度為必填',
+        xpRequired: '經驗值為必填'
+      }
+    },
+    
+    biomes: {
+      // Overworld Biomes 主世界生態系
+      plains: '平原',
+      forest: '森林',
+      birch_forest: '樺木森林',
+      dark_forest: '黑暗森林',
+      old_growth_birch_forest: '原始樺木森林',
+      old_growth_pine_taiga: '原始松木針葉林',
+      old_growth_spruce_taiga: '原始雲杉針葉林',
+      taiga: '針葉林',
+      snowy_taiga: '積雪針葉林',
+      savanna: '草原',
+      savanna_plateau: '草原高原',
+      windswept_hills: '風蝕丘陵',
+      windswept_gravelly_hills: '風蝕砂礫丘陵',
+      windswept_forest: '風蝕森林',
+      windswept_savanna: '風蝕草原',
+      jungle: '叢林',
+      sparse_jungle: '稀疏叢林',
+      bamboo_jungle: '竹林',
+      desert: '沙漠',
+      swamp: '沼澤',
+      mangrove_swamp: '紅樹林沼澤',
+      mushroom_fields: '蘑菇島',
+      ice_spikes: '冰刺平原',
+      snowy_plains: '積雪平原',
+      snowy_slopes: '積雪坡地',
+      frozen_peaks: '凍結山峰',
+      jagged_peaks: '尖峭山峰',
+      stony_peaks: '石質山峰',
+      meadow: '草甸',
+      grove: '雪林',
+      cherry_grove: '櫻花樹林',
+      stony_shore: '石岸',
+      beach: '海灘',
+      snowy_beach: '積雪海灘',
+      ocean: '海洋',
+      deep_ocean: '深海',
+      lukewarm_ocean: '溫水海洋',
+      deep_lukewarm_ocean: '溫水深海',
+      warm_ocean: '暖水海洋',
+      cold_ocean: '冷水海洋',
+      deep_cold_ocean: '冷水深海',
+      frozen_ocean: '凍海',
+      deep_frozen_ocean: '凍結深海',
+      river: '河流',
+      frozen_river: '凍河',
+      dripstone_caves: '鐘乳石洞',
+      lush_caves: '繁茂洞穴',
+      deep_dark: '深暗之域',
+      // Nether Biomes 地獄生態系
+      nether_wastes: '地獄荒地',
+      soul_sand_valley: '靈魂沙峽谷',
+      crimson_forest: '緋紅森林',
+      warped_forest: '詭異森林',
+      basalt_deltas: '玄武岩三角洲',
+      // End Biomes 終界生態系
+      the_end: '終界',
+      small_end_islands: '終界小島',
+      end_midlands: '終界中地',
+      end_highlands: '終界高地',
+      end_barrens: '終界荒地'
+    },
+    
+    structures: {
+      // Generated Structures 生成結構
+      village: '村莊',
+      desert_pyramid: '沙漠神殿',
+      igloo: '雪屋',
+      jungle_pyramid: '叢林神殿',
+      swamp_hut: '沼澤小屋',
+      pillager_outpost: '掠奪者前哨站',
+      mansion: '林地府邸',
+      monument: '海底神殿',
+      stronghold: '要塞',
+      mineshaft: '廢棄礦坑',
+      dungeon: '地牢',
+      buried_treasure: '埋藏的寶藏',
+      shipwreck: '沈船',
+      ocean_ruin: '海底遺跡',
+      ruined_portal: '廢棄傳送門',
+      ancient_city: '古代城市',
+      trail_ruins: '古徑廢墟',
+      // Nether Structures 地獄結構
+      nether_fortress: '地獄要塞',
+      bastion_remnant: '堡壘遺跡',
+      // End Structures 終界結構
+      end_city: '終界城'
+    },
+    
+    actions: {
+      like: '喜歡',
+      bookmark: '收藏',
+      share: '分享',
+      favorite: '最愛',
+      edit: '編輯',
+      delete: '刪除',
+      deleting: '刪除中...',
+      confirmDeleteTitle: '刪除怪物',
+      confirmDeleteMessage: '確定要刪除這隻怪物嗎？此操作無法復原。',
+      deleteSuccess: '怪物刪除成功',
+      createMonster: '建立怪物',
+      editMonster: '編輯怪物',
+      deleteMonster: '刪除怪物',
+      viewMonster: '查看怪物',
+      backToDex: '返回圖鑑'
+    }
+  },
+
   // Common UI elements
   common: {
     loading: '載入中...',
@@ -700,6 +1008,10 @@ export const zhTW = {
     postCreatedSuccessfully: '貼文建立成功！',
     postDeletedSuccessfully: '貼文刪除成功',
     replyCreatedSuccessfully: '回覆發布成功！',
+    searchPlaceholder: '搜尋...',
+    noResults: '無搜尋結果',
+    tryDifferentTerms: '請嘗試不同的搜尋條件',
+    clear: '清除',
     replyUpdatedSuccessfully: '回覆更新成功！',
     replyDeletedSuccessfully: '回覆刪除成功！',
     networkError: '網路連線錯誤',

@@ -11,7 +11,8 @@ import { toast } from 'react-hot-toast'
 import type { 
   ForumPost, 
   BlogPost, 
-  WikiGuide, 
+  WikiGuide,
+  DexMonster,
   ContentFilters,
   PaginationMeta,
   DetailedInteractionResponse,
@@ -24,30 +25,33 @@ import type {
 // ============================================================================
 
 /** Supported content types */
-export type ContentType = 'forum' | 'blog' | 'wiki'
+export type ContentType = 'forum' | 'blog' | 'wiki' | 'dex'
 
 /** Generic content item union */
-export type ContentItem = ForumPost | BlogPost | WikiGuide
+export type ContentItem = ForumPost | BlogPost | WikiGuide | DexMonster
 
 /** Content type mapping */
 type ContentTypeMap = {
   forum: ForumPost
   blog: BlogPost
   wiki: WikiGuide
+  dex: DexMonster
 }
 
 /** Content API endpoints mapping */
 const ENDPOINTS = {
   forum: '/api/forum/posts',
   blog: '/api/blog/posts', 
-  wiki: '/api/wiki/guides'
+  wiki: '/api/wiki/guides',
+  dex: '/api/dex/monsters'
 } as const
 
 /** Content names for UI messages */
 const CONTENT_NAMES = {
   forum: 'post',
   blog: 'blog post',
-  wiki: 'guide'
+  wiki: 'guide',
+  dex: 'monster'
 } as const
 
 // ============================================================================
@@ -114,7 +118,20 @@ export function useContent<T extends ContentType>(
         throw new Error(result.error || `Failed to fetch ${CONTENT_NAMES[type]}s`)
       }
       
-      return result.data?.posts || result.data?.guides || result.data || []
+      // Extract data based on content type to avoid false fallbacks with empty arrays
+      if (result.data?.blogPosts !== undefined) {
+        return result.data.blogPosts
+      }
+      if (result.data?.forumPosts !== undefined) {
+        return result.data.forumPosts
+      }
+      if (result.data?.wikiGuides !== undefined) {
+        return result.data.wikiGuides
+      }
+      if (result.data?.dexMonsters !== undefined) {
+        return result.data.dexMonsters
+      }
+      return result.data || []
     },
     enabled,
     initialData,
@@ -177,7 +194,7 @@ export function useInfiniteContent<T extends ContentType>(
       }
       
       return {
-        items: result.data?.posts || result.data?.guides || result.data || [],
+        items: result.data?.blogPosts || result.data?.forumPosts || result.data?.wikiGuides || result.data?.dexMonsters || result.data || [],
         pagination: result.data?.pagination || { 
           page: pageParam, 
           pages: 1, 
@@ -233,7 +250,7 @@ export function useContentItem<T extends ContentType>(
         throw new Error(result.error || `Failed to fetch ${CONTENT_NAMES[type]}`)
       }
       
-      const contentData = result.data?.post || result.data?.guide || result.data
+      const contentData = result.data?.blogPost || result.data?.forumPost || result.data?.wikiGuide || result.data?.dexMonster || result.data
       
       // Extract the actual content item from the API response structure
       return contentData
@@ -254,6 +271,7 @@ export function useContentItem<T extends ContentType>(
  */
 export function useCreateContent<T extends ContentType>(type: T) {
   const queryClient = useQueryClient()
+  const { data: session } = useSession()
   
   return useMutation({
     mutationFn: async (data: Partial<ContentTypeMap[T]>): Promise<ContentTypeMap[T]> => {
@@ -273,9 +291,33 @@ export function useCreateContent<T extends ContentType>(type: T) {
         throw new Error(result.error || `Failed to create ${CONTENT_NAMES[type]}`)
       }
       
-      return result.data
+      // Extract the created item from the nested response
+      // API responses are { blogPost: post }, { wikiGuide: guide }, { forumPost: post }, { dexMonster: monster }
+      const responseData = result.data as Record<string, unknown>
+      if (type === 'blog' && 'blogPost' in responseData) {
+        return responseData.blogPost as ContentTypeMap[T]
+      } else if (type === 'wiki' && 'wikiGuide' in responseData) {
+        return responseData.wikiGuide as ContentTypeMap[T]
+      } else if (type === 'forum' && 'forumPost' in responseData) {
+        return responseData.forumPost as ContentTypeMap[T]
+      } else if (type === 'dex' && 'dexMonster' in responseData) {
+        return responseData.dexMonster as ContentTypeMap[T]
+      }
+      
+      // Fallback for unexpected response structure
+      return responseData as unknown as ContentTypeMap[T]
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Pre-warm the cache for the created item's detail page
+      // This allows immediate redirect to detail page without additional API call
+      const slug = data.slug || data.id
+      if (slug) {
+        queryClient.setQueryData(
+          [`${type}-content`, slug, session?.user?.id || 'anonymous'],
+          data
+        )
+      }
+      
       // Invalidate related queries with broader scope
       queryClient.invalidateQueries({ queryKey: [`${type}-content`] })
       queryClient.invalidateQueries({ queryKey: [`${type}-stats`] })
@@ -316,16 +358,52 @@ export function useUpdateContent<T extends ContentType>(type: T) {
       })
       
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || `Failed to update ${CONTENT_NAMES[type]}`)
+        let errorMessage = `Failed to update ${CONTENT_NAMES[type]}`
+        try {
+          const errorData = await response.json()
+          errorMessage = errorData.error || errorMessage
+        } catch (jsonError) {
+          // If response is not JSON, use status text or generic message
+          errorMessage = response.statusText || errorMessage
+        }
+        throw new Error(errorMessage)
       }
       
-      const result = await response.json()
+      let result
+      try {
+        result = await response.json()
+      } catch (jsonError) {
+        throw new Error(`Server returned invalid response for ${CONTENT_NAMES[type]} update`)
+      }
+      
       if (!result.success) {
         throw new Error(result.error || `Failed to update ${CONTENT_NAMES[type]}`)
       }
       
-      return result.data
+      // Extract the updated item from the nested response and preserve slug information
+      // API responses are { blogPost: post, slugChanged: boolean, newSlug?: string }
+      const responseData = result.data as Record<string, unknown>
+      let updatedItem: ContentTypeMap[T]
+      
+      if (type === 'blog' && 'blogPost' in responseData) {
+        updatedItem = responseData.blogPost as ContentTypeMap[T]
+      } else if (type === 'wiki' && 'wikiGuide' in responseData) {
+        updatedItem = responseData.wikiGuide as ContentTypeMap[T]
+      } else if (type === 'forum' && 'forumPost' in responseData) {
+        updatedItem = responseData.forumPost as ContentTypeMap[T]
+      } else if (type === 'dex' && 'dexMonster' in responseData) {
+        updatedItem = responseData.dexMonster as ContentTypeMap[T]
+      } else {
+        // Fallback for unexpected response structure
+        updatedItem = responseData as unknown as ContentTypeMap[T]
+      }
+      
+      // Preserve slug information for URL redirection
+      if ('newSlug' in responseData && responseData.newSlug) {
+        (updatedItem as unknown as Record<string, unknown>).slug = responseData.newSlug
+      }
+      
+      return updatedItem
     },
     onSuccess: (data, { slug }) => {
       // Update specific item cache
@@ -492,7 +570,7 @@ export function useContentInteraction<T extends ContentType>(type: T) {
             items = old.data
           } else if (typeof old.data === 'object' && old.data !== null) {
             const dataObj = old.data as Record<string, unknown>
-            items = (dataObj.posts || dataObj.guides || dataObj) as unknown[]
+            items = (dataObj.posts || dataObj.guides || dataObj.monsters || dataObj) as unknown[]
           } else {
             return oldQuery
           }
@@ -560,6 +638,7 @@ export function useContentInteraction<T extends ContentType>(type: T) {
             const newData = { ...dataObj }
             if (dataObj.posts) newData.posts = updatedItems
             if (dataObj.guides) newData.guides = updatedItems
+            if (dataObj.monsters) newData.monsters = updatedItems
             
             return {
               ...old,
@@ -616,7 +695,7 @@ export function useContentInteraction<T extends ContentType>(type: T) {
             items = old.data
           } else if (typeof old.data === 'object' && old.data !== null) {
             const dataObj = old.data as Record<string, unknown>
-            items = (dataObj.posts || dataObj.guides || dataObj) as unknown[]
+            items = (dataObj.posts || dataObj.guides || dataObj.monsters || dataObj) as unknown[]
           } else {
             return oldQuery
           }
@@ -644,6 +723,7 @@ export function useContentInteraction<T extends ContentType>(type: T) {
             const newData = { ...dataObj }
             if (dataObj.posts) newData.posts = updatedItems
             if (dataObj.guides) newData.guides = updatedItems
+            if (dataObj.monsters) newData.monsters = updatedItems
             
             return {
               ...old,
@@ -684,3 +764,4 @@ export function createContentHooks<T extends ContentType>(type: T) {
 export const forumHooks = createContentHooks('forum')
 export const blogHooks = createContentHooks('blog')
 export const wikiHooks = createContentHooks('wiki')
+export const dexHooks = createContentHooks('dex')

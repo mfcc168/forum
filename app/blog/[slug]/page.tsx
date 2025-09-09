@@ -30,7 +30,7 @@ async function getBlogPostData(slug: string) {
     }
 
     const result = await postRes.json()
-    const post = result.success ? result.data.post : null
+    const post = result.success ? result.data.blogPost : null
 
 
     return {

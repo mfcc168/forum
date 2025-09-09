@@ -1,31 +1,41 @@
-import { NextResponse } from 'next/server'
-import { getServerUser } from '@/lib/auth/server'
+import { NextRequest } from 'next/server'
+import { withDALAndValidation } from '@/lib/database/middleware'
+import { ApiResponse } from '@/lib/utils/validation'
+import type { ServerUser } from '@/lib/types'
 
 export const runtime = 'nodejs'
 
-export async function GET() {
-  try {
-    const user = await getServerUser()
-    
-    if (!user) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
-    }
+/**
+ * GET /api/auth/user
+ * Get current authenticated user information
+ */
+export const GET = withDALAndValidation(
+  async (_request: NextRequest, { user }: { user?: ServerUser }) => {
+    try {
+      // Use the user from middleware (which uses getServerUser internally)
+      if (!user) {
+        return ApiResponse.error('Not authenticated', 401)
+      }
 
-    // Return user data
-    return NextResponse.json({
-      id: user.id,
-      username: user.name,  // Map name to username for API compatibility
-      email: user.email,
-      avatar: user.avatar,
-      role: user.role,
-      joinDate: user.createdAt,
-      lastActive: user.lastActiveAt,
-    })
-  } catch (error) {
-    console.error('Error fetching user:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+      // Return user data in consistent format
+      const userData = {
+        id: user.id,
+        username: user.name,  // Map name to username for API compatibility
+        email: user.email,
+        avatar: user.avatar,
+        role: user.role,
+        joinDate: user.createdAt,
+        lastActive: user.lastActiveAt,
+      }
+
+      return ApiResponse.success(userData, 'User information retrieved successfully')
+    } catch (error) {
+      console.error('Error fetching user:', error)
+      return ApiResponse.error('Failed to fetch user information', 500)
+    }
+  },
+  {
+    auth: 'required',
+    rateLimit: { requests: 30, window: '1m' }
   }
-}
+)

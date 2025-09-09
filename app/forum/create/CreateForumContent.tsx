@@ -10,12 +10,10 @@ export default function CreateForumContent() {
   const router = useRouter()
   const { t } = useTranslation()
 
-  const handlePostCreated = (postId?: string) => {
-    if (postId) {
-      router.push(`/forum/${postId}`)
-    } else {
-      router.push('/forum')
-    }
+  const handlePostCreated = (postSlug: string) => {
+    // Redirect to the newly created forum post's detail page
+    // The slug is guaranteed to be valid since the post was just created
+    router.push(`/forum/${postSlug}`)
   }
 
   return (

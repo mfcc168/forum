@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { useTranslation } from '@/lib/contexts/LanguageContext';
@@ -8,10 +8,12 @@ import { Icon } from '@/app/components/ui/Icon';
 import { Button } from '@/app/components/ui/Button';
 import { CategoryFilter } from '@/app/components/ui/CategoryFilter';
 import { SidebarCategoryFilter } from '@/app/components/ui/SidebarCategoryFilter';
-import { useForumPosts } from '@/lib/hooks/useForum';
+import { SearchInput, SearchResultsHeader } from '@/app/components/shared/SearchInput';
+import { useForumPosts, useForumSearch } from '@/lib/hooks/useForum';
 import { ForumList } from '@/app/components/forum/ForumList';
 import { ListRenderer } from '@/app/components/ui/StateRenderer';
-import type { ForumPost, ForumStatsResponse as ForumStats, ForumCategory } from '@/lib/types';
+import type { ForumPost, ForumCategory } from '@/lib/types';
+import type { ForumStats } from '@/lib/types/entities/stats';
 
 interface ForumContentProps {
   initialPosts?: ForumPost[]
@@ -26,6 +28,8 @@ export function ForumContent({
   const { t } = useTranslation();
   const { data: session } = useSession();
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
   
   // Ensure initial posts is always an array
   const safeInitialPosts = Array.isArray(initialPosts) ? initialPosts : [];
@@ -43,11 +47,28 @@ export function ForumContent({
   const forumQuery = useForumPosts({
     category: selectedCategory || undefined,
     sortBy: 'latest',
-    status: 'active',
+    status: 'active', // Active = published + not deleted + not locked
     initialData: safeInitialPosts
   });
   
+  // Dedicated search hook (like wiki)
+  const searchQuery_trimmed = searchQuery.trim()
+  const searchResults = useForumSearch(searchQuery_trimmed, {
+    status: 'active', // Active = published + not deleted + not locked
+    sortBy: 'latest'
+  })
+  
   const forumPosts = forumQuery.data || safeInitialPosts;
+
+  // Determine if we're in search mode
+  const isSearchMode = Boolean(searchQuery_trimmed);
+  const displayPosts = isSearchMode ? (searchResults.data || []) : forumPosts;
+  
+  // Determine if we should show search results or loading
+  // CRITICAL: Only show results when query is valid AND complete AND not loading
+  const isQueryValid = !!searchQuery_trimmed && searchQuery_trimmed.length >= 1;
+  const shouldShowSearchLoading = isSearchMode && (isSearching || (isQueryValid && searchResults.isLoading));
+  const shouldShowSearchResults = isSearchMode && isQueryValid && !isSearching && !searchResults.isLoading;
 
   // Prepare categories for the CategoryFilter component
   const categoryFilterData = (safeInitialCategories || [])
@@ -61,8 +82,8 @@ export function ForumContent({
   
 
   const filteredPosts = selectedCategory
-    ? forumPosts.filter((post: ForumPost) => post?.categoryName && post.categoryName === selectedCategory)
-    : forumPosts.filter((post: ForumPost) => post?.categoryName !== null);
+    ? displayPosts.filter((post: ForumPost) => post?.categoryName && post.categoryName === selectedCategory)
+    : displayPosts.filter((post: ForumPost) => post?.categoryName !== null);
 
   const isLoggedIn = !!session?.user;
 
@@ -70,15 +91,41 @@ export function ForumContent({
     <div className="grid lg:grid-cols-4 gap-8">
       {/* Main Content */}
       <div className="lg:col-span-3">
-        {/* Category Filter */}
-        <CategoryFilter
-          categories={categoryFilterData}
-          selectedCategory={selectedCategory}
-          onCategoryChange={setSelectedCategory}
-          title={t.forum.filter.title}
-          showCounts={true}
-          allCategoryLabel={t.common.all}
-        />
+        {/* Search Bar */}
+        <div className="mb-6">
+          <SearchInput
+            value={searchQuery}
+            onChange={setSearchQuery}
+            onSearchStateChange={setIsSearching}
+            placeholder={t.common.searchPlaceholder || 'Search forum posts...'}
+            className="w-full"
+            showSuggestions={true}
+            debounceMs={200}
+            module="forum"
+          />
+        </div>
+
+        {/* Search Results Header */}
+        {isSearchMode && (
+          <SearchResultsHeader
+            query={searchQuery}
+            resultCount={searchResults.data?.length || 0}
+            onClear={() => setSearchQuery('')}
+            module="forum"
+          />
+        )}
+
+        {/* Category Filter - Hidden in search mode */}
+        {!isSearchMode && (
+          <CategoryFilter
+            categories={categoryFilterData}
+            selectedCategory={selectedCategory}
+            onCategoryChange={setSelectedCategory}
+            title={t.forum.filter.title}
+            showCounts={true}
+            allCategoryLabel={t.common.all}
+          />
+        )}
 
         {/* Create Post Button */}
         {isLoggedIn && (
@@ -92,13 +139,16 @@ export function ForumContent({
           </div>
         )}
 
+
         {/* Forum Posts with Consistent State Management */}
         <ListRenderer
           state={{
             data: filteredPosts,
-            isLoading: forumQuery.isLoading && !forumQuery.data && safeInitialPosts.length === 0,
-            error: forumQuery.error,
-            refetch: forumQuery.refetch
+            isLoading: isSearchMode 
+              ? shouldShowSearchLoading
+              : (forumQuery.isLoading && !forumQuery.data && safeInitialPosts.length === 0),
+            error: isSearchMode ? searchResults.error : forumQuery.error,
+            refetch: isSearchMode ? searchResults.refetch : forumQuery.refetch
           }}
           loading={{
             variant: 'skeleton',
@@ -112,15 +162,22 @@ export function ForumContent({
             showReload: true
           }}
           empty={{
-            title: selectedCategory 
-              ? t.forum.emptyState?.noPostsInCategory?.replace('{category}', getCategoryName(selectedCategory)) || `No posts in ${getCategoryName(selectedCategory)}`
-              : t.forum.emptyState?.noPosts || 'No forum posts yet',
-            description: selectedCategory 
-              ? t.forum.emptyState?.checkBack || 'Check back later for new posts'
-              : t.forum.emptyState?.checkBack || 'Check back later for new posts',
-            icon: 'messageCircle',
+            title: isSearchMode
+              ? t.common.noResults || 'No search results'
+              : selectedCategory 
+                ? t.forum.emptyState?.noPostsInCategory?.replace('{category}', getCategoryName(selectedCategory)) || `No posts in ${getCategoryName(selectedCategory)}`
+                : t.forum.emptyState?.noPosts || 'No forum posts yet',
+            description: isSearchMode
+              ? t.common.tryDifferentTerms || 'Try different search terms'
+              : selectedCategory 
+                ? t.forum.emptyState?.checkBack || 'Check back later for new posts'
+                : t.forum.emptyState?.checkBack || 'Check back later for new posts',
+            icon: isSearchMode ? 'search' : 'messageCircle',
             variant: 'card',
-            action: selectedCategory ? {
+            action: isSearchMode ? {
+              label: t.common.clear || 'Clear Search',
+              onClick: () => setSearchQuery('')
+            } : selectedCategory ? {
               label: t.forum.sidebar?.viewAllPosts || 'View All Posts',
               onClick: () => setSelectedCategory('')
             } : undefined

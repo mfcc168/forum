@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getServerUser } from '@/lib/auth/server';
 import { PermissionChecker } from '@/lib/utils/permissions';
-import CreateWikiContent from './CreateWikiContent';
+import CreateWikiContent from '@/app/wiki/create/CreateWikiContent';
 
 export default async function CreateWikiPage() {
   // Server-side authentication check

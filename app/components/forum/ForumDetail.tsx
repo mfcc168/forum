@@ -10,7 +10,7 @@ import { ReplyForm } from '@/app/components/forum/ReplyForm';
 import { ReplyList } from '@/app/components/forum/ReplyList';
 import { ForumActions } from '@/app/components/forum/ForumActions';
 import { sanitizeHtml } from '@/lib/utils/html';
-import { formatDateSimple } from '@/lib/utils';
+import { formatSimpleDate } from '@/lib/utils';
 import { useTranslation } from '@/lib/contexts/LanguageContext';
 import type { ForumPost, ForumReply } from '@/lib/types';
 
@@ -142,12 +142,12 @@ export const ForumDetail = memo(function ForumDetail({
                 <div className="flex items-center justify-end space-x-3">
                   <div className="flex items-center space-x-1">
                     <Icon name="clock" className="w-3 h-3" />
-                    <span>{formatDateSimple(post.createdAt)}</span>
+                    <span>{formatSimpleDate(post.createdAt)}</span>
                   </div>
                   {post.createdAt !== post.updatedAt && (
                     <div className="flex items-center space-x-1">
                       <Icon name="edit" className="w-3 h-3" />
-                      <span>{formatDateSimple(post.updatedAt)}</span>
+                      <span>{formatSimpleDate(post.updatedAt)}</span>
                     </div>
                   )}
                 </div>

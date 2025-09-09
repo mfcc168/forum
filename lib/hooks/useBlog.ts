@@ -105,6 +105,17 @@ export function useBlogCategories() {
 }
 
 /**
+ * Search blog posts
+ */
+export function useBlogSearch(query: string, options: Omit<UseBlogPostsOptions, 'search'> = {}) {
+  return useBlogPosts({
+    ...options,
+    search: query,
+    enabled: !!query && query.length >= 1 // Allow single character searches
+  })
+}
+
+/**
  * Get blog statistics
  */
 export function useBlogStats() {
@@ -171,7 +182,7 @@ export function useRecentBlogPosts(limit = 10) {
       
       return result.data || []
     },
-    staleTime: 10 * 60 * 1000, // 10 minutes
-    gcTime: 30 * 60 * 1000     // 30 minutes
+    staleTime: 5 * 60 * 1000,  // 5 minutes - matches other recent hooks
+    gcTime: 15 * 60 * 1000     // 15 minutes
   })
 }

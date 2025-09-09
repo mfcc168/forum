@@ -12,7 +12,7 @@ export const runtime = 'nodejs'
  * /api/wiki/guides/{slug}/interactions:
  *   post:
  *     summary: Record a user interaction with a wiki guide
- *     description: Record user interactions like likes, saves, helpful votes, or shares for a wiki guide
+ *     description: Record user interactions like likes, bookmarks, helpful votes, or shares for a wiki guide
  *     tags: [Wiki]
  *     security:
  *       - bearerAuth: []
@@ -34,7 +34,7 @@ export const runtime = 'nodejs'
  *             properties:
  *               action:
  *                 type: string
- *                 enum: [like, save, helpful, share]
+ *                 enum: [like, bookmark, helpful, share]
  *                 description: The type of interaction to record
  *     responses:
  *       200:
@@ -64,21 +64,21 @@ export const runtime = 'nodejs'
  *         description: Internal server error
  */
 
-// Path parameter schema
-const pathSchema = z.object({
-  slug: z.string().min(1)
-})
+// Path parameter type
+type WikiSlugData = {
+  slug: string
+}
 
 // Interaction schema
 const interactionSchema = z.object({
-  action: z.enum(['like', 'save', 'helpful', 'share'])
+  action: z.enum(['like', 'bookmark', 'helpful', 'share'])
 })
 
 // POST - Record wiki guide interaction
 export const POST = withDALAndValidation(
-  async (request: NextRequest, { user, params, validatedData, dal }: { 
+  async (_request: NextRequest, { user, params, validatedData, dal }: { 
     user?: ServerUser
-    params: z.infer<typeof pathSchema>
+    params: Promise<WikiSlugData>
     validatedData: z.infer<typeof interactionSchema>
     dal: typeof DAL 
   }) => {
@@ -86,7 +86,7 @@ export const POST = withDALAndValidation(
       return ApiResponse.error('Authentication required', 401)
     }
 
-    const { slug } = params
+    const { slug } = await params
     const { action } = validatedData
 
     // Get the guide first

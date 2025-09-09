@@ -17,6 +17,7 @@ import { handleMutationError } from '@/lib/utils/errors'
 import type { ContentStats, ContentModule } from '@/lib/types'
 import type { UseMutationResult } from '@tanstack/react-query'
 import { forumHooks, blogHooks, wikiHooks } from '@/lib/hooks/useContent'
+import { useDexMonsterInteraction } from '@/lib/hooks/useDex'
 
 type ContentMutation = UseMutationResult<unknown, Error, unknown>
 type DeleteMutation = UseMutationResult<unknown, Error, string>
@@ -128,7 +129,11 @@ export const ContentActions = memo(function ContentActions({
       if (onDelete) {
         onDelete()
       } else {
-        const backPath = config.contentType === 'blog' ? '/blog' : '/forum'
+        // Redirect to appropriate module index page
+        const backPath = config.contentType === 'blog' ? '/blog' 
+                        : config.contentType === 'wiki' ? '/wiki'
+                        : config.contentType === 'dex' ? '/dex'
+                        : '/forum'
         router.push(backPath)
       }
     } catch (error) {
@@ -138,20 +143,16 @@ export const ContentActions = memo(function ContentActions({
   }, [config, onDelete, router])
 
   // Get the appropriate React Query hook for this content type
-  const getInteractionHook = () => {
-    switch (config.contentType) {
-      case 'forum':
-        return forumHooks.useContentInteraction()
-      case 'blog':
-        return blogHooks.useContentInteraction()
-      case 'wiki':
-        return wikiHooks.useContentInteraction()
-      default:
-        throw new Error(`Unsupported content type: ${config.contentType}`)
-    }
-  }
-
-  const interactionMutation = getInteractionHook()
+  const forumInteractionMutation = forumHooks.useContentInteraction()
+  const blogInteractionMutation = blogHooks.useContentInteraction()
+  const wikiInteractionMutation = wikiHooks.useContentInteraction()
+  const dexInteractionMutation = useDexMonsterInteraction()
+  
+  const interactionMutation = config.contentType === 'forum' ? forumInteractionMutation
+    : config.contentType === 'blog' ? blogInteractionMutation
+    : config.contentType === 'wiki' ? wikiInteractionMutation
+    : config.contentType === 'dex' ? dexInteractionMutation
+    : null
 
   const handleSocialAction = useCallback(async (action: 'like' | 'bookmark' | 'share' | 'helpful') => {
     if (!isAuthenticated) {
@@ -170,18 +171,20 @@ export const ContentActions = memo(function ContentActions({
         toast.success('Link copied to clipboard!', { duration: 2000 })
         
         // Still trigger the share count API call in background
-        interactionMutation.mutate({ 
-          slug: config.identifier, 
-          action: 'share' 
-        }, {
-          onSettled: () => {
-            setPendingActions(prev => {
-              const next = new Set(prev)
-              next.delete(action)
-              return next
-            })
-          }
-        })
+        if (interactionMutation) {
+          interactionMutation.mutate({ 
+            slug: config.identifier, 
+            action: 'share' 
+          }, {
+            onSettled: () => {
+              setPendingActions(prev => {
+                const next = new Set(prev)
+                next.delete(action)
+                return next
+              })
+            }
+          })
+        }
         return
       } catch {
         // Fallback to API call only if clipboard fails
@@ -189,6 +192,16 @@ export const ContentActions = memo(function ContentActions({
     }
 
     // Use simplified React Query mutation
+    if (!interactionMutation) {
+      toast.error(`Interaction not supported for ${config.contentType}`)
+      setPendingActions(prev => {
+        const next = new Set(prev)
+        next.delete(action)
+        return next
+      })
+      return
+    }
+    
     interactionMutation.mutate({ 
       slug: config.identifier, 
       action 

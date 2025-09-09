@@ -44,7 +44,7 @@ async function getPostData(postSlug: string) {
 
 
     return {
-      post: postData.success ? postData.data?.post : null,
+      post: postData.success ? postData.data?.forumPost : null,
       replies,
       error: !postData.success ? 'Post not found' : null
     }
