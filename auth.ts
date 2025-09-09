@@ -11,6 +11,9 @@ export const config = {
       clientSecret: process.env.DISCORD_CLIENT_SECRET!,
     })
   ],
+  secret: process.env.NEXTAUTH_SECRET,
+  trustHost: true,
+  debug: process.env.NODE_ENV === 'development',
   callbacks: {
     async session({ session, token }) {
       try {
