@@ -1,5 +1,4 @@
-import { NextRequest } from 'next/server'
-import { ApiResponse } from '@/lib/utils/validation'
+import { NextRequest, NextResponse } from 'next/server'
 
 export const runtime = 'nodejs'
 
@@ -95,5 +94,10 @@ export async function GET(_request: NextRequest) {
     vercelUrl: process.env.VERCEL_URL || 'unknown'
   }
 
-  return ApiResponse.success(diagnostics, 'Database diagnostic completed')
+  return NextResponse.json({
+    success: true,
+    data: diagnostics,
+    message: 'Database diagnostic completed',
+    timestamp: new Date().toISOString()
+  })
 }
