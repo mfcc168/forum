@@ -68,9 +68,13 @@ export async function GET(_request: NextRequest) {
     try {
       const testCollection = db.collection('users')
       const count = await testCollection.countDocuments()
-      diagnostics.connectionTest.testQuery = `Users collection has ${count} documents`
+      if (diagnostics.connectionTest && typeof diagnostics.connectionTest === 'object') {
+        (diagnostics.connectionTest as Record<string, unknown>).testQuery = `Users collection has ${count} documents`
+      }
     } catch (queryError) {
-      diagnostics.connectionTest.testQueryError = queryError instanceof Error ? queryError.message : 'Unknown query error'
+      if (diagnostics.connectionTest && typeof diagnostics.connectionTest === 'object') {
+        (diagnostics.connectionTest as Record<string, unknown>).testQueryError = queryError instanceof Error ? queryError.message : 'Unknown query error'
+      }
     }
 
     await client.close()
