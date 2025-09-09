@@ -1,9 +1,10 @@
 import DexPage from '@/app/dex/DexPage'
+import { getBaseUrl } from '@/lib/utils/base-url'
 import type { DexMonster, DexStats, DexCategory } from '@/lib/types'
 
 // Server-side data fetching function (consistent pattern)
 async function getDexData() {
-  const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000'
+  const baseUrl = getBaseUrl()
   
   try {    
     // Fetch all data in parallel (consistent with blog/forum/wiki)

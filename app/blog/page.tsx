@@ -1,8 +1,9 @@
 import BlogPage from '@/app/blog/BlogPage'
+import { getBaseUrl } from '@/lib/utils/base-url'
 
 // Server-side data fetching function
 async function getBlogData() {
-  const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000'
+  const baseUrl = getBaseUrl()
   
   try {
     // Fetch all data in parallel

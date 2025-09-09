@@ -1,8 +1,9 @@
 import ForumPage from '@/app/forum/ForumPage'
+import { getBaseUrl } from '@/lib/utils/base-url'
 
 // Server-side data fetching function
 async function getForumData() {
-  const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000'
+  const baseUrl = getBaseUrl()
   
   try {
     // Fetch all data in parallel

@@ -1,9 +1,10 @@
 import WikiPage from '@/app/wiki/WikiPage'
+import { getBaseUrl } from '@/lib/utils/base-url'
 import type { WikiGuide, WikiStats } from '@/lib/types'
 
 // Server-side data fetching function (consistent pattern)
 async function getWikiData() {
-  const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000'
+  const baseUrl = getBaseUrl()
   
   try {
     // Fetch all data in parallel (consistent with blog/forum)
