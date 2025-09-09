@@ -290,7 +290,7 @@ export interface FormProps<T> extends BaseProps {
  * This provides the flexibility needed for the complex translation structure
  * while being explicit about the type choice
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 export type TranslationObject = import('@/lib/translations/locales/en').TranslationObject
 
 /** Language context type with proper locale typing */

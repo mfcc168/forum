@@ -11,7 +11,7 @@ import { MongoDexMonsterSchema, type DexMonster } from '@/lib/schemas/dex'
 import { generateSlug, generateSlugWithCounter } from '@/lib/utils/slug'
 import { statsManager } from '@/lib/database/stats'
 import { handleDatabaseError } from '@/lib/utils/error-handler'
-import { ReferentialIntegrityManager } from '@/lib/database/referential-integrity'
+// import { ReferentialIntegrityManager } from '@/lib/database/referential-integrity'
 import type { 
   DexCategory, 
   DexStats,
@@ -55,6 +55,8 @@ interface MongoMatchConditions {
   $or?: Array<{ [key: string]: { $regex: string; $options: string } }>
   status?: string | { $in: string[] }
   category?: string | { $in: string[] }
+  element?: string | { $in: string[] }
+  race?: string | { $in: string[] }
   tags?: { $in: string[] }
   'author.name'?: { $in: string[] }
   'spawning.worlds'?: { $in: string[] }
@@ -111,8 +113,7 @@ export class DexDAL extends BaseDAL<DexMonster> {
    */
   async getMonsters(
     filters: DexFiltersType,
-    pagination: { page: number; limit: number },
-    userId?: string
+    pagination: { page: number; limit: number }
   ): Promise<PaginatedResponse<DexMonster>> {
     try {
       const { page, limit } = pagination
@@ -126,6 +127,16 @@ export class DexDAL extends BaseDAL<DexMonster> {
       // Category filter
       if (filters.category) {
         matchConditions.category = filters.category
+      }
+
+      // Element filter
+      if (filters.element) {
+        matchConditions.element = filters.element
+      }
+
+      // Race filter
+      if (filters.race) {
+        matchConditions.race = filters.race
       }
 
       // Author filter
@@ -229,7 +240,7 @@ export class DexDAL extends BaseDAL<DexMonster> {
    */
   async getMonsterWithStats(monsterId: string | ObjectId, userId?: string, includeAllStatuses = false): Promise<DexMonster | null> {
     try {
-      const filter: any = { _id: new ObjectId(monsterId) }
+      const filter: Record<string, unknown> = { _id: new ObjectId(monsterId) }
       if (!includeAllStatuses) {
         filter.status = 'published'
       }
@@ -252,7 +263,7 @@ export class DexDAL extends BaseDAL<DexMonster> {
    */
   async getMonsterBySlug(slug: string, userId?: string, includeAllStatuses = false): Promise<DexMonster | null> {
     try {
-      const filter: any = { slug }
+      const filter: Record<string, unknown> = { slug }
       if (!includeAllStatuses) {
         filter.status = 'published'
       }
@@ -337,7 +348,7 @@ export class DexDAL extends BaseDAL<DexMonster> {
         isDeleted: false
       }
 
-      const result = await this.insertOne(monster)
+      await this.insertOne(monster)
       
       // Update category monster count
       if (monsterData.category) {
@@ -361,8 +372,7 @@ export class DexDAL extends BaseDAL<DexMonster> {
    */
   async updateMonster(
     slug: string, 
-    updateData: Record<string, unknown>,
-    userId: string
+    updateData: Record<string, unknown>
   ): Promise<boolean> {
     // Camera data structure is now working correctly
     

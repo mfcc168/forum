@@ -261,6 +261,8 @@ export const flatDexUpdateSchema = z.object({
 
 export const dexFiltersSchema = z.object({
   category: z.string().optional(),
+  element: z.enum(['none', 'fire', 'water', 'earth', 'air', 'light', 'dark', 'ice', 'lightning']).optional(),
+  race: z.enum(['god', 'dragon', 'goblin', 'orc', 'elf', 'dwarf', 'troll', 'giant', 'undead', 'skeleton', 'zombie', 'vampire', 'ghost', 'demon', 'angel', 'fairy', 'phoenix', 'beast', 'wolf', 'bear', 'cat', 'bird', 'fish', 'snake', 'spider', 'insect', 'slime', 'golem', 'construct', 'robot', 'elemental', 'plant', 'humanoid', 'alien', 'void']).optional(),
   status: z.enum(['draft', 'published', 'archived']).optional(),
   author: z.string().optional(),
   tags: z.array(z.string()).optional(),

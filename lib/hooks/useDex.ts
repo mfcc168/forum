@@ -17,6 +17,8 @@ export { dexHooks }
 
 export interface UseDexOptions extends UseContentOptions<'dex'> {
   category?: string
+  element?: 'none' | 'fire' | 'water' | 'earth' | 'air' | 'light' | 'dark' | 'ice' | 'lightning'
+  race?: 'god' | 'dragon' | 'goblin' | 'orc' | 'elf' | 'dwarf' | 'troll' | 'giant' | 'undead' | 'skeleton' | 'zombie' | 'vampire' | 'ghost' | 'demon' | 'angel' | 'fairy' | 'phoenix' | 'beast' | 'wolf' | 'bear' | 'cat' | 'bird' | 'fish' | 'snake' | 'spider' | 'insect' | 'slime' | 'golem' | 'construct' | 'robot' | 'elemental' | 'plant' | 'humanoid' | 'alien' | 'void'
   spawnRate?: 'common' | 'uncommon' | 'rare' | 'legendary'
   biome?: string
   world?: string

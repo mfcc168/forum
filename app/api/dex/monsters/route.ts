@@ -10,7 +10,7 @@ import { revalidateTag } from 'next/cache'
 
 // GET /api/dex/monsters - Get paginated monsters
 export const GET = withDALAndValidation(
-  async (request: NextRequest, { user, validatedData, dal }: {
+  async (request: NextRequest, { validatedData, dal }: {
     user?: ServerUser;
     validatedData: z.infer<typeof dexFiltersSchema>;
     dal: typeof DAL;
@@ -19,8 +19,7 @@ export const GET = withDALAndValidation(
 
     const result = await dal.dex.getMonsters(
       filters,
-      { page, limit },
-      user?.id
+      { page, limit }
     )
 
     return ApiResponse.success({

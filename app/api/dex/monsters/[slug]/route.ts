@@ -163,7 +163,7 @@ export const PUT = withDALAndValidation(
     }
 
 
-    const success = await dal.dex.updateMonster(slug, updateData, user.id)
+    const success = await dal.dex.updateMonster(slug, updateData)
     
     if (!success) {
       return ApiResponse.error('Failed to update monster', 500)

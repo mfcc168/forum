@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, Suspense } from 'react'
+import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { usePermissions } from '@/lib/hooks/usePermissions'
@@ -24,55 +24,65 @@ interface DexContentProps {
 }
 
 export function DexContent({ 
-  initialMonsters,
-  initialCategories,
-  initialStats 
+  initialMonsters
 }: DexContentProps) {
   const { t, locale } = useTranslation()
   const { data: session } = useSession()
   const permissions = usePermissions(session, 'dex')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
+  const [selectedElement, setSelectedElement] = useState<string>('all')
+  const [selectedRace, setSelectedRace] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState('')
 
   // Use hooks as fallback when initial data is empty or for real-time updates
   const { data: hookMonsters, isLoading } = useDexMonsters({
     enabled: !initialMonsters || initialMonsters.length === 0,
     category: selectedCategory !== 'all' ? selectedCategory : undefined,
+    element: selectedElement !== 'all' ? selectedElement as 'none' | 'fire' | 'water' | 'earth' | 'air' | 'light' | 'dark' | 'ice' | 'lightning' : undefined,
+    race: selectedRace !== 'all' ? selectedRace as 'god' | 'dragon' | 'goblin' | 'orc' | 'elf' | 'dwarf' | 'troll' | 'giant' | 'undead' | 'skeleton' | 'zombie' | 'vampire' | 'ghost' | 'demon' | 'angel' | 'fairy' | 'phoenix' | 'beast' | 'wolf' | 'bear' | 'cat' | 'bird' | 'fish' | 'snake' | 'spider' | 'insect' | 'slime' | 'golem' | 'construct' | 'robot' | 'elemental' | 'plant' | 'humanoid' | 'alien' | 'void' : undefined,
     search: searchQuery || undefined,
     sortBy: 'latest'
   })
 
   // Use hook data if initial data is empty, otherwise use initial data
-  const monsters = initialMonsters && initialMonsters.length > 0 
-    ? initialMonsters 
-    : hookMonsters || []
+  const monsters = useMemo(() => {
+    return initialMonsters && initialMonsters.length > 0 
+      ? initialMonsters 
+      : hookMonsters || []
+  }, [initialMonsters, hookMonsters])
 
   // Dynamic value translations for filters
   const isZhTW = locale === 'zh-TW'
   const getCategoryLabel = (category: string) => {
-    if (!isZhTW) return category.charAt(0).toUpperCase() + category.slice(1)
-    switch (category.toLowerCase()) {
-      case 'hostile': return '敵對'
-      case 'passive': return '被動'
-      case 'neutral': return '中立'
-      case 'boss': return '魔王'
-      default: return category
-    }
+    return t.dex?.categories?.[category as keyof typeof t.dex.categories] || 
+           (category.charAt(0).toUpperCase() + category.slice(1))
   }
 
-  const allCategoriesLabel = isZhTW ? '所有分類' : 'All Categories'
-  const searchPlaceholder = isZhTW ? '搜尋怪物...' : 'Search monsters...'
-  const createMonsterLabel = isZhTW ? '新增怪物' : 'Create Monster'
-  const showingLabel = isZhTW ? '顯示' : 'Showing'
-  const ofLabel = isZhTW ? '共' : 'of'
-  const monstersLabel = isZhTW ? '隻怪物' : 'monsters'
-  const emptyTitle = isZhTW ? '找不到怪物' : 'No monsters found'
-  const emptyDescription = isZhTW ? '請調整搜尋條件或篩選器以找到更多怪物。' : 'Try adjusting your search or filters to find more monsters.'
+  const getElementLabel = (element: string) => {
+    return t.dex?.elements?.[element as keyof typeof t.dex.elements] || 
+           (element.charAt(0).toUpperCase() + element.slice(1))
+  }
 
-  // Filter monsters based on search and category (only when using initial data)
+  const getRaceLabel = (race: string) => {
+    return t.dex?.races?.[race as keyof typeof t.dex.races] || 
+           (race.charAt(0).toUpperCase() + race.slice(1))
+  }
+
+  const allCategoriesLabel = t.dex?.filters?.allCategories || (isZhTW ? '所有分類' : 'All Categories')
+  const allElementsLabel = isZhTW ? '所有元素' : 'All Elements'
+  const allRacesLabel = isZhTW ? '所有種族' : 'All Races'
+  const searchPlaceholder = t.dex?.search?.placeholder || (isZhTW ? '搜尋怪物...' : 'Search monsters...')
+  const createMonsterLabel = isZhTW ? '新增怪物' : 'Create Monster'
+  const showingLabel = t.dex?.results?.showing || (isZhTW ? '顯示' : 'Showing')
+  const ofLabel = t.dex?.results?.of || (isZhTW ? '共' : 'of')
+  const monstersLabel = t.dex?.results?.monsters || (isZhTW ? '隻怪物' : 'monsters')
+  const emptyTitle = t.dex?.empty?.title || (isZhTW ? '找不到怪物' : 'No monsters found')
+  const emptyDescription = t.dex?.empty?.description || (isZhTW ? '請調整搜尋條件或篩選器以找到更多怪物。' : 'Try adjusting your search or filters to find more monsters.')
+
+  // Filter monsters based on search and filters (only when using initial data)
   const filteredMonsters = useMemo(() => {
     // If using hook data with filters, return as-is (already filtered by the API)
-    if (hookMonsters && hookMonsters.length > 0 && (selectedCategory !== 'all' || searchQuery)) {
+    if (hookMonsters && hookMonsters.length > 0 && (selectedCategory !== 'all' || selectedElement !== 'all' || selectedRace !== 'all' || searchQuery)) {
       return hookMonsters
     }
 
@@ -82,6 +92,16 @@ export function DexContent({
     // Filter by category
     if (selectedCategory !== 'all') {
       filtered = filtered.filter(monster => monster.category === selectedCategory)
+    }
+
+    // Filter by element
+    if (selectedElement !== 'all') {
+      filtered = filtered.filter(monster => monster.element === selectedElement)
+    }
+
+    // Filter by race
+    if (selectedRace !== 'all') {
+      filtered = filtered.filter(monster => monster.race === selectedRace)
     }
 
     // Filter by search query
@@ -96,12 +116,22 @@ export function DexContent({
     }
 
     return filtered
-  }, [monsters, hookMonsters, selectedCategory, searchQuery])
+  }, [monsters, hookMonsters, selectedCategory, selectedElement, selectedRace, searchQuery])
 
-  // Get unique categories from monsters
+  // Get unique filter values from monsters
   const categories = useMemo(() => {
     const uniqueCategories = new Set(monsters.map(monster => monster.category))
     return Array.from(uniqueCategories)
+  }, [monsters])
+
+  const elements = useMemo(() => {
+    const uniqueElements = new Set(monsters.map(monster => monster.element))
+    return Array.from(uniqueElements).filter(Boolean) // Remove any null/undefined values
+  }, [monsters])
+
+  const races = useMemo(() => {
+    const uniqueRaces = new Set(monsters.map(monster => monster.race))
+    return Array.from(uniqueRaces).filter(Boolean) // Remove any null/undefined values
   }, [monsters])
 
   // Show loading state when fetching data
@@ -131,9 +161,9 @@ export function DexContent({
     <div className="space-y-8">
       {/* Search and Filters */}
       <div className="minecraft-card p-6">
-        <div className="flex flex-col md:flex-row gap-4 items-end">
+        <div className="flex flex-col gap-4">
           {/* Search */}
-          <div className="flex-1">
+          <div className="w-full">
             <SearchInput
               placeholder={searchPlaceholder}
               value={searchQuery}
@@ -141,34 +171,69 @@ export function DexContent({
             />
           </div>
 
-          {/* Category Filter */}
-          <div className="md:w-48">
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="all">{allCategoriesLabel}</option>
-              {categories.map((category) => (
-                <option key={category} value={category}>
-                  {getCategoryLabel(category)}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Create Monster Button (Admin Only) */}
-          {permissions.canCreate && (
-            <div>
-              <Link
-                href="/dex/create"
-                className="inline-flex items-center px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors"
+          {/* Filters Row */}
+          <div className="flex flex-col md:flex-row gap-4 items-end">
+            {/* Category Filter */}
+            <div className="md:w-48">
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <Icon name="plus" className="w-4 h-4 mr-2" />
-                {createMonsterLabel}
-              </Link>
+                <option value="all">{allCategoriesLabel}</option>
+                {categories.map((category) => (
+                  <option key={category} value={category}>
+                    {getCategoryLabel(category)}
+                  </option>
+                ))}
+              </select>
             </div>
-          )}
+
+            {/* Element Filter */}
+            <div className="md:w-48">
+              <select
+                value={selectedElement}
+                onChange={(e) => setSelectedElement(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="all">{allElementsLabel}</option>
+                {elements.map((element) => (
+                  <option key={element} value={element}>
+                    {getElementLabel(element)}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Race Filter */}
+            <div className="md:w-48">
+              <select
+                value={selectedRace}
+                onChange={(e) => setSelectedRace(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="all">{allRacesLabel}</option>
+                {races.map((race) => (
+                  <option key={race} value={race}>
+                    {getRaceLabel(race)}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Create Monster Button (Admin Only) */}
+            {permissions.canCreate && (
+              <div>
+                <Link
+                  href="/dex/create"
+                  className="inline-flex items-center px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors"
+                >
+                  <Icon name="plus" className="w-4 h-4 mr-2" />
+                  {createMonsterLabel}
+                </Link>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Results Count */}
