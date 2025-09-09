@@ -166,7 +166,7 @@ export function MonsterDetail({ monster }: MonsterDetailProps) {
             
             {/* Description */}
             <div className="text-xl text-slate-600 leading-relaxed max-w-3xl mx-auto prose prose-slate prose-xl">
-              <div dangerouslySetInnerHTML={{ __html: monster.description }} />
+              <div dangerouslySetInnerHTML={{ __html: monster.description || '' }} />
             </div>
           </div>
         </div>
@@ -251,26 +251,24 @@ export function MonsterDetail({ monster }: MonsterDetailProps) {
 
                 {/* Spawning Information Section */}
                 <div className="border-t border-slate-200/50 pt-6">
-                  <h3 className="text-emerald-600 font-bold text-xl mb-6 flex items-center gap-2">
-                    <Icon name="globe" className="w-6 h-6" />
+                  <h3 className="text-emerald-600 font-bold text-xl mb-6">
                     {isZhTW ? '生成條件' : 'Spawning Conditions'}
                   </h3>
                   
                   <div className="space-y-6">
                     {/* Worlds */}
-                    {monster.spawning?.worlds && monster.spawning.worlds.length > 0 && (
+                    {monster.spawning?.worlds && (
                       <div>
-                        <h4 className="text-emerald-600 font-bold text-lg mb-3 flex items-center gap-2">
-                          <Icon name="globe" className="w-5 h-5" />
+                        <h4 className="text-emerald-600 font-bold text-lg mb-3">
                           {worldsLabel}
                         </h4>
                         <div className="flex flex-wrap gap-2">
-                          {monster.spawning.worlds.map((world) => (
-                            <span key={world} className="inline-flex items-center gap-2 px-3 py-2 bg-emerald-50/50 rounded-lg border border-emerald-200/50">
-                              <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                              <span className="font-medium text-emerald-800">{world}</span>
+                          <span className="inline-flex items-center gap-2 px-3 py-2 bg-emerald-50/50 rounded-lg border border-emerald-200/50">
+                            <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                            <span className="font-medium text-emerald-800">
+                              {t.dex.worlds[monster.spawning.worlds as keyof typeof t.dex.worlds] || monster.spawning.worlds}
                             </span>
-                          ))}
+                          </span>
                         </div>
                       </div>
                     )}
@@ -437,6 +435,9 @@ export function MonsterDetail({ monster }: MonsterDetailProps) {
                     <ModelViewer 
                       modelPath={monster.modelPath} 
                       className="w-full h-full"
+                      modelScale={monster.modelScale || 1.0}
+                      cameraPosition={monster.camera?.position || { x: 2, y: 2, z: 4 }}
+                      cameraLookAt={monster.camera?.lookAt || { x: 0, y: 0, z: 0 }}
                     />
                   </Suspense>
                 </div>

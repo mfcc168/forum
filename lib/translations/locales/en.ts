@@ -773,6 +773,21 @@ export const en = {
       legendary: 'Legendary'
     },
     
+    worlds: {
+      overworld: 'Overworld',
+      nether: 'Nether', 
+      end: 'End',
+      magic: 'Magic World',
+      heaven: 'Heaven',
+      dungeon: 'Dungeon'
+    },
+    
+    timeOfDay: {
+      day: 'Day',
+      night: 'Night',
+      any: 'Any Time'
+    },
+    
     detail: {
       combatStats: 'Combat Stats',
       health: 'Health',
@@ -812,6 +827,22 @@ export const en = {
         excerptPlaceholder: 'Brief description of the monster...',
         descriptionLabel: 'Description',
         descriptionPlaceholder: 'Describe the monster, its abilities, and characteristics...',
+        healthHelp: 'Monster health points',
+        damageHelp: 'Monster damage points',
+        xpDropHelp: 'Experience points dropped when killed',
+        biomesPlaceholder: 'plains, forest, desert...',
+        biomesHelp: 'Biomes where this monster spawns (comma separated)',
+        structuresPlaceholder: 'dungeon, stronghold, village...',
+        structuresHelp: 'Specific structures where this monster spawns (comma separated)',
+        lightLevelMinLabel: 'Light Level Min',
+        lightLevelMinHelp: 'Minimum light level (0-15)',
+        lightLevelMaxLabel: 'Light Level Max',
+        lightLevelMaxHelp: 'Maximum light level (0-15)',
+        timeOfDayLabel: 'Time of Day',
+        spawnRateLabel: 'Spawn Rate',
+        behaviorsLabel: 'Behaviors',
+        behaviorsPlaceholder: 'aggressive, territorial, flying...',
+        behaviorsHelp: 'Monster behaviors (comma separated)',
         tagsLabel: 'Tags',
         tagsPlaceholder: 'boss, fire, nether...',
         tagsHelp: 'Add relevant tags separated by commas',
@@ -831,6 +862,96 @@ export const en = {
         speedRequired: 'Speed is required',
         xpRequired: 'XP drop is required'
       }
+    },
+    
+    biomes: {
+      // Overworld Biomes
+      plains: 'Plains',
+      forest: 'Forest',
+      birch_forest: 'Birch Forest',
+      dark_forest: 'Dark Forest',
+      old_growth_birch_forest: 'Old Growth Birch Forest',
+      old_growth_pine_taiga: 'Old Growth Pine Taiga',
+      old_growth_spruce_taiga: 'Old Growth Spruce Taiga',
+      taiga: 'Taiga',
+      snowy_taiga: 'Snowy Taiga',
+      savanna: 'Savanna',
+      savanna_plateau: 'Savanna Plateau',
+      windswept_hills: 'Windswept Hills',
+      windswept_gravelly_hills: 'Windswept Gravelly Hills',
+      windswept_forest: 'Windswept Forest',
+      windswept_savanna: 'Windswept Savanna',
+      jungle: 'Jungle',
+      sparse_jungle: 'Sparse Jungle',
+      bamboo_jungle: 'Bamboo Jungle',
+      desert: 'Desert',
+      swamp: 'Swamp',
+      mangrove_swamp: 'Mangrove Swamp',
+      mushroom_fields: 'Mushroom Fields',
+      ice_spikes: 'Ice Spikes',
+      snowy_plains: 'Snowy Plains',
+      snowy_slopes: 'Snowy Slopes',
+      frozen_peaks: 'Frozen Peaks',
+      jagged_peaks: 'Jagged Peaks',
+      stony_peaks: 'Stony Peaks',
+      meadow: 'Meadow',
+      grove: 'Grove',
+      cherry_grove: 'Cherry Grove',
+      stony_shore: 'Stony Shore',
+      beach: 'Beach',
+      snowy_beach: 'Snowy Beach',
+      ocean: 'Ocean',
+      deep_ocean: 'Deep Ocean',
+      lukewarm_ocean: 'Lukewarm Ocean',
+      deep_lukewarm_ocean: 'Deep Lukewarm Ocean',
+      warm_ocean: 'Warm Ocean',
+      cold_ocean: 'Cold Ocean',
+      deep_cold_ocean: 'Deep Cold Ocean',
+      frozen_ocean: 'Frozen Ocean',
+      deep_frozen_ocean: 'Deep Frozen Ocean',
+      river: 'River',
+      frozen_river: 'Frozen River',
+      dripstone_caves: 'Dripstone Caves',
+      lush_caves: 'Lush Caves',
+      deep_dark: 'Deep Dark',
+      // Nether Biomes
+      nether_wastes: 'Nether Wastes',
+      soul_sand_valley: 'Soul Sand Valley',
+      crimson_forest: 'Crimson Forest',
+      warped_forest: 'Warped Forest',
+      basalt_deltas: 'Basalt Deltas',
+      // End Biomes
+      the_end: 'The End',
+      small_end_islands: 'Small End Islands',
+      end_midlands: 'End Midlands',
+      end_highlands: 'End Highlands',
+      end_barrens: 'End Barrens'
+    },
+    
+    structures: {
+      // Generated Structures
+      village: 'Village',
+      desert_pyramid: 'Desert Pyramid',
+      igloo: 'Igloo',
+      jungle_pyramid: 'Jungle Pyramid',
+      swamp_hut: 'Swamp Hut',
+      pillager_outpost: 'Pillager Outpost',
+      mansion: 'Woodland Mansion',
+      monument: 'Ocean Monument',
+      stronghold: 'Stronghold',
+      mineshaft: 'Mineshaft',
+      dungeon: 'Dungeon',
+      buried_treasure: 'Buried Treasure',
+      shipwreck: 'Shipwreck',
+      ocean_ruin: 'Ocean Ruin',
+      ruined_portal: 'Ruined Portal',
+      ancient_city: 'Ancient City',
+      trail_ruins: 'Trail Ruins',
+      // Nether Structures
+      nether_fortress: 'Nether Fortress',
+      bastion_remnant: 'Bastion Remnant',
+      // End Structures
+      end_city: 'End City'
     },
     
     actions: {

@@ -7,13 +7,15 @@ import { DexForm } from '@/app/components/dex/DexForm'
 import { useTranslation } from '@/lib/contexts/LanguageContext'
 import { useDexMonster } from '@/lib/hooks/useDex'
 import type { DexMonster } from '@/lib/types'
+import type { DexModelOption } from '@/lib/utils/dex-models'
 
 interface EditDexContentProps {
   initialMonster: DexMonster
+  initialModels: DexModelOption[]
   slug: string
 }
 
-export default function EditDexContent({ initialMonster, slug }: EditDexContentProps) {
+export default function EditDexContent({ initialMonster, initialModels, slug }: EditDexContentProps) {
   const router = useRouter()
   const { t } = useTranslation()
   
@@ -36,7 +38,8 @@ export default function EditDexContent({ initialMonster, slug }: EditDexContentP
           </div>
         </div>
 
-        <div className="minecraft-card">
+        {/* Header Section */}
+        <div className="minecraft-card mb-6">
           <div className="bg-gradient-to-r from-slate-50 to-gray-50 border-b px-8 py-6">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center">
@@ -48,17 +51,18 @@ export default function EditDexContent({ initialMonster, slug }: EditDexContentP
               </div>
             </div>
           </div>
-          
-          <div className="p-8">
-            <DexForm 
-              monster={currentMonster}
-              onSuccess={() => {
-                router.push('/dex')
-              }}
-              onCancel={() => router.push(`/dex/${slug}`)}
-            />
-          </div>
         </div>
+
+        {/* Form - No additional containers to interfere with sticky positioning */}
+        <DexForm 
+          monster={currentMonster}
+          initialModels={initialModels}
+          onSuccess={(monsterSlug: string) => {
+            // Redirect to the monster detail page with the (possibly new) slug
+            router.push(`/dex/${monsterSlug}`)
+          }}
+          onCancel={() => router.push(`/dex/${slug}`)}
+        />
       </div>
     </div>
   )

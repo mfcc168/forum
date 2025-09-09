@@ -8,6 +8,9 @@ import { dexHooks, type UseContentOptions, type UseInfiniteContentOptions } from
 import { useQuery } from '@tanstack/react-query'
 import type { DexCategory, DexStats, DexMonster } from '@/lib/types'
 
+// Re-export for use in config files
+export { dexHooks }
+
 // ============================================================================
 // DEX-SPECIFIC OPTIONS
 // ============================================================================
@@ -55,19 +58,8 @@ export function useDexMonster(slug: string, options: {
 // DEX CRUD OPERATIONS
 // ============================================================================
 
-/**
- * Create new dex monster
- */
-export function useCreateDexMonster() {
-  return dexHooks.useCreateContent()
-}
-
-/**
- * Update existing dex monster
- */
-export function useUpdateDexMonster() {
-  return dexHooks.useUpdateContent()
-}
+// Custom create and update hooks removed - now using generic content hooks
+// The enhanced ContentForm with nested field paths handles data transformation automatically
 
 /**
  * Delete dex monster

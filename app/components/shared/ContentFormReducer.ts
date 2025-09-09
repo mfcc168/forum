@@ -35,15 +35,53 @@ export function createInitialFormState<T extends ContentItem>(
   const formData: Record<string, unknown> = {}
   
   config.fields.forEach(field => {
-    // Prioritize initialData when provided, as it's often pre-processed/flattened
-    const value = initialData?.[field.name as keyof T] || item?.[field.name as keyof T]
+    let value: unknown
+    
+    // Handle nested field paths for extracting values from existing items
+    if (field.name.includes('.') && item) {
+      value = getNestedValue(item as Record<string, unknown>, field.name)
+    } else {
+      // Prioritize initialData when provided, as it's often pre-processed/flattened
+      value = initialData?.[field.name as keyof T] || item?.[field.name as keyof T]
+    }
     
     switch (field.type) {
       case 'tags':
         formData[field.name] = Array.isArray(value) ? value.join(', ') : value || ''
         break
+      case 'multiselect':
+        formData[field.name] = Array.isArray(value) ? value : []
+        break
       case 'select':
-        formData[field.name] = value || (field.options?.[0]?.value) || config.categoryConfig?.getDefault?.() || ''
+        // Handle different types of select fields
+        if (field.name === 'modelPath') {
+          // Model path should start empty to force user selection
+          formData[field.name] = value || ''
+        } else if (field.name === 'category' || field.name.includes('category')) {
+          // Category fields use config default
+          formData[field.name] = value || (field.options?.[0]?.value) || config.categoryConfig?.getDefault?.() || ''
+        } else if (field.required && field.options && field.options.length > 0) {
+          // Required select fields should default to first valid option
+          const firstValidOption = field.options.find(opt => opt.value && !opt.disabled)
+          formData[field.name] = value || firstValidOption?.value || ''
+        } else {
+          // Optional select fields can be empty
+          formData[field.name] = value || ''
+        }
+        break
+      case 'range':
+        // Range fields should use numeric values with defaults
+        if (typeof value === 'number') {
+          formData[field.name] = value
+        } else if (typeof value === 'string' && value !== '') {
+          const numValue = parseFloat(value)
+          formData[field.name] = isNaN(numValue) ? (field.defaultValue || 0) : numValue
+        } else {
+          formData[field.name] = field.defaultValue || 0
+        }
+        break
+      case 'model3dPreview':
+        // Preview fields are read-only, don't store data
         break
       default:
         formData[field.name] = value || ''
@@ -129,34 +167,124 @@ export function formReducer(state: FormState, action: FormAction): FormState {
   }
 }
 
+// Helper functions for nested object paths
+export function setNestedValue(obj: Record<string, unknown>, path: string, value: unknown): void {
+  const keys = path.split('.')
+  let current = obj
+  
+  for (let i = 0; i < keys.length - 1; i++) {
+    const key = keys[i]
+    if (!(key in current) || typeof current[key] !== 'object' || current[key] === null) {
+      current[key] = {}
+    }
+    current = current[key] as Record<string, unknown>
+  }
+  
+  current[keys[keys.length - 1]] = value
+}
+
+export function getNestedValue(obj: Record<string, unknown>, path: string): unknown {
+  const keys = path.split('.')
+  let current: unknown = obj
+  
+  for (const key of keys) {
+    if (current && typeof current === 'object' && key in (current as Record<string, unknown>)) {
+      current = (current as Record<string, unknown>)[key]
+    } else {
+      return undefined
+    }
+  }
+  
+  return current
+}
+
 // Helper functions for form validation and data transformation
 export function processFormData(formData: Record<string, unknown>, fields: ContentFormField[]): Record<string, unknown> {
   const processed: Record<string, unknown> = {}
   
   fields.forEach(field => {
     const value = formData[field.name]
+    let processedValue: unknown
     
     switch (field.type) {
       case 'tags':
         // Convert comma-separated string to array
         if (typeof value === 'string') {
-          processed[field.name] = value
+          processedValue = value
             .split(',')
             .map(tag => tag.trim())
             .filter(tag => tag.length > 0)
         } else {
-          processed[field.name] = []
+          processedValue = []
+        }
+        break
+      
+      case 'multiselect':
+        // Ensure array format
+        if (Array.isArray(value)) {
+          processedValue = value.filter(v => v && typeof v === 'string')
+        } else {
+          processedValue = []
         }
         break
       
       case 'wysiwyg':
       case 'textarea':
         // Ensure string content
-        processed[field.name] = typeof value === 'string' ? value.trim() : ''
+        processedValue = typeof value === 'string' ? value.trim() : ''
+        break
+      
+      case 'text':
+        // Handle numeric conversions for nested field paths and modelScale
+        if (field.name.match(/^(stats\.|spawning\.lightLevel\.|camera\.|modelScale$)/)) {
+          // Convert string numbers to actual numbers for stats, light levels, camera positions, and model scale
+          const stringValue = typeof value === 'string' ? value.trim() : String(value)
+          if (stringValue && !isNaN(Number(stringValue))) {
+            processedValue = Number(stringValue)
+          } else if (stringValue === '' || stringValue === undefined || stringValue === null) {
+            processedValue = undefined // Allow empty values for optional numeric fields
+          } else {
+            processedValue = value
+          }
+        } else {
+          processedValue = value
+        }
+        break
+      
+      case 'select':
+        // Handle empty strings for optional enum fields - convert to undefined
+        if (value === '' && !field.required) {
+          processedValue = undefined
+        } else {
+          processedValue = value
+        }
+        break
+      
+      case 'range':
+        // Range fields should use numeric values
+        if (typeof value === 'number') {
+          processedValue = value
+        } else if (typeof value === 'string' && value !== '') {
+          const numValue = parseFloat(value)
+          processedValue = isNaN(numValue) ? (field.defaultValue || 0) : numValue
+        } else {
+          processedValue = field.defaultValue || 0
+        }
+        
         break
       
       default:
-        processed[field.name] = value
+        processedValue = value
+    }
+    
+    // Handle nested field paths (e.g., 'stats.health' -> { stats: { health: value } })
+    if (field.name.includes('.')) {
+      // Skip undefined values for optional fields to avoid creating empty nested objects
+      if (processedValue !== undefined) {
+        setNestedValue(processed, field.name, processedValue)
+      }
+    } else {
+      processed[field.name] = processedValue
     }
   })
   

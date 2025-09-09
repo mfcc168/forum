@@ -786,6 +786,21 @@ export const zhTW = {
       legendary: '傳說'
     },
     
+    worlds: {
+      overworld: '主世界',
+      nether: '地獄',
+      end: '終界',
+      magic: '魔界',
+      heaven: '天界',
+      dungeon: '副本'
+    },
+    
+    timeOfDay: {
+      day: '白天',
+      night: '夜晚',
+      any: '任意時間'
+    },
+    
     detail: {
       combatStats: '戰鬥數據',
       health: '血量',
@@ -825,6 +840,22 @@ export const zhTW = {
         excerptPlaceholder: '怪物的簡短描述...',
         descriptionLabel: '描述',
         descriptionPlaceholder: '描述怪物的能力和特徵...',
+        healthHelp: '怪物血量',
+        damageHelp: '怪物傷害',
+        xpDropHelp: '被擊殺時掉落的經驗值',
+        biomesPlaceholder: '平原, 森林, 沙漠...',
+        biomesHelp: '怪物生成的生態系 (逗號分隔)',
+        structuresPlaceholder: '地牢, 要塞, 村莊...',
+        structuresHelp: '怪物生成的特定結構 (逗號分隔)',
+        lightLevelMinLabel: '最低光照等級',
+        lightLevelMinHelp: '最低光照等級 (0-15)',
+        lightLevelMaxLabel: '最高光照等級',
+        lightLevelMaxHelp: '最高光照等級 (0-15)',
+        timeOfDayLabel: '時間',
+        spawnRateLabel: '生成頻率',
+        behaviorsLabel: '行為',
+        behaviorsPlaceholder: '攻擊性, 領域性, 飛行...',
+        behaviorsHelp: '怪物行為 (逗號分隔)',
         tagsLabel: '標籤',
         tagsPlaceholder: '頭目, 火焰, 地獄...',
         tagsHelp: '用逗號分隔相關標籤',
@@ -844,6 +875,96 @@ export const zhTW = {
         speedRequired: '速度為必填',
         xpRequired: '經驗值為必填'
       }
+    },
+    
+    biomes: {
+      // Overworld Biomes 主世界生態系
+      plains: '平原',
+      forest: '森林',
+      birch_forest: '樺木森林',
+      dark_forest: '黑暗森林',
+      old_growth_birch_forest: '原始樺木森林',
+      old_growth_pine_taiga: '原始松木針葉林',
+      old_growth_spruce_taiga: '原始雲杉針葉林',
+      taiga: '針葉林',
+      snowy_taiga: '積雪針葉林',
+      savanna: '草原',
+      savanna_plateau: '草原高原',
+      windswept_hills: '風蝕丘陵',
+      windswept_gravelly_hills: '風蝕砂礫丘陵',
+      windswept_forest: '風蝕森林',
+      windswept_savanna: '風蝕草原',
+      jungle: '叢林',
+      sparse_jungle: '稀疏叢林',
+      bamboo_jungle: '竹林',
+      desert: '沙漠',
+      swamp: '沼澤',
+      mangrove_swamp: '紅樹林沼澤',
+      mushroom_fields: '蘑菇島',
+      ice_spikes: '冰刺平原',
+      snowy_plains: '積雪平原',
+      snowy_slopes: '積雪坡地',
+      frozen_peaks: '凍結山峰',
+      jagged_peaks: '尖峭山峰',
+      stony_peaks: '石質山峰',
+      meadow: '草甸',
+      grove: '雪林',
+      cherry_grove: '櫻花樹林',
+      stony_shore: '石岸',
+      beach: '海灘',
+      snowy_beach: '積雪海灘',
+      ocean: '海洋',
+      deep_ocean: '深海',
+      lukewarm_ocean: '溫水海洋',
+      deep_lukewarm_ocean: '溫水深海',
+      warm_ocean: '暖水海洋',
+      cold_ocean: '冷水海洋',
+      deep_cold_ocean: '冷水深海',
+      frozen_ocean: '凍海',
+      deep_frozen_ocean: '凍結深海',
+      river: '河流',
+      frozen_river: '凍河',
+      dripstone_caves: '鐘乳石洞',
+      lush_caves: '繁茂洞穴',
+      deep_dark: '深暗之域',
+      // Nether Biomes 地獄生態系
+      nether_wastes: '地獄荒地',
+      soul_sand_valley: '靈魂沙峽谷',
+      crimson_forest: '緋紅森林',
+      warped_forest: '詭異森林',
+      basalt_deltas: '玄武岩三角洲',
+      // End Biomes 終界生態系
+      the_end: '終界',
+      small_end_islands: '終界小島',
+      end_midlands: '終界中地',
+      end_highlands: '終界高地',
+      end_barrens: '終界荒地'
+    },
+    
+    structures: {
+      // Generated Structures 生成結構
+      village: '村莊',
+      desert_pyramid: '沙漠神殿',
+      igloo: '雪屋',
+      jungle_pyramid: '叢林神殿',
+      swamp_hut: '沼澤小屋',
+      pillager_outpost: '掠奪者前哨站',
+      mansion: '林地府邸',
+      monument: '海底神殿',
+      stronghold: '要塞',
+      mineshaft: '廢棄礦坑',
+      dungeon: '地牢',
+      buried_treasure: '埋藏的寶藏',
+      shipwreck: '沈船',
+      ocean_ruin: '海底遺跡',
+      ruined_portal: '廢棄傳送門',
+      ancient_city: '古代城市',
+      trail_ruins: '古徑廢墟',
+      // Nether Structures 地獄結構
+      nether_fortress: '地獄要塞',
+      bastion_remnant: '堡壘遺跡',
+      // End Structures 終界結構
+      end_city: '終界城'
     },
     
     actions: {

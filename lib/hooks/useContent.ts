@@ -358,30 +358,52 @@ export function useUpdateContent<T extends ContentType>(type: T) {
       })
       
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || `Failed to update ${CONTENT_NAMES[type]}`)
+        let errorMessage = `Failed to update ${CONTENT_NAMES[type]}`
+        try {
+          const errorData = await response.json()
+          errorMessage = errorData.error || errorMessage
+        } catch (jsonError) {
+          // If response is not JSON, use status text or generic message
+          errorMessage = response.statusText || errorMessage
+        }
+        throw new Error(errorMessage)
       }
       
-      const result = await response.json()
+      let result
+      try {
+        result = await response.json()
+      } catch (jsonError) {
+        throw new Error(`Server returned invalid response for ${CONTENT_NAMES[type]} update`)
+      }
+      
       if (!result.success) {
         throw new Error(result.error || `Failed to update ${CONTENT_NAMES[type]}`)
       }
       
-      // Extract the updated item from the nested response
-      // API responses are { blogPost: post }, { wikiGuide: guide }, { forumPost: post }, { dexMonster: monster }
+      // Extract the updated item from the nested response and preserve slug information
+      // API responses are { blogPost: post, slugChanged: boolean, newSlug?: string }
       const responseData = result.data as Record<string, unknown>
+      let updatedItem: ContentTypeMap[T]
+      
       if (type === 'blog' && 'blogPost' in responseData) {
-        return responseData.blogPost as ContentTypeMap[T]
+        updatedItem = responseData.blogPost as ContentTypeMap[T]
       } else if (type === 'wiki' && 'wikiGuide' in responseData) {
-        return responseData.wikiGuide as ContentTypeMap[T]
+        updatedItem = responseData.wikiGuide as ContentTypeMap[T]
       } else if (type === 'forum' && 'forumPost' in responseData) {
-        return responseData.forumPost as ContentTypeMap[T]
+        updatedItem = responseData.forumPost as ContentTypeMap[T]
       } else if (type === 'dex' && 'dexMonster' in responseData) {
-        return responseData.dexMonster as ContentTypeMap[T]
+        updatedItem = responseData.dexMonster as ContentTypeMap[T]
+      } else {
+        // Fallback for unexpected response structure
+        updatedItem = responseData as unknown as ContentTypeMap[T]
       }
       
-      // Fallback for unexpected response structure
-      return responseData as unknown as ContentTypeMap[T]
+      // Preserve slug information for URL redirection
+      if ('newSlug' in responseData && responseData.newSlug) {
+        (updatedItem as unknown as Record<string, unknown>).slug = responseData.newSlug
+      }
+      
+      return updatedItem
     },
     onSuccess: (data, { slug }) => {
       // Update specific item cache

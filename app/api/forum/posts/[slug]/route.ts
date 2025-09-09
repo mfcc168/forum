@@ -13,6 +13,7 @@ import {
 } from '@/lib/schemas/forum'
 import { revalidateTag } from 'next/cache'
 import { generateForumMetaDescription } from '@/lib/utils/meta'
+import { generateSlug, generateSlugWithCounter } from '@/lib/utils/slug'
 
 export const runtime = 'nodejs'
 
@@ -79,9 +80,24 @@ export const PUT = withDALAndValidation(
       return ApiResponse.error('You can only edit your own posts', 403)
     }
 
+    // Generate new slug if title changed
+    let newSlug = slug
+    if (validatedData.title && validatedData.title.trim() !== currentPost.title) {
+      const baseSlug = generateSlug(validatedData.title.trim())
+      newSlug = baseSlug
+      let counter = 1
+      
+      // Ensure slug uniqueness by checking existing posts (but skip the current one)
+      while (await dal.forum.findOne({ slug: newSlug, id: { $ne: currentPost.id } })) {
+        newSlug = generateSlugWithCounter(baseSlug, counter)
+        counter++
+      }
+    }
+
     // Update the post using DAL
     const updateData = {
       title: validatedData.title?.trim(),
+      slug: newSlug !== slug ? newSlug : undefined,
       content: validatedData.content?.trim(),
       metaDescription: validatedData.content ? generateForumMetaDescription(validatedData.content.trim()) : undefined,
       tags: validatedData.tags || []
@@ -97,19 +113,24 @@ export const PUT = withDALAndValidation(
 
     await dal.forum.updatePost(slug, cleanUpdateData)
 
-    // Get the updated post with stats
-    const updatedPost = await dal.forum.getPostBySlug(slug, user.id)
+    // Get the updated post using the new slug
+    const updatedPost = await dal.forum.getPostBySlug(newSlug, user.id)
 
     if (!updatedPost) {
       return ApiResponse.error('Post not found after update', 404)
     }
 
-    // Revalidate the cache for this specific forum post and its replies
-    revalidateTag(`forum-post-${updatedPost.slug}`)
+    // Revalidate the cache for both old and new slugs
+    revalidateTag(`forum-post-${slug}`)
+    if (newSlug !== slug) {
+      revalidateTag(`forum-post-${newSlug}`)
+    }
     revalidateTag(`forum-replies-${updatedPost.id}`)
 
     return ApiResponse.success({
-      forumPost: updatedPost
+      forumPost: updatedPost,
+      slugChanged: newSlug !== slug,
+      newSlug: newSlug !== slug ? newSlug : undefined
     }, 'Post updated successfully')
   },
   {

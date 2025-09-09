@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getServerUser } from '@/lib/auth/server';
 import { PermissionChecker } from '@/lib/utils/permissions';
+import { getDexModelsServerSide } from '@/lib/utils/dex-models';
 import CreateDexContent from '@/app/dex/create/CreateDexContent';
 
 export default async function CreateDexPage() {
@@ -16,5 +17,8 @@ export default async function CreateDexPage() {
     redirect('/dex');
   }
 
-  return <CreateDexContent />;
+  // Fetch models server-side for SSR consistency
+  const models = await getDexModelsServerSide();
+
+  return <CreateDexContent initialModels={models} />;
 }

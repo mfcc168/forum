@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server'
 import { withDALAndValidation } from '@/lib/database/middleware'
-import { dexFiltersSchema, createMonsterSchema } from '@/lib/schemas/dex'
+import { dexFiltersSchema, flatDexFormSchema } from '@/lib/schemas/dex'
 import { ApiResponse } from '@/lib/utils/validation'
 import { z } from 'zod'
 import type { ServerUser, PermissionUser } from '@/lib/types'
@@ -40,7 +40,7 @@ export const GET = withDALAndValidation(
 export const POST = withDALAndValidation(
   async (request: NextRequest, { user, validatedData, dal }: {
     user?: ServerUser;
-    validatedData: z.infer<typeof createMonsterSchema>;
+    validatedData: z.infer<typeof flatDexFormSchema>;
     dal: typeof DAL;
   }) => {
     if (!user) {
@@ -53,22 +53,45 @@ export const POST = withDALAndValidation(
       return ApiResponse.error('You do not have permission to create monsters', 403)
     }
 
+    // Camera data structure is now working correctly
+    
+    // Transform flat form data to nested structure
     const monsterData = {
       name: validatedData.name,
       description: validatedData.description,
       ...(validatedData.excerpt && { excerpt: validatedData.excerpt }),
       category: validatedData.category,
+      element: validatedData.element,
+      race: validatedData.race,
       modelPath: validatedData.modelPath,
+      ...(validatedData.modelScale && { modelScale: validatedData.modelScale }),
       ...(validatedData.behaviors && { behaviors: validatedData.behaviors }),
-      ...(validatedData.drops && { drops: validatedData.drops }),
-      spawning: validatedData.spawning,
       ...(validatedData.tags && { tags: validatedData.tags }),
       ...(validatedData.status && { status: validatedData.status }),
+      // Transform nested spawning data from form
+      spawning: {
+        worlds: validatedData.spawning.worlds,
+        biomes: validatedData.spawning.biomes,
+        structures: validatedData.spawning.structures,
+        ...(validatedData.spawning.timeOfDay && { timeOfDay: validatedData.spawning.timeOfDay }),
+        spawnRate: validatedData.spawning.spawnRate,
+        ...(validatedData.spawning.lightLevelMin !== undefined || validatedData.spawning.lightLevelMax !== undefined) && {
+          lightLevel: {
+            ...(validatedData.spawning.lightLevelMin !== undefined && { min: parseInt(validatedData.spawning.lightLevelMin) }),
+            ...(validatedData.spawning.lightLevelMax !== undefined && { max: parseInt(validatedData.spawning.lightLevelMax) })
+          }
+        }
+      },
+      // Transform nested stats data from form (already numbers from validation)
       stats: {
         health: validatedData.stats.health,
         damage: validatedData.stats.damage,
         xpDrop: validatedData.stats.xpDrop
       },
+      // Transform nested camera data from form (already nested)
+      ...(validatedData.camera && {
+        camera: validatedData.camera
+      }),
       author: {
         id: user.id,
         name: user.name || 'Admin',
@@ -89,7 +112,7 @@ export const POST = withDALAndValidation(
     }, 'Monster created successfully')
   },
   {
-    schema: createMonsterSchema,
+    schema: flatDexFormSchema,
     auth: 'required',
     rateLimit: { requests: 5, window: '1m' }
   }

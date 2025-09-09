@@ -89,7 +89,7 @@ export function DexContent({
       const query = searchQuery.toLowerCase()
       filtered = filtered.filter(monster => 
         monster.name.toLowerCase().includes(query) ||
-        monster.description.toLowerCase().includes(query) ||
+        (monster.description && monster.description.toLowerCase().includes(query)) ||
         monster.behaviors.some(behavior => behavior.toLowerCase().includes(query)) ||
         monster.tags.some(tag => tag.toLowerCase().includes(query))
       )
@@ -306,6 +306,9 @@ function MonsterCard({ monster }: MonsterCardProps) {
           <LazyModelViewer 
             modelPath={monster.modelPath} 
             className="w-full h-full"
+            modelScale={monster.modelScale || 40} // Smaller scale for card view
+            cameraPosition={monster.camera?.position || { x: 2, y: 2, z: 4 }}
+            cameraLookAt={monster.camera?.lookAt || { x: 0, y: 0, z: 0 }}
           />
           
           {/* Category badge - improved positioning and styling */}
@@ -353,21 +356,14 @@ function MonsterCard({ monster }: MonsterCardProps) {
 
 
           {/* Spawning Info Preview */}
-          {monster.spawning.worlds.length > 0 && (
+          {monster.spawning?.worlds && (
             <div className="mt-4 flex flex-wrap gap-2">
-              {monster.spawning.worlds.slice(0, 2).map((world) => (
-                <span key={world} className="inline-flex items-center px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-lg text-xs font-medium border border-emerald-200/60">
-                  <svg className="w-3 h-3 mr-1.5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-                  </svg>
-                  {world}
-                </span>
-              ))}
-              {monster.spawning.worlds.length > 2 && (
-                <span className="inline-flex items-center px-2.5 py-1 bg-slate-100 text-slate-600 rounded-lg text-xs font-medium border border-slate-200/60">
-                  +{monster.spawning.worlds.length - 2}
-                </span>
-              )}
+              <span className="inline-flex items-center px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-lg text-xs font-medium border border-emerald-200/60">
+                <svg className="w-3 h-3 mr-1.5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                </svg>
+                {t.dex.worlds[monster.spawning.worlds as keyof typeof t.dex.worlds] || monster.spawning.worlds}
+              </span>
             </div>
           )}
         </div>

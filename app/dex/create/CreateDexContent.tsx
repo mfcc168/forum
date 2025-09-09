@@ -5,8 +5,13 @@ import Link from 'next/link'
 import { Icon } from '@/app/components/ui/Icon'
 import { DexForm } from '@/app/components/dex/DexForm'
 import { useTranslation } from '@/lib/contexts/LanguageContext'
+import type { DexModelOption } from '@/lib/utils/dex-models'
 
-export default function CreateDexContent() {
+interface CreateDexContentProps {
+  initialModels: DexModelOption[]
+}
+
+export default function CreateDexContent({ initialModels }: CreateDexContentProps) {
   const router = useRouter()
   const { t } = useTranslation()
 
@@ -26,7 +31,8 @@ export default function CreateDexContent() {
           </div>
         </div>
 
-        <div className="minecraft-card">
+        {/* Header Section */}
+        <div className="minecraft-card mb-6">
           <div className="bg-gradient-to-r from-slate-50 to-gray-50 border-b px-8 py-6">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center">
@@ -42,19 +48,19 @@ export default function CreateDexContent() {
               </div>
             </div>
           </div>
-          
-          <div className="p-8">
-            <DexForm 
-              onSuccess={(monsterSlug: string) => {
-                // Redirect to the newly created monster's detail page
-                router.push(`/dex/${monsterSlug}`)
-              }}
-              onCancel={() => {
-                router.push('/dex')
-              }}
-            />
-          </div>
         </div>
+
+        {/* Form - No additional containers to interfere with sticky positioning */}
+        <DexForm 
+          initialModels={initialModels}
+          onSuccess={(monsterSlug: string) => {
+            // Redirect to the newly created monster's detail page
+            router.push(`/dex/${monsterSlug}`)
+          }}
+          onCancel={() => {
+            router.push('/dex')
+          }}
+        />
       </div>
     </div>
   )

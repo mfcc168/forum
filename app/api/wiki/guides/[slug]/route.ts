@@ -13,6 +13,7 @@ import {
   type WikiSlugData
 } from '@/lib/schemas/wiki'
 import { generateWikiMetaDescription } from '@/lib/utils/meta'
+import { generateSlug, generateSlugWithCounter } from '@/lib/utils/slug'
 
 export const runtime = 'nodejs'
 
@@ -76,14 +77,30 @@ export const PUT = withDALAndValidation(
       return ApiResponse.error('Only admins can edit wiki guides', 403)
     }
     
+    // Generate new slug if title changed
+    let newSlug = slug
+    if (validatedData.title && validatedData.title !== currentGuide.title) {
+      const baseSlug = generateSlug(validatedData.title)
+      newSlug = baseSlug
+      let counter = 1
+      
+      // Ensure slug uniqueness by checking existing guides (but skip the current one)
+      while (await dal.wiki.findOne({ slug: newSlug, id: { $ne: currentGuide.id } })) {
+        newSlug = generateSlugWithCounter(baseSlug, counter)
+        counter++
+      }
+    }
+    
     // Extended interface to include metaDescription for proper type safety
     interface ExtendedUpdateData extends UpdateWikiGuideData {
       metaDescription?: string
+      slug?: string
     }
 
     // Prepare update data with proper typing
     const updateData: Partial<ExtendedUpdateData> = {}
     if (validatedData.title !== undefined) updateData.title = validatedData.title
+    if (newSlug !== slug) updateData.slug = newSlug
     if (validatedData.content !== undefined) updateData.content = validatedData.content
     if (validatedData.excerpt !== undefined) updateData.excerpt = validatedData.excerpt
     if (validatedData.category !== undefined) updateData.category = validatedData.category
@@ -106,17 +123,24 @@ export const PUT = withDALAndValidation(
       return ApiResponse.error('Guide not found', 404)
     }
     
-    // Revalidate the cache for this specific wiki guide
+    // Revalidate the cache for both old and new slugs
     revalidateTag(`wiki-guide-${slug}`)
+    if (newSlug !== slug) {
+      revalidateTag(`wiki-guide-${newSlug}`)
+    }
     revalidateTag('wiki-guides')
     revalidateTag('wiki-stats')
     revalidateTag('wiki-categories')
     
-    // Get the updated guide for consistent response format (include all statuses for admin)
-    const updatedGuide = await dal.wiki.getGuideBySlug(slug, user.id, true)
+    // Get the updated guide using the new slug
+    const updatedGuide = await dal.wiki.getGuideBySlug(newSlug, user.id, true)
     
     return ApiResponse.success(
-      { wikiGuide: updatedGuide },
+      { 
+        wikiGuide: updatedGuide,
+        slugChanged: newSlug !== slug,
+        newSlug: newSlug !== slug ? newSlug : undefined
+      },
       'Guide updated successfully'
     )
   },

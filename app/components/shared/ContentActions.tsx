@@ -129,7 +129,11 @@ export const ContentActions = memo(function ContentActions({
       if (onDelete) {
         onDelete()
       } else {
-        const backPath = config.contentType === 'blog' ? '/blog' : '/forum'
+        // Redirect to appropriate module index page
+        const backPath = config.contentType === 'blog' ? '/blog' 
+                        : config.contentType === 'wiki' ? '/wiki'
+                        : config.contentType === 'dex' ? '/dex'
+                        : '/forum'
         router.push(backPath)
       }
     } catch (error) {

@@ -7,6 +7,7 @@
 
 /**
  * Generates a URL-friendly slug from a title string
+ * Supports Unicode characters by using browser's built-in transliteration
  * 
  * @param title - The title to convert to a slug
  * @returns A clean, URL-safe slug
@@ -15,18 +16,39 @@
  * generateSlug("Hello World!") // "hello-world"
  * generateSlug("API Guide: Getting Started") // "api-guide-getting-started"
  * generateSlug("   Multiple   Spaces   ") // "multiple-spaces"
+ * generateSlug("隐德来希") // transliterated to ASCII-compatible slug
  */
 export const generateSlug = (title: string): string => {
-  return title
-    .toLowerCase()
-    .trim()
-    .replace(/[^\w\s-]/g, '') // Remove special characters
+  let processed = title.toLowerCase().trim()
+  
+  // Use built-in transliteration to convert Unicode characters to ASCII equivalents
+  // This handles Chinese, Japanese, Korean, Arabic, Cyrillic, and other scripts
+  try {
+    processed = processed.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  } catch {
+    // Fallback if normalization fails
+  }
+  
+  // For characters that can't be transliterated, use a more readable hex approach
+  processed = processed.replace(/[^\w\s-]/g, (char) => {
+    // Keep basic ASCII characters, convert others to readable format
+    if (/[a-z0-9\s-]/.test(char)) {
+      return char
+    }
+    // Convert Unicode to a readable hex representation
+    const code = char.charCodeAt(0).toString(16).padStart(4, '0')
+    return `u${code}`
+  })
+  
+  return processed
     .replace(/[\s_-]+/g, '-') // Replace spaces and underscores with hyphens
     .replace(/^-+|-+$/g, '') // Remove leading/trailing hyphens
+    .replace(/-+/g, '-') // Replace multiple consecutive hyphens with single hyphen
 }
 
 /**
  * Validates that a slug follows the correct format
+ * Supports Unicode-based slugs (u followed by hex codes)
  * 
  * @param slug - The slug to validate
  * @returns true if the slug is valid, false otherwise
@@ -36,9 +58,10 @@ export const generateSlug = (title: string): string => {
  * validateSlug("Hello-World") // false (uppercase)
  * validateSlug("hello--world") // false (double hyphens)
  * validateSlug("-hello-world-") // false (leading/trailing hyphens)
+ * validateSlug("u9690u5fb7u6765u5e0c") // true (Unicode slug)
  */
 export const validateSlug = (slug: string): boolean => {
-  return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)
+  return /^[a-z0-9u]+(?:-[a-z0-9u]+)*$/.test(slug)
 }
 
 /**

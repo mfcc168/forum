@@ -14,18 +14,23 @@ import type { Entity, UserRef, ContentStats, ContentInteractionState } from './b
 export interface DexMonster extends Entity {
   name: string                      // Monster name
   slug: string                      // URL-safe identifier 
-  description: string              // Monster description
+  description?: string              // Made optional
   excerpt: string                  // Short description for lists
   category: string                 // Monster category (e.g., 'hostile', 'passive', 'neutral')
   element: string                  // Monster element (e.g., 'fire', 'water', 'earth', 'air', 'dark', 'light')
   race: string                     // Monster race (e.g., 'undead', 'beast', 'dragon', 'humanoid')
   modelPath: string                // Path to GLTF model file
+  modelScale?: number              // Custom model scale multiplier
+  camera?: {                       // Custom camera positioning
+    position?: { x: number; y: number; z: number }
+    lookAt?: { x: number; y: number; z: number }
+  }
   author: UserRef                  // Creator/contributor
   stats: MonsterStats              // Monster-specific stats
   interactions?: ContentInteractionState  // User interaction state (optional for lists)
   behaviors: string[]              // Monster behaviors
   drops: MonsterDrop[]             // Items this monster drops
-  spawning: SpawningInfo           // Where/when the monster spawns  
+  spawning: SpawningInfo           // Required again since worlds is required 
   tags: string[]                   // Searchable tags
   status: 'draft' | 'published' | 'archived'
   isDeleted: boolean
@@ -46,15 +51,15 @@ export interface MonsterDrop {
 }
 
 export interface SpawningInfo {
-  worlds: string[]                 // Which worlds it spawns in (overworld, nether, end, etc.)
-  biomes: string[]                 // Where it spawns
-  structures: string[]             // Specific structures where it spawns
-  lightLevel: {
-    min: number
-    max: number
+  worlds: 'overworld' | 'nether' | 'end' | 'magic' | 'heaven' | 'dungeon' // Required select
+  biomes?: string[]                 // Made optional
+  structures?: string[]             // Already optional
+  lightLevel?: {                    // Made optional
+    min?: number                    // Made optional
+    max?: number                    // Made optional
   }
-  timeOfDay: 'day' | 'night' | 'any'
-  spawnRate: 'common' | 'uncommon' | 'rare' | 'legendary'
+  timeOfDay?: 'day' | 'night' | 'any' // Made optional
+  spawnRate: 'common' | 'uncommon' | 'rare' | 'legendary' // Keep required
 }
 
 // ============================================================================

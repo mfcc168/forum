@@ -26,13 +26,20 @@ import type {
 // Create monster data interface - matches the createMonsterSchema exactly
 interface CreateMonsterData {
   name: string
-  description: string
+  description?: string // Made optional
   excerpt?: string // Optional in schema
   category: string
+  element: string // Required field
+  race: string // Required field
   modelPath: string
+  modelScale?: number // 3D model scale
+  camera?: {
+    position?: { x?: number; y?: number; z?: number }
+    lookAt?: { x?: number; y?: number; z?: number }
+  }
   behaviors?: string[] // Default in schema
   drops?: MonsterDrop[] // Default in schema
-  spawning: SpawningInfo
+  spawning: SpawningInfo // Required again since worlds is required
   tags?: string[] // Default in schema
   status?: 'draft' | 'published' | 'archived' // Default in schema
   stats: {
@@ -271,6 +278,8 @@ export class DexDAL extends BaseDAL<DexMonster> {
    */
   async createMonster(monsterData: CreateMonsterData): Promise<string> {
     try {
+      // Camera data structure is now working correctly
+      
       // Generate unique slug from title
       const baseSlug = generateSlug(monsterData.name)
       let uniqueSlug = baseSlug
@@ -292,10 +301,26 @@ export class DexDAL extends BaseDAL<DexMonster> {
         id: monsterId.toString(),
         slug: uniqueSlug, // Use the unique slug
         // Ensure required fields have defaults
+        description: monsterData.description, // Keep as optional
         excerpt: monsterData.excerpt || plainText.substring(0, 200),
         tags: monsterData.tags || [],
         behaviors: monsterData.behaviors || [],
         drops: monsterData.drops || [],
+        spawning: monsterData.spawning, // Required again
+        // 3D model settings with defaults
+        modelScale: monsterData.modelScale || 50,
+        camera: {
+          position: {
+            x: monsterData.camera?.position?.x || 2,
+            y: monsterData.camera?.position?.y || 2,
+            z: monsterData.camera?.position?.z || 4
+          },
+          lookAt: {
+            x: monsterData.camera?.lookAt?.x || 0,
+            y: monsterData.camera?.lookAt?.y || 0,
+            z: monsterData.camera?.lookAt?.z || 0
+          }
+        },
         // Initialize embedded stats (consistent with wiki/blog/forum)
         stats: {
           ...monsterData.stats,
@@ -336,9 +361,11 @@ export class DexDAL extends BaseDAL<DexMonster> {
    */
   async updateMonster(
     slug: string, 
-    updateData: Partial<Pick<DexMonster, 'name' | 'description' | 'excerpt' | 'category' | 'behaviors' | 'drops' | 'spawning' | 'tags' | 'status'>>,
+    updateData: Record<string, unknown>,
     userId: string
   ): Promise<boolean> {
+    // Camera data structure is now working correctly
+    
     const updateDoc: Record<string, unknown> = {
       ...updateData,
       updatedAt: new Date().toISOString()

@@ -1,29 +1,71 @@
 'use client'
 
-import React, { useRef, useEffect, useState } from 'react'
+import React, { useRef, useEffect, useState, useCallback } from 'react'
+import type * as THREE from 'three'
+import type { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 
 interface ModelViewerProps {
   modelPath: string
   className?: string
+  modelScale?: number
+  cameraPosition?: { x: number; y: number; z: number }
+  cameraLookAt?: { x: number; y: number; z: number }
+  editMode?: boolean
+  onValuesChange?: (values: {
+    modelScale: number
+    cameraPosition: { x: number; y: number; z: number }
+    cameraLookAt: { x: number; y: number; z: number }
+  }) => void
 }
 
-export function ModelViewer({ modelPath, className = '' }: ModelViewerProps) {
+export function ModelViewer({ 
+  modelPath, 
+  className = '', 
+  modelScale = 1.0,
+  cameraPosition = { x: 2, y: 2, z: 4 },
+  cameraLookAt = { x: 0, y: 0, z: 0 },
+  editMode = false,
+  onValuesChange
+}: ModelViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [mounted, setMounted] = useState(false)
+  
+  // Interactive editing state
+  const [currentScale, setCurrentScale] = useState(modelScale)
+  const [currentCameraPos, setCurrentCameraPos] = useState(cameraPosition)
+  const [currentCameraLookAt, setCurrentCameraLookAt] = useState(cameraLookAt)
+  
+  // Track if we're updating from user interaction to prevent prop sync loops
+  const isUserInteracting = useRef(false)
+  
+  // Refs for Three.js objects (needed for interactive editing)
+  const sceneRef = useRef<THREE.Scene | null>(null)
+  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null)
+  const modelRef = useRef<THREE.Group | null>(null)
+  const controlsRef = useRef<OrbitControls | null>(null)
 
   useEffect(() => {
     setMounted(true)
     return () => setMounted(false)
   }, [])
 
+  // Only sync props to internal state when not during user interaction
+  useEffect(() => {
+    if (!isUserInteracting.current) {
+      setCurrentScale(modelScale)
+      setCurrentCameraPos(cameraPosition)
+      setCurrentCameraLookAt(cameraLookAt)
+    }
+  }, [modelScale, cameraPosition, cameraLookAt])
+
   useEffect(() => {
     if (!mounted || !containerRef.current) return
 
     let animationId: number | null = null
-    let mixer: any = null
-    let clock: any = null
+    let mixer: THREE.AnimationMixer | null = null
+    let clock: THREE.Clock | null = null
 
     const initThreeJS = async () => {
       try {
@@ -32,24 +74,29 @@ export function ModelViewer({ modelPath, className = '' }: ModelViewerProps) {
         const { GLTFLoader } = await import('three/examples/jsm/loaders/GLTFLoader.js')
         const { OrbitControls } = await import('three/examples/jsm/controls/OrbitControls.js')
 
-        const container = containerRef.current!
+        const container = containerRef.current
+        if (!container) return
         
         // Create scene with transparent background
         const scene = new THREE.Scene()
         scene.background = null // Transparent background
+        sceneRef.current = scene
         
-        // Create camera
+        // Create camera with safe container dimensions
+        const containerWidth = container.clientWidth || 300
+        const containerHeight = container.clientHeight || 300
         const camera = new THREE.PerspectiveCamera(
           75, 
-          container.clientWidth / container.clientHeight, 
+          containerWidth / containerHeight, 
           0.1, 
           1000
         )
-        camera.position.set(2, 2, 4)
+        camera.position.set(currentCameraPos.x, currentCameraPos.y, currentCameraPos.z)
+        cameraRef.current = camera
         
-        // Create renderer
+        // Create renderer with safe dimensions
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
-        renderer.setSize(container.clientWidth, container.clientHeight)
+        renderer.setSize(containerWidth, containerHeight)
         renderer.setPixelRatio(window.devicePixelRatio)
         renderer.shadowMap.enabled = true
         renderer.shadowMap.type = THREE.PCFSoftShadowMap
@@ -74,12 +121,70 @@ export function ModelViewer({ modelPath, className = '' }: ModelViewerProps) {
         controls.enableDamping = true
         controls.dampingFactor = 0.05
         controls.autoRotate = false
+        controlsRef.current = controls
+        
+        // In edit mode, enable more controls and add event listeners
+        if (editMode) {
+          controls.enableZoom = true
+          controls.enableRotate = true
+          controls.enablePan = true
+          
+          // Listen to camera changes and update state with throttling
+          let updateTimeout: NodeJS.Timeout | null = null
+          
+          // Track when user starts interacting with camera
+          const handleInteractionStart = () => {
+            isUserInteracting.current = true
+          }
+          
+          const handleInteractionEnd = () => {
+            setTimeout(() => {
+              isUserInteracting.current = false
+            }, 500) // Keep interaction flag for a bit after user stops
+          }
+          
+          // Add interaction tracking
+          controls.addEventListener('start', handleInteractionStart)
+          controls.addEventListener('end', handleInteractionEnd)
+          
+          controls.addEventListener('change', () => {
+            if (updateTimeout === null) {
+              updateTimeout = setTimeout(() => {
+                const newCameraPos = {
+                  x: Math.round(camera.position.x * 100) / 100,
+                  y: Math.round(camera.position.y * 100) / 100,
+                  z: Math.round(camera.position.z * 100) / 100
+                }
+                const newLookAt = {
+                  x: Math.round(controls.target.x * 100) / 100,
+                  y: Math.round(controls.target.y * 100) / 100,
+                  z: Math.round(controls.target.z * 100) / 100
+                }
+                setCurrentCameraPos(newCameraPos)
+                setCurrentCameraLookAt(newLookAt)
+                
+                // Update parent form after state update
+                setTimeout(() => {
+                  if (editMode && onValuesChange) {
+                    onValuesChange({
+                      modelScale: currentScale,
+                      cameraPosition: newCameraPos,
+                      cameraLookAt: newLookAt
+                    })
+                  }
+                }, 0)
+                
+                updateTimeout = null
+              }, 100) // Throttle updates to every 100ms
+            }
+          })
+        }
 
         // Animation loop
         const animate = () => {
           animationId = requestAnimationFrame(animate)
           
-          if (mixer) {
+          if (mixer && clock) {
             mixer.update(clock.getDelta())
           }
           
@@ -93,60 +198,56 @@ export function ModelViewer({ modelPath, className = '' }: ModelViewerProps) {
         const loader = new GLTFLoader()
         loader.load(
           modelPath,
-          (gltf: any) => {
+          (gltf) => {
             if (!mounted) return
             
             const model = gltf.scene
             
             // Remove any problematic materials/objects
-            model.traverse((child: any) => {
-              if (child.isMesh) {
+            model.traverse((child: THREE.Object3D) => {
+              if ((child as THREE.Mesh).isMesh) {
+                const mesh = child as THREE.Mesh
                 // Make sure materials are visible
-                if (child.material) {
-                  child.material.transparent = false
-                  child.material.opacity = 1.0
+                if (mesh.material) {
+                  const material = mesh.material as THREE.MeshStandardMaterial
+                  material.transparent = false
+                  material.opacity = 1.0
                 }
               }
             })
             
             scene.add(model)
+            modelRef.current = model
             
-            // Center and scale the model properly
+            // Calculate model dimensions for centering
             const box = new THREE.Box3().setFromObject(model)
             const center = box.getCenter(new THREE.Vector3())
             const size = box.getSize(new THREE.Vector3())
             
-            // Use different scales based on context - smaller for list cards, larger for detail page
-            const isInCard = container.clientHeight < 500 // Detect if this is in a card (smaller height)
-            const fixedScale = isInCard ? 40 : 50 // 20% smaller for cards (40 vs 50)
-            
-            
-            model.scale.setScalar(fixedScale)
+            // Use current scale (which can be changed interactively)
+            model.scale.setScalar(currentScale)
             
             // Center the model properly
-            const scaledCenter = center.clone().multiplyScalar(fixedScale)
-            model.position.sub(scaledCenter)
+            model.position.sub(center)
             
-            // Position model lower in the frame so we can see the full model
-            model.position.set(0, -50, 0) // Move model down by 50 units
+            // Set initial camera position and look-at target
+            camera.position.set(currentCameraPos.x, currentCameraPos.y, currentCameraPos.z)
+            camera.lookAt(currentCameraLookAt.x, currentCameraLookAt.y, currentCameraLookAt.z)
+            controls.target.set(currentCameraLookAt.x, currentCameraLookAt.y, currentCameraLookAt.z)
+            controls.update()
+            
+            // Simple model positioning
+            model.position.y = -size.y * 0.1 // Slightly lower so we can see the full model
             
             // Rotate model to face front (camera)
             model.rotation.y = Math.PI // 180 degrees rotation to face front
-            
-            // Use fixed close camera position
-            const cameraDistance = 100 // Fixed distance
-            
-            
-            // Position camera to look at the lowered model
-            camera.position.set(50, 10, cameraDistance) // Lower camera Y position
-            camera.lookAt(0, -50, 0) // Look at where the model is positioned
             
             // Set up animations (always play "idle" if available)
             if (gltf.animations && gltf.animations.length > 0) {
               mixer = new THREE.AnimationMixer(model)
               
               // Look for idle animation or play the first available
-              const idleAnim = gltf.animations.find((anim: any) => 
+              const idleAnim = gltf.animations.find((anim) => 
                 anim.name.toLowerCase().includes('idle')
               ) || gltf.animations[0]
               
@@ -159,23 +260,27 @@ export function ModelViewer({ modelPath, className = '' }: ModelViewerProps) {
             setIsLoading(false)
             animate()
           },
-          (progress: any) => {
+          (_progress: ProgressEvent<EventTarget>) => {
             // Loading progress - could show percentage if needed
           },
-          (error: any) => {
-            console.error('Error loading GLTF model:', error)
+          (error: unknown) => {
+            console.error('Error loading GLTF model:', error, 'Path:', modelPath)
             setError('Failed to load 3D model')
             setIsLoading(false)
           }
         )
 
-        // Handle window resize
+        // Handle window resize with safety checks
         const handleResize = () => {
-          if (!container) return
+          const currentContainer = containerRef.current
+          if (!currentContainer || !camera || !renderer) return
           
-          camera.aspect = container.clientWidth / container.clientHeight
+          const width = currentContainer.clientWidth || 300
+          const height = currentContainer.clientHeight || 300
+          
+          camera.aspect = width / height
           camera.updateProjectionMatrix()
-          renderer.setSize(container.clientWidth, container.clientHeight)
+          renderer.setSize(width, height)
         }
         
         window.addEventListener('resize', handleResize)
@@ -186,14 +291,20 @@ export function ModelViewer({ modelPath, className = '' }: ModelViewerProps) {
           if (animationId) {
             cancelAnimationFrame(animationId)
           }
-          if (renderer) {
-            container.removeChild(renderer.domElement)
+          if (renderer && renderer.domElement) {
+            // Check if container still exists before trying to remove child
+            const currentContainer = containerRef.current
+            if (currentContainer && currentContainer.contains(renderer.domElement)) {
+              currentContainer.removeChild(renderer.domElement)
+            }
             renderer.dispose()
           }
           if (mixer) {
             mixer.stopAllAction()
           }
-          scene.clear()
+          if (scene) {
+            scene.clear()
+          }
         }
 
       } catch (error) {
@@ -212,7 +323,18 @@ export function ModelViewer({ modelPath, className = '' }: ModelViewerProps) {
         if (cleanup) cleanup()
       })
     }
-  }, [modelPath, mounted])
+  }, [modelPath, mounted]) // Only reinitialize when model path or mount state changes
+
+  // Update parent form only when values actually change from user interaction
+  const updateParentForm = useCallback(() => {
+    if (editMode && onValuesChange && isUserInteracting.current) {
+      onValuesChange({
+        modelScale: currentScale,
+        cameraPosition: currentCameraPos,
+        cameraLookAt: currentCameraLookAt
+      })
+    }
+  }, [editMode, onValuesChange, currentScale, currentCameraPos, currentCameraLookAt])
 
   if (error) {
     return (
@@ -229,6 +351,45 @@ export function ModelViewer({ modelPath, className = '' }: ModelViewerProps) {
     )
   }
 
+  // Handlers for visual controls
+  const handleScaleChange = (newScale: number) => {
+    isUserInteracting.current = true
+    setCurrentScale(newScale)
+    if (modelRef.current) {
+      modelRef.current.scale.setScalar(newScale)
+    }
+    // Update parent form immediately
+    setTimeout(() => {
+      updateParentForm()
+      isUserInteracting.current = false
+    }, 50)
+  }
+
+  const handleResetValues = () => {
+    isUserInteracting.current = true
+    const defaultScale = 1.0
+    const defaultCameraPos = { x: 2, y: 2, z: 4 }
+    const defaultCameraLookAt = { x: 0, y: 0, z: 0 }
+    
+    setCurrentScale(defaultScale)
+    setCurrentCameraPos(defaultCameraPos)
+    setCurrentCameraLookAt(defaultCameraLookAt)
+    
+    if (modelRef.current) {
+      modelRef.current.scale.setScalar(defaultScale)
+    }
+    if (cameraRef.current && controlsRef.current) {
+      cameraRef.current.position.set(defaultCameraPos.x, defaultCameraPos.y, defaultCameraPos.z)
+      controlsRef.current.target.set(defaultCameraLookAt.x, defaultCameraLookAt.y, defaultCameraLookAt.z)
+      controlsRef.current.update()
+    }
+    // Update parent form immediately
+    setTimeout(() => {
+      updateParentForm()
+      isUserInteracting.current = false
+    }, 50)
+  }
+
   return (
     <div className={`relative w-full h-full ${className}`}>
       {isLoading && (
@@ -239,10 +400,96 @@ export function ModelViewer({ modelPath, className = '' }: ModelViewerProps) {
           </div>
         </div>
       )}
+      
+      {/* Visual Controls Overlay (only in edit mode) */}
+      {editMode && !isLoading && (
+        <div className="absolute top-4 right-4 z-10 bg-white/90 backdrop-blur-sm rounded-lg shadow-lg border border-slate-200 p-4 min-w-64">
+          <div className="space-y-4">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-slate-800">3D Editor</h3>
+              <button
+                onClick={handleResetValues}
+                className="px-2 py-1 text-xs bg-slate-100 text-slate-600 rounded hover:bg-slate-200 transition-colors"
+              >
+                Reset
+              </button>
+            </div>
+            
+            {/* Scale Control */}
+            <div>
+              <label className="block text-xs font-medium text-slate-700 mb-2">
+                Model Scale: {currentScale.toFixed(2)}
+              </label>
+              <input
+                type="range"
+                min="0.01"
+                max="3.0"
+                step="0.01"
+                value={currentScale}
+                onChange={(e) => handleScaleChange(Number(e.target.value))}
+                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer slider"
+              />
+              <div className="flex justify-between text-xs text-slate-500 mt-1">
+                <span>Tiny (0.01)</span>
+                <span>Large (3.0)</span>
+              </div>
+            </div>
+            
+            {/* Camera Position Display */}
+            <div>
+              <label className="block text-xs font-medium text-slate-700 mb-1">Camera Position</label>
+              <div className="bg-slate-50 rounded px-2 py-1 text-xs font-mono text-slate-600">
+                X: {currentCameraPos.x}, Y: {currentCameraPos.y}, Z: {currentCameraPos.z}
+              </div>
+            </div>
+            
+            {/* Camera Look At Display */}
+            <div>
+              <label className="block text-xs font-medium text-slate-700 mb-1">Look At</label>
+              <div className="bg-slate-50 rounded px-2 py-1 text-xs font-mono text-slate-600">
+                X: {currentCameraLookAt.x}, Y: {currentCameraLookAt.y}, Z: {currentCameraLookAt.z}
+              </div>
+            </div>
+            
+            {/* Instructions */}
+            <div className="text-xs text-slate-500 border-t border-slate-200 pt-3">
+              <p className="mb-1">🖱️ Drag to rotate camera</p>
+              <p className="mb-1">⚲ Scroll to zoom in/out</p>
+              <p>🎛️ Adjust scale with slider</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div 
         ref={containerRef} 
         className="w-full h-full"
       />
+      
+      {/* Custom CSS for slider */}
+      <style jsx>{`
+        .slider::-webkit-slider-thumb {
+          appearance: none;
+          height: 16px;
+          width: 16px;
+          border-radius: 50%;
+          background: #10b981;
+          border: 2px solid white;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+          cursor: pointer;
+        }
+        .slider::-moz-range-thumb {
+          height: 16px;
+          width: 16px;
+          border-radius: 50%;
+          background: #10b981;
+          border: 2px solid white;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+          cursor: pointer;
+          border: none;
+        }
+      `}</style>
     </div>
   )
 }

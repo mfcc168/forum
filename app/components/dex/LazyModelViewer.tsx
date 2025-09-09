@@ -7,9 +7,26 @@ import { Icon } from '@/app/components/ui/Icon'
 interface LazyModelViewerProps {
   modelPath: string
   className?: string
+  modelScale?: number
+  cameraPosition?: { x: number; y: number; z: number }
+  cameraLookAt?: { x: number; y: number; z: number }
+  editMode?: boolean
+  onValuesChange?: (values: {
+    modelScale: number
+    cameraPosition: { x: number; y: number; z: number }
+    cameraLookAt: { x: number; y: number; z: number }
+  }) => void
 }
 
-export function LazyModelViewer({ modelPath, className = '' }: LazyModelViewerProps) {
+export function LazyModelViewer({ 
+  modelPath, 
+  className = '', 
+  modelScale, 
+  cameraPosition, 
+  cameraLookAt,
+  editMode,
+  onValuesChange
+}: LazyModelViewerProps) {
   const [isInView, setIsInView] = useState(false)
   const [hasLoaded, setHasLoaded] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -39,12 +56,20 @@ export function LazyModelViewer({ modelPath, className = '' }: LazyModelViewerPr
     }
   }, [hasLoaded])
 
+  // In edit mode, immediately show the ModelViewer without waiting for intersection
+  const shouldShowModelViewer = editMode || isInView
+
   return (
     <div ref={containerRef} className={className}>
-      {isInView ? (
+      {shouldShowModelViewer ? (
         <ModelViewer 
           modelPath={modelPath} 
           className="w-full h-full"
+          modelScale={modelScale}
+          cameraPosition={cameraPosition}
+          cameraLookAt={cameraLookAt}
+          editMode={editMode}
+          onValuesChange={onValuesChange}
         />
       ) : (
         <LazyModelViewerSkeleton />

@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getServerUser } from '@/lib/auth/server';
 import { PermissionChecker } from '@/lib/utils/permissions';
+import { getDexModelsServerSide } from '@/lib/utils/dex-models';
 import EditDexContent from './EditDexContent';
 
 // Server-side data fetching
@@ -43,12 +44,15 @@ export default async function EditDexPage({ params }: { params: Promise<{ slug: 
   // Await params (Next.js 15 requirement)
   const { slug } = await params
 
-  // Fetch the monster data server-side
-  const monster = await getDexMonster(slug)
+  // Fetch the monster data and models server-side in parallel
+  const [monster, models] = await Promise.all([
+    getDexMonster(slug),
+    getDexModelsServerSide()
+  ])
 
   if (!monster) {
     redirect('/dex')
   }
 
-  return <EditDexContent initialMonster={monster} slug={slug} />
+  return <EditDexContent initialMonster={monster} initialModels={models} slug={slug} />
 }
