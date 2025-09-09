@@ -13,18 +13,20 @@ console.log('MongoDB URI is set, proceeding with connection setup')
 
 const uri = process.env.MONGODB_URI
 const options = {
-  // Connection timeouts
-  serverSelectionTimeoutMS: 10000, // 10 seconds
-  connectTimeoutMS: 10000, // 10 seconds
-  socketTimeoutMS: 45000, // 45 seconds
+  // Serverless-optimized timeouts (increased for cold starts)
+  serverSelectionTimeoutMS: 30000, // 30 seconds (was 10)
+  connectTimeoutMS: 30000, // 30 seconds (was 10)
+  socketTimeoutMS: 0, // No timeout for long operations (was 45000)
   
-  // Connection pool settings
-  maxPoolSize: 10,
-  minPoolSize: 1,
+  // Serverless connection pool settings
+  maxPoolSize: 1, // Single connection per function (was 10)
+  minPoolSize: 0, // No persistent connections (was 1)
+  maxIdleTimeMS: 30000, // Close idle connections quickly
   
-  // Retry settings
+  // Reliability settings for serverless
   retryWrites: true,
   retryReads: true,
+  bufferMaxEntries: 0, // Fail fast instead of buffering
 }
 
 let client

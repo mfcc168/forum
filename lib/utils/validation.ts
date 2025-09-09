@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { ratelimit } from '@/lib/utils/ratelimit'
 import DOMPurify from 'isomorphic-dompurify'
+import { getServerUser } from '@/lib/auth/server'
 import type { ServerUser } from "@/lib/types"
 
 // API Response utility for consistent error handling
@@ -78,7 +79,6 @@ export function withApiRoute<T extends z.ZodSchema>(
       let user: ServerUser | undefined = undefined
       if (options.auth && typeof window === 'undefined') {
         try {
-          const { getServerUser } = await import('@/lib/auth/server')
           const serverUser = await getServerUser()
           user = serverUser || undefined
           

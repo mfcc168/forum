@@ -6,6 +6,7 @@
  */
 
 import { NextRequest } from 'next/server'
+import { withApiRoute } from '@/lib/utils/validation'
 import { DAL } from './dal'
 
 export interface DatabaseContext {
@@ -28,9 +29,7 @@ export function withDALAndValidation<T = Record<string, unknown>>(
     rateLimit?: { requests: number; window: string }
   }
 ) {
-  // Import the existing withApiRoute function
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { withApiRoute } = require('@/lib/utils/validation')
+  // Use imported withApiRoute function (no dynamic require needed)
   
   // Create a wrapper that adds DAL to the existing validation context
   const enhancedHandler = (request: NextRequest, context: Record<string, unknown>) => {

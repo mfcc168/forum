@@ -64,10 +64,10 @@ export const config = {
               }, {
                 // Only fetch the role field for performance
                 projection: { role: 1 },
-                maxTimeMS: 5000 // 5 second timeout
+                maxTimeMS: 15000 // Increased from 5000 to 15000
               }),
               new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('Database query timeout')), 5000)
+                setTimeout(() => reject(new Error('Database query timeout')), 20000) // 20 second timeout
               )
             ])
             
