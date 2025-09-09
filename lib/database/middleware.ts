@@ -15,7 +15,7 @@ export interface DatabaseContext {
 
 export type RouteHandlerWithDAL<T = Record<string, unknown>> = (
   request: NextRequest,
-  context: DatabaseContext & T
+  context: DatabaseContext & T & { params?: Promise<Record<string, string>> | Record<string, string> }
 ) => Promise<Response>
 
 /**
@@ -32,11 +32,11 @@ export function withDALAndValidation<T = Record<string, unknown>>(
   // Use imported withApiRoute function (no dynamic require needed)
   
   // Create a wrapper that adds DAL to the existing validation context
-  const enhancedHandler = (request: NextRequest, context: Record<string, unknown>) => {
+  const enhancedHandler = (request: NextRequest, context: Record<string, unknown> & { params?: Promise<Record<string, string>> | Record<string, string> }) => {
     const dalContext = {
       ...context,
       dal: DAL
-    } as DatabaseContext & T
+    } as DatabaseContext & T & { params?: Promise<Record<string, string>> | Record<string, string> }
     return handler(request, dalContext)
   }
 

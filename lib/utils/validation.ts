@@ -45,7 +45,7 @@ export class ApiResponse {
 export function withApiRoute<T extends z.ZodSchema>(
   handler: (
     request: NextRequest,
-    context: { params?: Record<string, string>; user?: ServerUser; validatedData?: z.infer<T> }
+    context: { params?: Promise<Record<string, string>> | Record<string, string>; user?: ServerUser; validatedData?: z.infer<T> }
   ) => Promise<Response>,
   options: {
     schema?: T
@@ -54,7 +54,8 @@ export function withApiRoute<T extends z.ZodSchema>(
     method?: string
   } = {}
 ) {
-  return async (request: NextRequest, context: { params?: Record<string, string> } = {}) => {
+  return async (request: NextRequest, context?: { params?: Promise<Record<string, string>> | Record<string, string> }) => {
+    const resolvedContext = context || {}
     try {
       // Method validation
       if (options.method && request.method !== options.method) {
@@ -106,11 +107,11 @@ export function withApiRoute<T extends z.ZodSchema>(
             let dataToValidate = {}
             
             // Add path parameters (like slug) if they exist
-            if (context.params) {
+            if (resolvedContext.params) {
               // Handle both sync and async params (Next.js 15 compatibility)
-              const resolvedParams = context.params instanceof Promise 
-                ? await context.params 
-                : context.params
+              const resolvedParams = resolvedContext.params instanceof Promise 
+                ? await resolvedContext.params 
+                : resolvedContext.params
               dataToValidate = { ...resolvedParams }
             }
             
@@ -136,7 +137,7 @@ export function withApiRoute<T extends z.ZodSchema>(
 
       // Execute handler
       return await handler(request, { 
-        ...context, 
+        ...resolvedContext, 
         user, 
         validatedData 
       })
