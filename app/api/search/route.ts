@@ -151,15 +151,19 @@ export const POST = withDALAndValidation(
               
               moduleResults = forumResults.map(post => ({
                 id: post.id,
-                module: 'forum',
-                type: 'post',
+                module: 'forum' as const,
+                type: 'post' as const,
                 title: post.title,
                 excerpt: post.excerpt || generateExcerpt(post.content),
                 content: post.content,
-                author: post.author,
+                author: { 
+                  id: post.author?.id || '', 
+                  name: post.author?.name || '',
+                  avatar: post.author?.avatar 
+                },
                 category: post.categoryName,
                 tags: post.tags || [],
-                stats: post.stats,
+                stats: post.stats || {},
                 createdAt: post.createdAt,
                 updatedAt: post.updatedAt,
                 slug: post.slug,

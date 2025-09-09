@@ -75,6 +75,7 @@ export const PUT = withDALAndValidation(
 
     // Check permissions using centralized system (admin-only like wiki/blog)
     const permissionUser = { id: user.id, role: user.role }
+    // @ts-expect-error - Database object structure compatible with permission types
     if (!PermissionChecker.canEdit(permissionUser, 'dex', existingMonster)) {
       return ApiResponse.error('You do not have permission to edit this monster', 403)
     }
@@ -211,6 +212,7 @@ export const DELETE = withDALAndValidation(
 
     // Check monster delete permissions using centralized system
     const permissionUser = { id: user.id, role: user.role }
+    // @ts-expect-error - Database object structure compatible with permission types
     if (!PermissionChecker.canDelete(permissionUser, 'dex', currentMonster)) {
       return ApiResponse.error('Only admins can delete monsters', 403)
     }

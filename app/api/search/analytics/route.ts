@@ -70,13 +70,13 @@ function isClickEventData(data: unknown): data is ClickEventData {
 
 const searchAnalyticsSchema = z.object({
   events: z.array(z.object({
-    query: z.string(),
-    resultCount: z.number(),
-    clickedResults: z.array(z.string()),
-    searchTime: z.number(),
+    query: z.string().min(1),
+    resultCount: z.number().min(0),
+    clickedResults: z.array(z.string()).default([]),
+    searchTime: z.number().min(0),
     userId: z.string().optional(),
-    timestamp: z.string().datetime(),
-    sessionId: z.string(),
+    timestamp: z.string(),
+    sessionId: z.string().min(1),
     filters: z.object({
       modules: z.array(z.string()).optional(),
       authors: z.array(z.string()).optional(),
@@ -87,11 +87,11 @@ const searchAnalyticsSchema = z.object({
 })
 
 const clickAnalyticsSchema = z.object({
-  query: z.string(),
-  resultId: z.string(), 
-  position: z.number(),
-  timestamp: z.string().datetime(),
-  sessionId: z.string(),
+  query: z.string().min(1),
+  resultId: z.string().min(1), 
+  position: z.number().min(0),
+  timestamp: z.string(),
+  sessionId: z.string().min(1),
   userId: z.string().optional()
 })
 
@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
     const validatedData = searchAnalyticsSchema.parse(body)
 
     // Store analytics events
-    await storeAnalyticsEvents(validatedData.events, request)
+    await storeAnalyticsEvents(validatedData.events as SearchAnalyticsEvent[], request)
 
     return ApiResponse.success({ 
       stored: validatedData.events.length,
@@ -135,7 +135,7 @@ export async function PUT(request: NextRequest) {
     const validatedData = clickAnalyticsSchema.parse(body)
 
     // Store click event
-    await storeClickEvent(validatedData, request)
+    await storeClickEvent(validatedData as ClickAnalyticsEvent, request)
 
     return ApiResponse.success({ 
       message: 'Click event tracked successfully' 

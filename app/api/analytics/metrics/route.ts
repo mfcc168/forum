@@ -26,11 +26,11 @@ export async function POST(request: NextRequest) {
     const analyticsDoc = {
       type: validatedData.type,
       data: validatedData.data,
+      timestamp: validatedData.timestamp,
       userAgent: request.headers.get('user-agent') || 'unknown',
-      userIp: request.headers.get('x-forwarded-for')?.split(',')[0] || 
+      ip: request.headers.get('x-forwarded-for')?.split(',')[0] || 
           request.headers.get('x-real-ip') || 
-          'unknown',
-      createdAt: new Date(validatedData.timestamp)
+          'unknown'
     }
     
     // Store metric using DAL

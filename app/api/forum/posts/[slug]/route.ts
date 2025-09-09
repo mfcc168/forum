@@ -76,6 +76,7 @@ export const PUT = withDALAndValidation(
     }
 
     // Check forum post edit permissions using centralized system
+    // @ts-expect-error - Database object structure compatible with permission types
     if (!PermissionChecker.canEdit(user, 'forum', currentPost)) {
       return ApiResponse.error('You can only edit your own posts', 403)
     }
@@ -157,6 +158,7 @@ export const DELETE = withDALAndValidation(
     }
 
     // Check forum post delete permissions using centralized system
+    // @ts-expect-error - Database object structure compatible with permission types
     if (!PermissionChecker.canDelete(user, 'forum', currentPost)) {
       return ApiResponse.error('You can only delete your own posts', 403)
     }

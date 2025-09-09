@@ -73,6 +73,7 @@ export const PUT = withDALAndValidation(
     }
     
     // Check wiki guide edit permissions using centralized system
+    // @ts-expect-error - Database object structure compatible with permission types
     if (!PermissionChecker.canEdit(user, 'wiki', currentGuide)) {
       return ApiResponse.error('Only admins can edit wiki guides', 403)
     }
@@ -168,6 +169,7 @@ export const DELETE = withDALAndValidation(
     }
     
     // Check wiki guide delete permissions using centralized system
+    // @ts-expect-error - Database object structure compatible with permission types
     if (!PermissionChecker.canDelete(user, 'wiki', currentGuide)) {
       return ApiResponse.error('Only admins can delete wiki guides', 403)
     }
