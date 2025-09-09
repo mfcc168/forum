@@ -64,11 +64,12 @@ export const POST = withDALAndValidation(
  * Retrieve analytics metrics (admin only)
  */
 export const GET = withDALAndValidation(
-  async (_request: NextRequest, { validatedData, user, dal }: { 
+  async (_request: NextRequest, context: { 
     validatedData: z.infer<typeof analyticsQuerySchema>;
     user?: ServerUser;
     dal: typeof import('@/lib/database/dal').DAL;
   }) => {
+    const { validatedData, user, dal } = context
     // Only admins can view analytics
     if (!user || user.role !== 'admin') {
       return ApiResponse.error('Admin access required', 403)
