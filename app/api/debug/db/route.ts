@@ -7,11 +7,32 @@ export const runtime = 'nodejs'
  * GET /api/debug/db
  */
 export async function GET(_request: NextRequest) {
+  // Debug: Log environment variables to server console
+  console.log('=== ENVIRONMENT VARIABLES DEBUG ===')
+  console.log('NODE_ENV:', process.env.NODE_ENV)
+  console.log('MONGODB_URI exists:', !!process.env.MONGODB_URI)
+  console.log('MONGODB_URI length:', process.env.MONGODB_URI?.length || 0)
+  console.log('MONGODB_DB:', process.env.MONGODB_DB)
+  console.log('NEXTAUTH_URL:', process.env.NEXTAUTH_URL)
+  console.log('NEXTAUTH_SECRET exists:', !!process.env.NEXTAUTH_SECRET)
+  console.log('DISCORD_CLIENT_ID:', process.env.DISCORD_CLIENT_ID)
+  console.log('DISCORD_CLIENT_SECRET exists:', !!process.env.DISCORD_CLIENT_SECRET)
+  console.log('VERCEL_ENV:', process.env.VERCEL_ENV)
+  console.log('VERCEL_URL:', process.env.VERCEL_URL)
+  console.log('=====================================')
+
   const diagnostics: Record<string, unknown> = {
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV,
-    mongoUri: process.env.MONGODB_URI ? 'Set (hidden)' : 'Missing!',
+    mongoUri: process.env.MONGODB_URI ? `Set (${process.env.MONGODB_URI.length} chars)` : 'Missing!',
+    mongoUriPreview: process.env.MONGODB_URI ? process.env.MONGODB_URI.substring(0, 50) + '...' : 'Missing!',
     mongoDb: process.env.MONGODB_DB || 'Not set (will use default)',
+    nextauthUrl: process.env.NEXTAUTH_URL || 'Missing!',
+    nextauthSecret: process.env.NEXTAUTH_SECRET ? `Set (${process.env.NEXTAUTH_SECRET.length} chars)` : 'Missing!',
+    discordClientId: process.env.DISCORD_CLIENT_ID || 'Missing!',
+    discordClientSecret: process.env.DISCORD_CLIENT_SECRET ? `Set (${process.env.DISCORD_CLIENT_SECRET.length} chars)` : 'Missing!',
+    vercelEnv: process.env.VERCEL_ENV || 'Not set',
+    vercelUrl: process.env.VERCEL_URL || 'Not set',
     connectionTest: null,
     error: null
   }

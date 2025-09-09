@@ -4,14 +4,22 @@ import clientPromise from "@/lib/database/connection/mongodb"
 import type { ServerUser } from '@/lib/types'
 
 export async function getServerUser(): Promise<ServerUser | null> {
+  console.log('getServerUser: Starting authentication check')
+  console.log('getServerUser: MONGODB_URI exists:', !!process.env.MONGODB_URI)
+  
   const session = await auth()
+  console.log('getServerUser: Session exists:', !!session)
+  console.log('getServerUser: Session user email:', session?.user?.email ? 'exists' : 'missing')
   
   if (!session?.user?.email) {
+    console.log('getServerUser: No session or email, returning null')
     return null
   }
 
   try {
+    console.log('getServerUser: Attempting MongoDB connection...')
     const client = await clientPromise
+    console.log('getServerUser: MongoDB client connected successfully')
     const db = client.db('minecraft_server')
     
     // First check if user exists
@@ -65,7 +73,9 @@ export async function getServerUser(): Promise<ServerUser | null> {
       minecraftUsername: user.minecraftUsername
     }
   } catch (error) {
-    console.error('Error fetching/creating user:', error)
+    console.error('getServerUser: Error fetching/creating user:', error)
+    console.error('getServerUser: Error type:', error instanceof Error ? error.constructor.name : 'Unknown')
+    console.error('getServerUser: Error message:', error instanceof Error ? error.message : 'Unknown error')
     return null
   }
 }
