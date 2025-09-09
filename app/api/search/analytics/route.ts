@@ -239,7 +239,7 @@ function getClientIP(request: NextRequest): string {
 }
 
 // Example analytics dashboard query functions (for admin use)
-export async function getSearchAnalytics(timeRange: { from: Date; to: Date }) {
+async function getSearchAnalytics(timeRange: { from: Date; to: Date }) {
   try {
     const { DAL } = await import('@/lib/database/dal')
     
