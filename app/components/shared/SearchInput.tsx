@@ -24,7 +24,11 @@ export interface SearchInputProps {
 }
 
 interface SearchSuggestionItemProps {
-  suggestion: any
+  suggestion: {
+    text: string
+    type: 'completion' | 'correction' | 'recent' | 'popular'
+    count?: number
+  }
   isSelected: boolean
   onClick: () => void
 }
@@ -148,7 +152,7 @@ export function SearchInput({
   }
 
   // Handle suggestion selection
-  const handleSuggestionSelect = (suggestion: any) => {
+  const handleSuggestionSelect = (suggestion: { text: string; type: string; count?: number }) => {
     setInternalValue(suggestion.text)
     onChange(suggestion.text)
     setShowSuggestionsDropdown(false)

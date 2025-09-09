@@ -207,9 +207,9 @@ export const optionalUrlSchema = urlSchema.optional()
 /**
  * MongoDB ObjectId transformation helper
  */
-export const mongoIdTransform = (doc: { _id: any; [key: string]: any }) => ({
+export const mongoIdTransform = (doc: { _id: unknown; [key: string]: unknown }) => ({
   ...doc,
-  id: doc._id.toString()
+  id: doc._id ? (doc._id as { toString(): string }).toString() : ''
 })
 
 // ============================================================================

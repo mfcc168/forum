@@ -85,8 +85,9 @@ export default function SearchPage() {
     handleSearch(params.query, params.filters)
     // Type guard to ensure only valid sort options are used
     const validSortOptions = ['relevance', 'date-desc', 'date-asc', 'views-desc', 'likes-desc'] as const
-    if (validSortOptions.includes(params.sortBy as any)) {
-      setSortBy(params.sortBy as any)
+    type ValidSortOption = typeof validSortOptions[number]
+    if (validSortOptions.includes(params.sortBy as ValidSortOption)) {
+      setSortBy(params.sortBy as ValidSortOption)
     }
   }
 
@@ -216,7 +217,12 @@ export default function SearchPage() {
                 <span className="text-sm text-slate-600">Sort by:</span>
                 <select
                   value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as any)}
+                  onChange={(e) => {
+                    const value = e.target.value as SearchSortOption
+                    if (['relevance', 'date-desc', 'date-asc', 'views-desc', 'likes-desc', 'title-asc', 'author-asc'].includes(value)) {
+                      setSortBy(value)
+                    }
+                  }}
                   className="px-3 py-1 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500"
                 >
                   <option value="relevance">Relevance</option>

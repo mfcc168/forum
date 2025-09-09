@@ -56,12 +56,12 @@ interface ClickEventData {
 
 function isSearchEventData(data: unknown): data is SearchEventData {
   return typeof data === 'object' && data !== null && 
-         'eventType' in data && (data as any).eventType === 'search'
+         'eventType' in data && (data as Record<string, unknown>).eventType === 'search'
 }
 
 function isClickEventData(data: unknown): data is ClickEventData {
   return typeof data === 'object' && data !== null &&
-         'eventType' in data && (data as any).eventType === 'search_click'
+         'eventType' in data && (data as Record<string, unknown>).eventType === 'search_click'
 }
 
 // ============================================================================

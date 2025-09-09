@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const query = searchParams.get('q')
-    const module = searchParams.get('module') as 'blog' | 'forum' | 'wiki' | null
+    const moduleParam = searchParams.get('module') as 'blog' | 'forum' | 'wiki' | null
 
     if (!query || query.length < 2) {
       return ApiResponse.success({
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    const suggestions = await generateSuggestions(query, module)
+    const suggestions = await generateSuggestions(query, moduleParam)
     const searchTime = performance.now() - startTime
 
     return ApiResponse.success({
@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
 // SUGGESTION GENERATION
 // ============================================================================
 
-async function generateSuggestions(query: string, module?: 'blog' | 'forum' | 'wiki' | null) {
+async function generateSuggestions(query: string, moduleType?: 'blog' | 'forum' | 'wiki' | null) {
   const suggestions = {
     completions: [] as string[],
     corrections: [] as string[],
@@ -57,9 +57,9 @@ async function generateSuggestions(query: string, module?: 'blog' | 'forum' | 'w
     // Get title-based completions from specific module or all modules
     let allCompletions: string[] = []
     
-    if (module) {
+    if (moduleType) {
       // Module-specific completions
-      switch (module) {
+      switch (moduleType) {
         case 'forum':
           allCompletions = await getForumTitleCompletions(query)
           break
@@ -87,7 +87,7 @@ async function generateSuggestions(query: string, module?: 'blog' | 'forum' | 'w
     suggestions.corrections = await generateCorrections(query)
 
     // Get module-specific popular searches
-    suggestions.popular = await getPopularSearches(query, module)
+    suggestions.popular = await getPopularSearches(query, moduleType)
 
   } catch (error) {
     console.error('Error generating suggestions:', error)
@@ -253,9 +253,9 @@ function isTypo(input: string, target: string): boolean {
   return differences === 1
 }
 
-async function getPopularSearches(query: string, module?: 'blog' | 'forum' | 'wiki' | null): Promise<string[]> {
+async function getPopularSearches(query: string, moduleType?: 'blog' | 'forum' | 'wiki' | null): Promise<string[]> {
   // Module-specific popular searches
-  const popularSearches = getModulePopularSearches(module)
+  const popularSearches = getModulePopularSearches(moduleType)
 
   const queryLower = query.toLowerCase()
   return popularSearches
@@ -263,8 +263,8 @@ async function getPopularSearches(query: string, module?: 'blog' | 'forum' | 'wi
     .slice(0, 3)
 }
 
-function getModulePopularSearches(module?: 'blog' | 'forum' | 'wiki' | null): string[] {
-  switch (module) {
+function getModulePopularSearches(moduleType?: 'blog' | 'forum' | 'wiki' | null): string[] {
+  switch (moduleType) {
     case 'blog':
       return [
         'server news',

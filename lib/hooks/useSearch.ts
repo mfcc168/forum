@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { searchEngine, type SearchQuery, type SearchResponse, type SearchFilters, type SearchSuggestion } from '@/lib/search/SearchEngine'
+import { searchEngine, type SearchQuery, type SearchResponse, type SearchFilters, type SearchSuggestion, type SearchSortOption } from '@/lib/search/SearchEngine'
 // useDebounce utility is defined at the bottom of this file
 
 // ============================================================================
@@ -35,7 +35,7 @@ export function useSearch(options: UseSearchOptions = {}) {
   // Search state
   const [query, setQuery] = useState(initialQuery)
   const [filters, setFilters] = useState<SearchFilters>(initialFilters)
-  const [sortBy, setSortBy] = useState<'relevance' | 'date-desc' | 'date-asc' | 'views-desc' | 'likes-desc'>('relevance')
+  const [sortBy, setSortBy] = useState<SearchSortOption>('relevance')
   const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>({})
 
   // Debounced values for API calls

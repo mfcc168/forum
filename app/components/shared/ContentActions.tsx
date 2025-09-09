@@ -143,22 +143,16 @@ export const ContentActions = memo(function ContentActions({
   }, [config, onDelete, router])
 
   // Get the appropriate React Query hook for this content type
-  const getInteractionHook = () => {
-    switch (config.contentType) {
-      case 'forum':
-        return forumHooks.useContentInteraction()
-      case 'blog':
-        return blogHooks.useContentInteraction()
-      case 'wiki':
-        return wikiHooks.useContentInteraction()
-      case 'dex':
-        return useDexMonsterInteraction()
-      default:
-        throw new Error(`Unsupported content type: ${config.contentType}`)
-    }
-  }
-
-  const interactionMutation = getInteractionHook()
+  const forumInteractionMutation = forumHooks.useContentInteraction()
+  const blogInteractionMutation = blogHooks.useContentInteraction()
+  const wikiInteractionMutation = wikiHooks.useContentInteraction()
+  const dexInteractionMutation = useDexMonsterInteraction()
+  
+  const interactionMutation = config.contentType === 'forum' ? forumInteractionMutation
+    : config.contentType === 'blog' ? blogInteractionMutation
+    : config.contentType === 'wiki' ? wikiInteractionMutation
+    : config.contentType === 'dex' ? dexInteractionMutation
+    : null
 
   const handleSocialAction = useCallback(async (action: 'like' | 'bookmark' | 'share' | 'helpful') => {
     if (!isAuthenticated) {
@@ -177,18 +171,20 @@ export const ContentActions = memo(function ContentActions({
         toast.success('Link copied to clipboard!', { duration: 2000 })
         
         // Still trigger the share count API call in background
-        interactionMutation.mutate({ 
-          slug: config.identifier, 
-          action: 'share' 
-        }, {
-          onSettled: () => {
-            setPendingActions(prev => {
-              const next = new Set(prev)
-              next.delete(action)
-              return next
-            })
-          }
-        })
+        if (interactionMutation) {
+          interactionMutation.mutate({ 
+            slug: config.identifier, 
+            action: 'share' 
+          }, {
+            onSettled: () => {
+              setPendingActions(prev => {
+                const next = new Set(prev)
+                next.delete(action)
+                return next
+              })
+            }
+          })
+        }
         return
       } catch {
         // Fallback to API call only if clipboard fails
@@ -196,6 +192,16 @@ export const ContentActions = memo(function ContentActions({
     }
 
     // Use simplified React Query mutation
+    if (!interactionMutation) {
+      toast.error(`Interaction not supported for ${config.contentType}`)
+      setPendingActions(prev => {
+        const next = new Set(prev)
+        next.delete(action)
+        return next
+      })
+      return
+    }
+    
     interactionMutation.mutate({ 
       slug: config.identifier, 
       action 

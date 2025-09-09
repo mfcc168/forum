@@ -1,5 +1,5 @@
 import DexPage from '@/app/dex/DexPage'
-import type { DexMonster, DexStats } from '@/lib/types'
+import type { DexMonster, DexStats, DexCategory } from '@/lib/types'
 
 // Server-side data fetching function (consistent pattern)
 async function getDexData() {
@@ -62,7 +62,7 @@ async function getDexData() {
         acc[monster.category] = (acc[monster.category] || 0) + 1
         return acc
       }, {} as Record<string, number>),
-      categories: categories.map((cat: any) => ({
+      categories: categories.map((cat: DexCategory) => ({
         name: cat.name,
         slug: cat.slug,
         postsCount: cat.stats?.postsCount || 0,

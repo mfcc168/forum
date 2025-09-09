@@ -128,11 +128,11 @@ export const POST = withDALAndValidation(
       const searchModules = filters.modules || ['forum', 'blog', 'wiki']
 
       // Search across specified modules
-      for (const module of searchModules) {
+      for (const searchModule of searchModules) {
         try {
           let moduleResults: SearchResultItem[] = []
 
-          switch (module) {
+          switch (searchModule) {
             case 'forum':
               const forumResults = await dal.forum.searchPosts({
                 query,

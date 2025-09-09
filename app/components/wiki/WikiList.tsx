@@ -52,40 +52,12 @@ export const WikiList = memo(function WikiList({
   const permissions = usePermissions(session, 'wiki')
 
   // Get category name translation (consistent with BlogList/ForumList)
-  const translateCategoryName = (categoryName: string) => {
+  const translateCategoryName = useCallback((categoryName: string) => {
     return t.wiki.categories[categoryName as keyof typeof t.wiki.categories] || categoryName
-  }
-
-  // Loading state (consistent pattern)
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        {Array.from({ length: compact ? 4 : 3 }).map((_, index) => (
-          <CardSkeleton 
-            key={index} 
-            className={compact ? "h-32" : "h-48"} 
-          />
-        ))}
-      </div>
-    )
-  }
-
-  // Empty state (consistent pattern)
-  if (!posts || posts.length === 0) {
-    return (
-      <EmptyState
-        title={emptyMessage || t.wiki?.emptyState?.title || 'No guides found'}
-        description={t.wiki?.emptyState?.description || 'There are no guides to display at this time.'}
-        action={permissions.canCreate ? {
-          label: t.wiki?.emptyState?.actionLabel || 'Create Guide',
-          onClick: () => window.location.href = '/wiki/create'
-        } : undefined}
-      />
-    )
-  }
+  }, [t.wiki.categories])
 
   // Memoized render function for virtualization
-  const renderGuideCard = useCallback((guide: WikiGuide, index: number) => (
+  const renderGuideCard = useCallback((guide: WikiGuide) => (
     <ContentCard
       key={guide.id}
       item={{
@@ -153,7 +125,7 @@ export const WikiList = memo(function WikiList({
   // Standard rendering for smaller lists
   return (
     <div className={compact ? "space-y-4" : "space-y-6"}>
-      {posts.map((guide) => renderGuideCard(guide, posts.indexOf(guide)))}
+      {posts.map((guide) => renderGuideCard(guide))}
     </div>
   )
 })
