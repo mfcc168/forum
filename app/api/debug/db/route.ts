@@ -8,7 +8,7 @@ export const runtime = 'nodejs'
  * GET /api/debug/db
  */
 export async function GET(_request: NextRequest) {
-  const diagnostics: Record<string, any> = {
+  const diagnostics: Record<string, unknown> = {
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV,
     mongoUri: process.env.MONGODB_URI ? 'Set (hidden)' : 'Missing!',
@@ -38,7 +38,7 @@ export async function GET(_request: NextRequest) {
         database: dbName,
         hasAuth: !!(urlObj.username && urlObj.password)
       }
-    } catch (e) {
+    } catch {
       diagnostics.connectionInfo = { error: 'Could not parse URI' }
     }
 
