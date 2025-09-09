@@ -1,7 +1,6 @@
 import { NextRequest } from 'next/server'
-import { withDALAndValidation } from '@/lib/database/middleware'
 import { ApiResponse } from '@/lib/utils/validation'
-import type { ServerUser } from '@/lib/types'
+import { getServerUser } from '@/lib/auth/server'
 
 export const runtime = 'nodejs'
 
@@ -9,33 +8,31 @@ export const runtime = 'nodejs'
  * GET /api/auth/user
  * Get current authenticated user information
  */
-export const GET = withDALAndValidation(
-  async (_request: NextRequest, { user }: { user?: ServerUser }) => {
-    try {
-      // Use the user from middleware (which uses getServerUser internally)
-      if (!user) {
-        return ApiResponse.error('Not authenticated', 401)
-      }
+export async function GET(_request: NextRequest) {
+  try {
+    // Get user using our server auth function
+    const user = await getServerUser()
+    
+    if (!user) {
+      return ApiResponse.error('Not authenticated', 401)
+    }
 
-      // Return user data in consistent format
-      const userData = {
+    // Return user data in consistent format
+    return ApiResponse.success({ 
+      user: {
         id: user.id,
-        username: user.name,  // Map name to username for API compatibility
+        name: user.name,
         email: user.email,
         avatar: user.avatar,
         role: user.role,
-        joinDate: user.createdAt,
-        lastActive: user.lastActiveAt,
+        status: user.status,
+        createdAt: user.createdAt,
+        lastActiveAt: user.lastActiveAt,
+        minecraftUsername: user.minecraftUsername
       }
-
-      return ApiResponse.success(userData, 'User information retrieved successfully')
-    } catch (error) {
-      console.error('Error fetching user:', error)
-      return ApiResponse.error('Failed to fetch user information', 500)
-    }
-  },
-  {
-    auth: 'required',
-    rateLimit: { requests: 30, window: '1m' }
+    }, 'User data retrieved successfully')
+  } catch (error) {
+    console.error('Error getting user data:', error)
+    return ApiResponse.error('Failed to get user data', 500)
   }
-)
+}
