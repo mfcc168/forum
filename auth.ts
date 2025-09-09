@@ -78,12 +78,8 @@ export const config = {
               token.role = 'member'
             }
           } catch (error) {
-            console.error('Error fetching user role in JWT callback:', error)
-            console.error('JWT callback error type:', error instanceof Error ? error.constructor.name : 'Unknown')
-            console.error('JWT callback error message:', error instanceof Error ? error.message : 'Unknown error')
             // Ensure we always set a role to avoid infinite loops
             token.role = 'member'
-            console.log('JWT callback: Using fallback role "member" due to database error')
           }
         }
         

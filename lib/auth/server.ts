@@ -4,15 +4,9 @@ import clientPromise from "@/lib/database/connection/mongodb"
 import type { ServerUser } from '@/lib/types'
 
 export async function getServerUser(): Promise<ServerUser | null> {
-  console.log('getServerUser: Starting authentication check')
-  console.log('getServerUser: MONGODB_URI exists:', !!process.env.MONGODB_URI)
-  
   const session = await auth()
-  console.log('getServerUser: Session exists:', !!session)
-  console.log('getServerUser: Session user email:', session?.user?.email ? 'exists' : 'missing')
   
   if (!session?.user?.email) {
-    console.log('getServerUser: No session or email, returning null')
     return null
   }
 
@@ -32,9 +26,7 @@ export async function getServerUser(): Promise<ServerUser | null> {
 
   // Try to enhance with database data, but don't fail if DB is unavailable
   try {
-    console.log('getServerUser: Attempting MongoDB connection for user data enhancement...')
     const client = await clientPromise
-    console.log('getServerUser: MongoDB client connected successfully')
     const db = client.db('minecraft_server')
     
     // First check if user exists
@@ -73,7 +65,6 @@ export async function getServerUser(): Promise<ServerUser | null> {
 
     if (user) {
       // Update session user with database data
-      console.log('getServerUser: Found user in database, updating session data')
       sessionUser.id = user._id.toString()
       sessionUser.name = user.username || sessionUser.name
       sessionUser.role = user.role || sessionUser.role
@@ -95,7 +86,6 @@ export async function getServerUser(): Promise<ServerUser | null> {
       )
     } else if (session.user.id) {
       // Create new user in database
-      console.log('getServerUser: Creating new user in database')
       const newUser = {
         username: session.user.name || 'Unknown User',
         email: session.user.email,
@@ -111,16 +101,10 @@ export async function getServerUser(): Promise<ServerUser | null> {
       sessionUser.id = result.insertedId.toString()
     }
 
-    console.log('getServerUser: Returning enhanced user data')
     return sessionUser
 
   } catch (error) {
-    console.error('getServerUser: Error fetching/creating user (using session fallback):', error)
-    console.error('getServerUser: Error type:', error instanceof Error ? error.constructor.name : 'Unknown')
-    console.error('getServerUser: Error message:', error instanceof Error ? error.message : 'Unknown error')
-    
     // Don't fail! Return the session-based user data
-    console.log('getServerUser: Database unavailable, returning session-based user data')
     return sessionUser
   }
 }

@@ -60,7 +60,9 @@ const nextConfig: NextConfig = {
         "https": false,
         "assert": false,
         "os": false,
-        "path": false
+        "path": false,
+        "timers/promises": false, // Fix for MongoDB OIDC callback workflow
+        "timers": false
       }
     }
     
