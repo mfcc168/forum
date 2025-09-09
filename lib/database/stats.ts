@@ -7,7 +7,7 @@
  */
 
 import { ObjectId, Db } from 'mongodb'
-import clientPromise from '@/lib/database/connection/mongodb'
+import getClientPromise from '@/lib/database/connection/mongodb'
 import type { ForumPost } from '@/lib/database/schemas'
 import type { UserInteraction, DetailedInteractionResponse } from '@/lib/types'
 import { statsBroadcaster } from '@/lib/websocket/stats-broadcaster'
@@ -17,7 +17,7 @@ export class StatsManager {
 
   private async getDb(): Promise<Db> {
     if (!this.db) {
-      const client = await clientPromise
+      const client = await getClientPromise()
       this.db = client.db('minecraft_server')
     }
     return this.db
@@ -52,7 +52,7 @@ export class StatsManager {
     const increment = isRemoving ? -1 : 1
 
     // Start transaction for atomic operation
-    const client = await clientPromise
+    const client = await getClientPromise()
     const session = client.startSession()
     
     try {
@@ -150,7 +150,7 @@ export class StatsManager {
     }
 
     // Start transaction
-    const client = await clientPromise
+    const client = await getClientPromise()
     const session = client.startSession()
     
     try {
@@ -525,7 +525,7 @@ export class StatsManager {
     }
 
     // Start transaction
-    const client = await clientPromise
+    const client = await getClientPromise()
     const session = client.startSession()
     
     try {
@@ -795,7 +795,7 @@ export class StatsManager {
     }
 
     // Start transaction
-    const client = await clientPromise
+    const client = await getClientPromise()
     const session = client.startSession()
     
     try {
@@ -867,7 +867,7 @@ export class StatsManager {
     }
 
     // Start transaction
-    const client = await clientPromise
+    const client = await getClientPromise()
     const session = client.startSession()
     
     try {

@@ -1,6 +1,6 @@
 // Server-side auth utilities that can use Node.js runtime
 import { auth } from "@/auth"
-import clientPromise from "@/lib/database/connection/mongodb"
+import getClientPromise from "@/lib/database/connection/mongodb"
 import type { ServerUser } from '@/lib/types'
 
 export async function getServerUser(): Promise<ServerUser | null> {
@@ -26,7 +26,7 @@ export async function getServerUser(): Promise<ServerUser | null> {
 
   // Try to enhance with database data, but don't fail if DB is unavailable
   try {
-    const client = await clientPromise
+    const client = await getClientPromise()
     const db = client.db('minecraft_server')
     
     // First check if user exists

@@ -7,10 +7,18 @@ if (typeof window === 'undefined' && !process.env.MONGODB_URI) {
 
 // Server-side only variables
 let client: MongoClient | undefined
-let clientPromise: Promise<MongoClient>
+let clientPromise: Promise<MongoClient> | undefined
 
 // Only initialize MongoDB client on server-side
-if (typeof window === 'undefined') {
+function initializeConnection(): Promise<MongoClient> {
+  if (typeof window !== 'undefined') {
+    throw new Error('MongoDB connections are not allowed on the client-side')
+  }
+
+  if (clientPromise) {
+    return clientPromise
+  }
+
   const uri = process.env.MONGODB_URI || ''
   const options = {
     // Serverless-optimized timeouts (increased for cold starts)
@@ -45,12 +53,19 @@ if (typeof window === 'undefined') {
     client = new MongoClient(uri, options)
     clientPromise = client.connect()
   }
-} else {
-  // Client-side fallback - return a rejected promise
-  clientPromise = Promise.reject(new Error('MongoDB connections are not allowed on the client-side'))
+
+  return clientPromise
 }
 
-export default clientPromise
+// Lazy initialization - only create connection when actually needed
+const getClientPromise = (): Promise<MongoClient> => {
+  if (typeof window !== 'undefined') {
+    throw new Error('MongoDB connections are not allowed on the client-side')
+  }
+  return initializeConnection()
+}
+
+export default getClientPromise
 
 export async function connectToDatabase() {
   // Only allow database connections on server-side
@@ -58,7 +73,7 @@ export async function connectToDatabase() {
     throw new Error('Database connections are not allowed on the client-side')
   }
   
-  const client = await clientPromise
+  const client = await getClientPromise()
   const db = client.db(process.env.MONGODB_DB || 'minecraft_server')
   return { client, db }
 }

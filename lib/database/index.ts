@@ -10,11 +10,11 @@ export * from './indexes'
 
 // Connection (MongoDB connection)
 export * from './connection'
-export { default as clientPromise, connectToDatabase } from './connection/mongodb'
+export { default as getClientPromise, connectToDatabase } from './connection/mongodb'
 
 // Main database class for easy usage
 import { Db } from 'mongodb'
-import { clientPromise } from './connection'
+import getClientPromise from './connection/mongodb'
 
 export class Database {
   private static instance: Database
@@ -31,7 +31,7 @@ export class Database {
 
   async connect(): Promise<Database> {
     if (!this.db) {
-      const client = await clientPromise
+      const client = await getClientPromise()
       this.db = client.db(process.env.MONGODB_DB || 'minecraft_server')
     }
     return this

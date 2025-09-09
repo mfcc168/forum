@@ -1,7 +1,7 @@
 import NextAuth from "next-auth"
 import Discord from "next-auth/providers/discord"
 import type { NextAuthConfig } from "next-auth"
-import clientPromise from "@/lib/database/connection/mongodb"
+import getClientPromise from "@/lib/database/connection/mongodb"
 
 // NextAuth configuration optimized for Edge Runtime
 export const config = {
@@ -50,7 +50,7 @@ export const config = {
         // Query database for user role on first JWT generation
         if (token.sub && !token.role) {
           try {
-            const client = await clientPromise
+            const client = await getClientPromise()
             const db = client.db(process.env.MONGODB_DB || 'minecraft_server')
             
             // More robust user lookup with timeout
