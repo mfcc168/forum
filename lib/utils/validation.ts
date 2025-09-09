@@ -87,9 +87,16 @@ export function withApiRoute<T extends z.ZodSchema>(
           }
         } catch (error) {
           console.error('Auth error:', error)
+          console.error('Auth error type:', error instanceof Error ? error.constructor.name : 'Unknown')
+          console.error('Auth error message:', error instanceof Error ? error.message : 'Unknown error')
+          console.error('Auth mode:', options.auth)
+          
           if (options.auth === 'required') {
             return ApiResponse.error('Authentication required', 401)
           }
+          // For optional auth, continue with user = undefined
+          console.log('Auth is optional, continuing without user')
+          user = undefined
         }
       }
 
