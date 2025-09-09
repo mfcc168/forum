@@ -446,6 +446,7 @@ export class WikiDAL extends BaseDAL<WikiGuide> {
   async recordInteraction(
     userId: string,
     targetId: string,
+    targetType: 'guide',
     interactionType: 'like' | 'bookmark' | 'helpful' | 'share' | 'view'
   ) {
     // Handle views separately as they don't toggle

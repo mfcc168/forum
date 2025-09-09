@@ -99,6 +99,7 @@ export const POST = withDALAndValidation(
     const result = await dal.wiki.recordInteraction(
       user.id,
       guide.id,
+      'guide',
       action
     )
 
