@@ -95,22 +95,34 @@ export class ForumDAL extends BaseDAL<ForumPost> {
     userId?: string
   ): Promise<PaginatedResponse<ForumPost>> {
     try {
+      console.log('🔍 [ForumDAL] getPosts called with:', { filters, pagination, userId })
       const { page, limit } = pagination
 
       // Build filter and sort using query builder
+      console.log('🛠️ [ForumDAL] Building query filters...')
       const queryBuilder = ForumPostQueryBuilder.fromFilters(filters)
       const filter = queryBuilder.buildFilter()
       const sort = queryBuilder.buildSort()
+      console.log('🛠️ [ForumDAL] Filter:', JSON.stringify(filter, null, 2))
+      console.log('🛠️ [ForumDAL] Sort:', JSON.stringify(sort, null, 2))
 
       // Get total count for pagination
+      console.log('📊 [ForumDAL] Getting total count...')
       const total = await this.count(filter as Filter<ForumPost>)
+      console.log('📊 [ForumDAL] Total posts found:', total)
       
       // Calculate pagination info
       const paginationInfo = calculatePagination(page, limit, total)
+      console.log('📄 [ForumDAL] Pagination info:', paginationInfo)
 
       // Use simplified aggregation pipeline (consistent with wiki pattern)
+      console.log('🔧 [ForumDAL] Creating aggregation pipeline...')
       const pipeline = createPostsAggregationPipeline(filter, sort, paginationInfo.skip, limit, userId)
+      console.log('🔧 [ForumDAL] Pipeline:', JSON.stringify(pipeline, null, 2))
+      
+      console.log('📋 [ForumDAL] Executing aggregation...')
       const rawPosts = await this.aggregate(pipeline)
+      console.log('📋 [ForumDAL] Raw posts retrieved:', rawPosts.length)
 
       // Parse and validate MongoDB documents with Zod schema
       const posts = rawPosts.map(doc => MongoForumPostSchema.parse(doc))

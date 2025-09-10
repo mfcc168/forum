@@ -13,20 +13,33 @@ export const runtime = 'nodejs'
 // GET - Fetch forum posts with enhanced filtering and batch stats
 export const GET = withDALAndValidation(
   async (request: NextRequest, { user, validatedData, dal }: { user?: ServerUser; validatedData: ForumQueryData; dal: typeof DAL }) => {
+    console.log('🌐 [API] /forum/posts GET request received')
+    console.log('🌐 [API] User:', user ? `${user.name} (${user.id})` : 'Anonymous')
+    console.log('🌐 [API] Query data:', validatedData)
+    
     const { page, limit, category, search, sortBy, status } = validatedData
 
-    // Use DAL instead of direct database queries
-    const result = await dal.forum.getPosts(
-      { category, search, sortBy, status },
-      { page, limit },
-      user?.id
-    )
+    try {
+      console.log('📡 [API] Calling DAL.forum.getPosts...')
+      // Use DAL instead of direct database queries
+      const result = await dal.forum.getPosts(
+        { category, search, sortBy, status },
+        { page, limit },
+        user?.id
+      )
 
-    return ApiResponse.success({
-      forumPosts: result.data,
-      pagination: result.pagination,
-      filters: { category, search, sortBy, status }
-    })
+      console.log('✅ [API] Successfully retrieved forum posts:', result.data.length)
+      console.log('✅ [API] Pagination:', result.pagination)
+
+      return ApiResponse.success({
+        forumPosts: result.data,
+        pagination: result.pagination,
+        filters: { category, search, sortBy, status }
+      })
+    } catch (error) {
+      console.error('❌ [API] Error in forum posts route:', error)
+      throw error
+    }
   },
   {
     schema: forumQuerySchema,
