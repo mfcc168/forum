@@ -426,7 +426,7 @@ export class StatsManager {
       const increment = isRemoving ? -1 : 1
 
       // Start transaction for atomic operation
-      const client = await clientPromise
+      const client = await getClientPromise()
       const session = client.startSession()
       
       try {
@@ -672,7 +672,7 @@ export class StatsManager {
       const increment = isRemoving ? -1 : 1
 
       // Start transaction for atomic operation
-      const client = await clientPromise
+      const client = await getClientPromise()
       const session = client.startSession()
       
       try {
