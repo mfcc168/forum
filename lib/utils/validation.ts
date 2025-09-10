@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { ratelimit } from '@/lib/utils/ratelimit'
-import DOMPurify from 'isomorphic-dompurify'
+import { sanitizeHtml } from '@/lib/utils/html'
 import { getServerUser } from '@/lib/auth/server'
 import type { ServerUser } from "@/lib/types"
 
@@ -156,17 +156,7 @@ export function withApiRoute<T extends z.ZodSchema>(
   }
 }
 
-// HTML sanitization utility
-export function sanitizeHtml(html: string): string {
-  return DOMPurify.sanitize(html, {
-    ALLOWED_TAGS: [
-      'p', 'br', 'strong', 'em', 'u', 's', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-      'ul', 'ol', 'li', 'blockquote', 'pre', 'code', 'a', 'img'
-    ],
-    ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'target'],
-    ALLOW_DATA_ATTR: false
-  })
-}
+// HTML sanitization is now handled by html.ts utility
 
 // Recursively sanitize object properties
 function sanitizeObject(obj: unknown): unknown {

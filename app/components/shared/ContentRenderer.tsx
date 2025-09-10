@@ -1,7 +1,7 @@
 'use client'
 
 import { memo, useMemo } from 'react'
-import { sanitizeHtml } from '@/lib/utils/validation'
+import { sanitizeHtml } from '@/lib/utils/html'
 
 export interface ContentRendererProps {
   /** HTML content to render */

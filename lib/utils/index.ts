@@ -4,10 +4,10 @@ export function cn(...inputs: ClassValue[]) {
   return clsx(inputs);
 }
 
-// Re-export utilities for centralized access
+// Re-export utilities for centralized access (client-safe only)
 export * from './error-handler'
 export * from './errors'
-export * from './validation'
+// Note: validation is excluded - use direct import for server-side only
 export * from './slug'
 export * from './meta'
 export * from './html'

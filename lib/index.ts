@@ -10,7 +10,7 @@ export {
 
 // Database exports (only operations, not duplicate types)
 export { 
-  clientPromise, 
+  getClientPromise, 
   connectToDatabase, 
   Database, 
   getDatabase,

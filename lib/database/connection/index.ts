@@ -2,4 +2,4 @@
 // DATABASE CONNECTION - Clean, organized exports
 // =============================================
 
-export { default as clientPromise, connectToDatabase } from './mongodb'
+export { default as getClientPromise, connectToDatabase } from './mongodb'
