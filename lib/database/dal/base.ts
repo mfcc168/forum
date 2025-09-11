@@ -21,10 +21,8 @@ export abstract class BaseDAL<T extends { _id?: string | ObjectId } | { id?: str
    */
   protected async init(): Promise<void> {
     if (!this.db) {
-      console.log(`🔗 [${this.collectionName}] Initializing database connection...`)
       const database = await getDatabase()
       this.db = database.getDb()
-      console.log(`✅ [${this.collectionName}] Database initialized`)
     }
   }
 
@@ -33,7 +31,6 @@ export abstract class BaseDAL<T extends { _id?: string | ObjectId } | { id?: str
    */
   protected async getCollection(): Promise<Collection<T>> {
     await this.init()
-    console.log(`📂 [${this.collectionName}] Getting collection`)
     return this.db.collection<T>(this.collectionName)
   }
 

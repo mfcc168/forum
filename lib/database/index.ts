@@ -31,12 +31,9 @@ export class Database {
 
   async connect(): Promise<Database> {
     if (!this.db) {
-      console.log('🔗 [Database] Connecting to database...')
       const client = await getClientPromise()
       const dbName = process.env.MONGODB_DB || 'minecraft_server'
-      console.log('🔗 [Database] Using database:', dbName)
       this.db = client.db(dbName)
-      console.log('✅ [Database] Database connection established')
     }
     return this
   }
