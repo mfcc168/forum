@@ -104,16 +104,6 @@ export function useBlogCategories() {
   })
 }
 
-/**
- * Search blog posts
- */
-export function useBlogSearch(query: string, options: Omit<UseBlogPostsOptions, 'search'> = {}) {
-  return useBlogPosts({
-    ...options,
-    search: query,
-    enabled: !!query && query.length >= 1 // Allow single character searches
-  })
-}
 
 /**
  * Get blog statistics

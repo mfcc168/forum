@@ -700,7 +700,11 @@ export const zhTW = {
     
     stats: {
       monsters: '怪物總數',
-      totalViews: '總瀏覽量'
+      totalViews: '總瀏覽量',
+      author: '作者',
+      created: '建立時間',
+      views: '瀏覽量',
+      likes: '喜歡數'
     },
     
     search: {
@@ -723,6 +727,7 @@ export const zhTW = {
     },
     
     categories: {
+      title: '分類',
       hostile: '敵對',
       passive: '被動',
       neutral: '中立',
@@ -982,7 +987,47 @@ export const zhTW = {
       editMonster: '編輯怪物',
       deleteMonster: '刪除怪物',
       viewMonster: '查看怪物',
-      backToDex: '返回圖鑑'
+      backToDex: '返回圖鑑',
+      title: '操作'
+    },
+    
+    navigation: {
+      backToDex: '返回圖鑑',
+      home: '首頁',
+      newMonster: '新增怪物'
+    },
+    
+    sidebar: {
+      exploreMore: '探索更多',
+      allMonsters: '所有怪物',
+      communityForum: '社群論壇',
+      serverWiki: '伺服器指南',
+      monsterInfo: '怪物資訊'
+    },
+    
+    adminNotice: {
+      title: '僅限管理員',
+      description: '只有管理員可以建立和編輯怪物。如需新增內容請聯繫管理員。'
+    },
+    
+    meta: {
+      author: '作者',
+      tags: '標籤'
+    },
+    
+    emptyState: {
+      title: '找不到怪物',
+      description: '建立您的第一隻怪物來開始使用',
+      createFirst: '建立第一隻怪物'
+    },
+    
+    categoryNames: {
+      common: '常見',
+      elite: '精英',
+      boss: '頭目',
+      rare: '稀有',
+      legendary: '傳說',
+      npc: 'NPC'
     }
   },
 

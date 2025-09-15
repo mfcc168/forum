@@ -60,8 +60,19 @@ export function useDexMonster(slug: string, options: {
 // DEX CRUD OPERATIONS
 // ============================================================================
 
-// Custom create and update hooks removed - now using generic content hooks
-// The enhanced ContentForm with nested field paths handles data transformation automatically
+/**
+ * Create dex monster
+ */
+export function useCreateDexMonster() {
+  return dexHooks.useCreateContent()
+}
+
+/**
+ * Update dex monster
+ */
+export function useUpdateDexMonster() {
+  return dexHooks.useUpdateContent()
+}
 
 /**
  * Delete dex monster

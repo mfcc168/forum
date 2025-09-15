@@ -83,16 +83,6 @@ export function useForumPostInteraction() {
 // FORUM-SPECIFIC HOOKS
 // ============================================================================
 
-/**
- * Search forum posts
- */
-export function useForumSearch(query: string, options: Omit<UseForumPostsOptions, 'search'> = {}) {
-  return useForumPosts({
-    ...options,
-    search: query,
-    enabled: !!query && query.length >= 1 // Allow single character searches
-  })
-}
 
 /**
  * Get forum statistics

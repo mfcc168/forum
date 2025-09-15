@@ -6,6 +6,7 @@ import { useSession } from 'next-auth/react'
 import { usePermissions } from '@/lib/hooks/usePermissions'
 import { useTranslation } from '@/lib/contexts/LanguageContext'
 import { SearchInput } from '@/app/components/shared/SearchInput'
+import { ClientSearchFilter } from '@/app/components/shared/ClientSearchFilter'
 import { Icon } from '@/app/components/ui/Icon'
 import dynamic from 'next/dynamic'
 import type { DexMonster, DexStats, DexCategory } from '@/lib/types'
@@ -79,44 +80,12 @@ export function DexContent({
   const emptyTitle = t.dex?.empty?.title || (isZhTW ? '找不到怪物' : 'No monsters found')
   const emptyDescription = t.dex?.empty?.description || (isZhTW ? '請調整搜尋條件或篩選器以找到更多怪物。' : 'Try adjusting your search or filters to find more monsters.')
 
-  // Filter monsters based on search and filters (only when using initial data)
-  const filteredMonsters = useMemo(() => {
-    // If using hook data with filters, return as-is (already filtered by the API)
-    if (hookMonsters && hookMonsters.length > 0 && (selectedCategory !== 'all' || selectedElement !== 'all' || selectedRace !== 'all' || searchQuery)) {
-      return hookMonsters
-    }
-
-    // Otherwise filter the monsters (initial data or unfiltered hook data)
-    let filtered = monsters
-
-    // Filter by category
-    if (selectedCategory !== 'all') {
-      filtered = filtered.filter(monster => monster.category === selectedCategory)
-    }
-
-    // Filter by element
-    if (selectedElement !== 'all') {
-      filtered = filtered.filter(monster => monster.element === selectedElement)
-    }
-
-    // Filter by race
-    if (selectedRace !== 'all') {
-      filtered = filtered.filter(monster => monster.race === selectedRace)
-    }
-
-    // Filter by search query
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase()
-      filtered = filtered.filter(monster => 
-        monster.name.toLowerCase().includes(query) ||
-        (monster.description && monster.description.toLowerCase().includes(query)) ||
-        monster.behaviors.some(behavior => behavior.toLowerCase().includes(query)) ||
-        monster.tags.some(tag => tag.toLowerCase().includes(query))
-      )
-    }
-
-    return filtered
-  }, [monsters, hookMonsters, selectedCategory, selectedElement, selectedRace, searchQuery])
+  // Create filters object for ClientSearchFilter
+  const filters = useMemo(() => ({
+    category: selectedCategory !== 'all' ? selectedCategory : undefined,
+    element: selectedElement !== 'all' ? selectedElement : undefined,
+    race: selectedRace !== 'all' ? selectedRace : undefined
+  }), [selectedCategory, selectedElement, selectedRace])
 
   // Get unique filter values from monsters
   const categories = useMemo(() => {
@@ -236,31 +205,45 @@ export function DexContent({
           </div>
         </div>
 
-        {/* Results Count */}
-        <div className="mt-4 text-sm text-gray-600">
-          {showingLabel} {filteredMonsters.length} {ofLabel} {initialMonsters.length} {monstersLabel}
-        </div>
       </div>
 
-      {/* Monster Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {filteredMonsters.map((monster) => (
-          <MonsterCard key={monster.id} monster={monster} />
-        ))}
-      </div>
+      {/* Client-Side Filtered Monster Grid */}
+      <ClientSearchFilter
+        data={monsters}
+        searchQuery={searchQuery}
+        filters={filters}
+        searchFields={['name', 'description', 'excerpt']}
+        categoryField="category"
+      >
+        {(filteredMonsters) => (
+          <>
+            {/* Results Count */}
+            <div className="mb-4 text-sm text-gray-600">
+              {showingLabel} {filteredMonsters.length} {ofLabel} {monsters.length} {monstersLabel}
+            </div>
 
-      {/* Empty State */}
-      {filteredMonsters.length === 0 && (
-        <div className="text-center py-12">
-          <div className="text-6xl mb-4">🔍</div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">
-            {emptyTitle}
-          </h3>
-          <p className="text-gray-600">
-            {emptyDescription}
-          </p>
-        </div>
-      )}
+            {filteredMonsters.length === 0 ? (
+              /* Empty State */
+              <div className="text-center py-12">
+                <div className="text-6xl mb-4">🔍</div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  {emptyTitle}
+                </h3>
+                <p className="text-gray-600">
+                  {emptyDescription}
+                </p>
+              </div>
+            ) : (
+              /* Monster Grid */
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {filteredMonsters.map((monster) => (
+                  <MonsterCard key={monster.id} monster={monster} />
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </ClientSearchFilter>
     </div>
   )
 }

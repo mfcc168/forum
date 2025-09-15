@@ -1,18 +1,6 @@
 import { z } from 'zod'
 import { paginationSchema } from '@/lib/utils/validation'
-
-// Content validation helper (consistent with forum/blog)
-const htmlContentSchema = z.string()
-  .min(1, 'Content is required')
-  .max(50000, 'Content must be less than 50000 characters')
-  .refine(
-    (content) => {
-      // Basic HTML validation - ensure content has meaningful text
-      const textContent = content.replace(/<[^>]*>/g, '').trim()
-      return textContent.length > 0
-    },
-    { message: 'Content must contain text, not just HTML tags' }
-  )
+import { htmlContentSchema } from './common'
 
 // Wiki Guide Creation Schema (consistent with blog patterns)
 export const createWikiGuideSchema = z.object({

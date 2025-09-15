@@ -687,7 +687,11 @@ export const en = {
     
     stats: {
       monsters: 'Total Monsters',
-      totalViews: 'Total Views'
+      totalViews: 'Total Views',
+      author: 'Author',
+      created: 'Created',
+      views: 'Views',
+      likes: 'Likes'
     },
     
     search: {
@@ -710,6 +714,7 @@ export const en = {
     },
     
     categories: {
+      title: 'Category',
       hostile: 'Hostile',
       passive: 'Passive',
       neutral: 'Neutral',
@@ -969,7 +974,47 @@ export const en = {
       editMonster: 'Edit Monster',
       deleteMonster: 'Delete Monster',
       viewMonster: 'View Monster',
-      backToDex: 'Back to Dex'
+      backToDex: 'Back to Dex',
+      title: 'Actions'
+    },
+    
+    navigation: {
+      backToDex: 'Back to Dex',
+      home: 'Home',
+      newMonster: 'New Monster'
+    },
+    
+    sidebar: {
+      exploreMore: 'Explore More',
+      allMonsters: 'All Monsters',
+      communityForum: 'Community Forum',
+      serverWiki: 'Server Wiki',
+      monsterInfo: 'Monster Info'
+    },
+    
+    adminNotice: {
+      title: 'Admin Only',
+      description: 'Only administrators can create and edit monsters. Contact an admin if you need to add content.'
+    },
+    
+    meta: {
+      author: 'Author',
+      tags: 'Tags'
+    },
+    
+    emptyState: {
+      title: 'No monsters found',
+      description: 'Create your first monster entry to get started',
+      createFirst: 'Create First Monster'
+    },
+    
+    categoryNames: {
+      common: 'Common',
+      elite: 'Elite',
+      boss: 'Boss',
+      rare: 'Rare',
+      legendary: 'Legendary',
+      npc: 'NPC'
     }
   },
   

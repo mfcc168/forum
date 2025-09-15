@@ -14,6 +14,8 @@ export { default as CategoryBadge } from './CategoryBadge'
 export { default as ActionButton } from './ActionButton'
 export { default as ContentRenderer } from './ContentRenderer'
 export { SearchInput, SearchResultsHeader } from './SearchInput'
+export { ClientSearchFilter, SafeClientSearchFilter, useClientSearchFilter } from './ClientSearchFilter'
+export { SearchErrorBoundary } from './SearchErrorBoundary'
 export { EmptyState } from '@/app/components/ui/EmptyState'
 export { LoadingSpinner, Skeleton } from '@/app/components/ui/LoadingSpinner'
 

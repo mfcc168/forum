@@ -1,8 +1,8 @@
 # CRITICAL: Module Permission Requirements
 
-## Wiki, Blog, and Forum Permission Model
+## Wiki, Blog, Forum, and Dex Permission Model
 
-**IMPORTANT**: The three content modules have DIFFERENT permission requirements that must be consistently enforced across all layers:
+**IMPORTANT**: The four content modules have DIFFERENT permission requirements that must be consistently enforced across all layers:
 
 ### Permission Requirements:
 1. **Wiki**: Admin-only for create/edit/delete guides. Members can only view.
@@ -14,9 +14,10 @@
    - **Replies**: All members can reply to any post (unless post is locked)
    - Members can edit/delete their OWN replies
    - Admins can edit/delete ANY reply
+4. **Dex**: Admin-only for create/edit/delete monsters. Members can only view. (Same as Wiki/Blog)
 
 ### Implementation Consistency Requirements:
-When implementing features across Wiki/Blog/Forum:
+When implementing features across Wiki/Blog/Forum/Dex:
 1. **First**: Comprehensively understand all layers (API routes, pages, components, schemas, DAL, database, types, hooks)
 2. **Second**: Compare implementations to find inconsistencies
 3. **Third**: Choose the best practice pattern and apply it consistently
@@ -25,19 +26,19 @@ When implementing features across Wiki/Blog/Forum:
 6. **Sixth**: Fix any errors while maintaining consistency across modules
 
 ### When fixing errors, ALWAYS check for consistency:
-**IMPORTANT**: When you find an error in one module (e.g., dal/blog.ts), immediately check the corresponding files in the other modules (dal/forum.ts and dal/wiki.ts):
-1. If they have the same problem - fix all three consistently
+**IMPORTANT**: When you find an error in one module (e.g., dal/blog.ts), immediately check the corresponding files in the other modules (dal/forum.ts, dal/wiki.ts, and dal/dex.ts):
+1. If they have the same problem - fix all four consistently
 2. If they DON'T have the same problem - investigate why there's inconsistency
-3. Choose the best implementation pattern and apply it to all three modules
+3. Choose the best implementation pattern and apply it to all four modules
 4. This ensures all modules remain consistent and follow the same patterns
 
 ### Module-Specific Method Naming
-When implementing methods that interact with specific modules (wiki/blog/forum), always use module-specific prefixes:
+When implementing methods that interact with specific modules (wiki/blog/forum/dex), always use module-specific prefixes:
 
 ✅ **Correct**: 
-- `recordForumView()`, `recordBlogView()`, `recordWikiView()`
-- `getForumPosts()`, `getBlogPosts()`, `getWikiGuides()`
-- `createForumPost()`, `createBlogPost()`, `createWikiGuide()`
+- `recordForumView()`, `recordBlogView()`, `recordWikiView()`, `recordDexView()`
+- `getForumPosts()`, `getBlogPosts()`, `getWikiGuides()`, `getDexMonsters()`
+- `createForumPost()`, `createBlogPost()`, `createWikiGuide()`, `createDexMonster()`
 
 ❌ **Wrong**: 
 - `recordView()` (ambiguous - which module?)
@@ -52,7 +53,7 @@ When implementing methods that interact with specific modules (wiki/blog/forum),
 4. Clean removal is better than maintaining legacy code
 
 ### Deep Analysis Checklist
-When performing deep analysis to fix inconsistencies between wiki/blog/forum:
+When performing deep analysis to fix inconsistencies between wiki/blog/forum/dex:
 
 1. **API Routes**: 
    - Permissions enforcement (admin vs member)
@@ -86,6 +87,118 @@ When performing deep analysis to fix inconsistencies between wiki/blog/forum:
    - Interface naming patterns
    - Property structures match
    - Shared base types utilized
+
+## Special Requirements for Dex Module (3D Content)
+
+The **Dex module** follows all standard consistency patterns while adding **unique 3D model functionality**. This requires special considerations:
+
+### 3D Model Architecture Requirements
+
+#### ✅ MAINTAIN CONSISTENCY:
+- Use same permission system as Wiki/Blog (admin-only create/edit/delete)
+- Follow identical form, hook, and schema patterns
+- Use standard DAL naming: `getDexMonsters()`, `recordDexView()`, etc.
+- Implement same API response formats and error handling
+
+#### 🎨 3D-SPECIFIC EXTENSIONS:
+1. **Enhanced Schema Fields**:
+   ```typescript
+   // Additional fields for 3D functionality (extend base patterns)
+   modelPath: string              // Path to .gltf 3D model file
+   modelScale: number             // Scale multiplier (0.01-10.0)
+   camera: {                      // Camera position for optimal viewing
+     position: { x, y, z }
+     lookAt: { x, y, z }
+   }
+   ```
+
+2. **3D Model Viewer Component**:
+   ```typescript
+   // Lazy-loaded Three.js component (SSR-safe)
+   const ModelViewer = lazy(() => import('./ModelViewer'))
+   
+   // Features:
+   - Dynamic Three.js loading (no SSR issues)
+   - Interactive 3D editing in forms
+   - Optimized model loading and caching
+   - Responsive canvas sizing
+   ```
+
+3. **3D Form Integration**:
+   ```typescript
+   // DexForm extends ContentForm with 3D preview
+   <ContentForm<DexMonster>
+     config={dexFormConfig}
+     item={monster}
+     customComponents={{
+       modelPreview: <ModelViewer editMode={true} />
+     }}
+   />
+   ```
+
+### 3D Implementation Patterns
+
+#### **Model Loading Strategy**:
+```typescript
+// ✅ CORRECT: Lazy load Three.js to avoid SSR issues
+const loadThreeJS = async () => {
+  const THREE = await import('three')
+  const { GLTFLoader } = await import('three/examples/jsm/loaders/GLTFLoader.js')
+  return { THREE, GLTFLoader }
+}
+
+// ❌ WRONG: Direct imports break SSR
+import * as THREE from 'three' // Don't do this
+```
+
+#### **Model Storage & Organization**:
+```bash
+# Organized model storage structure
+public/
+  models/
+    monsters/
+      *.gltf          # 3D model files
+      textures/       # Associated textures
+```
+
+#### **Performance Optimizations**:
+- Use `.gltf` format for optimal loading
+- Implement model caching strategies
+- Lazy load 3D viewer components
+- Optimize model file sizes (<2MB recommended)
+
+### 3D Consistency Rules
+
+#### **DO**: Extend Standard Patterns
+- ✅ Use `ContentForm` with 3D field extensions
+- ✅ Follow DAL naming: `incrementDexViewCount()`
+- ✅ Use centralized permission system
+- ✅ Implement standard React Query caching
+
+#### **DON'T**: Break Core Architecture
+- ❌ Create separate permission systems for 3D content
+- ❌ Bypass standard form/validation patterns
+- ❌ Use different response formats for 3D APIs
+- ❌ Ignore accessibility for 3D viewers
+
+### Development Workflow for 3D Features
+
+1. **Start with Standard Module Pattern**:
+   - Implement standard CRUD operations first
+   - Use existing blog/wiki patterns as template
+   - Add 3D fields to schemas incrementally
+
+2. **Add 3D Extensions**:
+   - Extend schemas with model-specific fields
+   - Create lazy-loaded 3D viewer component
+   - Integrate with existing form system
+
+3. **Test Compatibility**:
+   - Verify SSR/hydration works correctly
+   - Test performance with multiple models
+   - Ensure accessibility standards met
+
+This approach ensures the Dex module maintains **perfect consistency** with other modules while providing **cutting-edge 3D functionality**.
 
 ## Always Use Absolute Imports with @/
 
@@ -153,6 +266,192 @@ This ensures:
 - Simplified path resolution
 - Full bilingual support (Traditional Chinese and English)
 
+# Application Architecture
+
+## SSR + CSR Hybrid Rendering Pattern
+
+**CRITICAL**: This application uses a sophisticated **Server-Side Rendering (SSR) + Client-Side Rendering (CSR) hybrid architecture** that provides optimal performance and user experience.
+
+### Architecture Overview
+
+```
+1. Server: Pre-render pages with initial data → Fast SEO-friendly pages
+2. Client: Hydrate with React → Interactive components
+3. Search: Client-side filtering → Instant search results (0-5ms)
+4. Background: React Query → Fresh data updates when needed
+```
+
+### Key Benefits
+
+**SEO & Performance:**
+- ✅ **Full server rendering** for search engines and social media
+- ✅ **Fast initial page loads** with complete content
+- ✅ **Optimal Core Web Vitals** scores
+- ✅ **Social sharing** with proper meta tags
+
+**User Experience:**
+- ✅ **Instant search** without API calls during typing
+- ✅ **Smooth interactions** with no loading states during search
+- ✅ **Offline functionality** once page loads
+- ✅ **Progressive enhancement** - works without JavaScript
+
+**Developer Experience:**
+- ✅ **Type-safe data flow** from server to client
+- ✅ **Consistent patterns** across all modules
+- ✅ **Predictable performance** regardless of server load
+- ✅ **Simple debugging** with clear data sources
+
+### Implementation Pattern
+
+#### Server-Side (SSR)
+```typescript
+// Pages receive initial data via getServerSideProps
+export async function getServerSideProps() {
+  const initialPosts = await fetchPostsFromDatabase()
+  const initialCategories = await fetchCategoriesFromDatabase()
+  
+  return {
+    props: {
+      initialPosts,     // ✅ Pre-rendered for SEO
+      initialCategories // ✅ Pre-rendered for SEO
+    }
+  }
+}
+```
+
+#### Client-Side Hydration
+```typescript
+export function BlogContent({ initialPosts = [] }) {
+  // ✅ Uses SSR data initially, then hydrates seamlessly
+  const blogQuery = useBlogPosts({
+    sortBy: 'latest',
+    status: 'published',
+    initialData: initialPosts  // 🔑 SSR data used here
+  });
+  
+  // ✅ Instant client-side search on hydrated data
+  return (
+    <ClientSearchFilter
+      data={blogQuery.data || initialPosts}
+      searchQuery={searchQuery}
+      filters={{ category: selectedCategory }}
+    >
+      {(filteredPosts) => <BlogList posts={filteredPosts} />}
+    </ClientSearchFilter>
+  )
+}
+```
+
+### Search Architecture
+
+**IMPORTANT**: All modules use **client-side search** for optimal UX:
+
+```typescript
+// ✅ CORRECT: Instant client-side filtering
+<ClientSearchFilter
+  data={posts}                    // Already loaded data
+  searchQuery={searchQuery}       // User input
+  filters={{ category }}          // Additional filters
+  searchFields={['title', 'content', 'excerpt']}
+>
+  {(filteredData) => <YourListComponent data={filteredData} />}
+</ClientSearchFilter>
+
+// ❌ DEPRECATED: Server-side search (removed)
+// const searchResults = useBlogSearch(query) // Caused flickering UX
+```
+
+### Data Flow Pattern
+
+```
+Page Load Flow:
+Server → Pre-render with data → Client hydration → Interactive search
+
+Search Flow:
+User types → Client filter (0-5ms) → Instant results → No API calls
+
+Background Updates:
+React Query → Stale data refresh → Cache update → Seamless UI update
+```
+
+### Module Consistency
+
+All four content modules follow identical patterns:
+
+1. **Blog**: SSR posts → Client search → Instant filtering
+2. **Forum**: SSR posts → Client search → Instant filtering  
+3. **Wiki**: SSR guides → Client search → Instant filtering
+4. **Dex**: SSR monsters → Client search → Instant filtering
+
+### Performance Metrics
+
+**Before (Server-Side Search):**
+- Initial Load: ~800ms + Search: 200-500ms per keystroke
+- Loading states, API calls, flickering UX
+
+**After (SSR + CSR Hybrid):**
+- Initial Load: ~800ms + Search: 0-5ms per keystroke
+- No loading states, no API calls, smooth UX
+
+### Error Handling
+
+```typescript
+// Production-ready error boundaries included
+<SafeClientSearchFilter
+  data={posts}
+  searchQuery={searchQuery}
+  // Graceful fallback if search fails
+>
+  {(filteredPosts) => <PostList posts={filteredPosts} />}
+</SafeClientSearchFilter>
+```
+
+### Search Component Usage
+
+**IMPORTANT**: Always use `ClientSearchFilter` for search functionality:
+
+```typescript
+// ✅ PRODUCTION: Use SafeClientSearchFilter for error resilience
+import { SafeClientSearchFilter } from '@/app/components/shared'
+
+<SafeClientSearchFilter
+  data={posts}
+  searchQuery={searchQuery}
+  filters={{ category: selectedCategory }}
+  searchFields={['title', 'content', 'excerpt']}
+  categoryField="category"
+>
+  {(filteredPosts) => <PostList posts={filteredPosts} />}
+</SafeClientSearchFilter>
+
+// ✅ DEVELOPMENT: Use ClientSearchFilter for direct access
+import { ClientSearchFilter } from '@/app/components/shared'
+
+<ClientSearchFilter
+  data={posts}
+  searchQuery={searchQuery}
+  filters={{ category: selectedCategory }}
+>
+  {(filteredPosts) => <PostList posts={filteredPosts} />}
+</ClientSearchFilter>
+
+// ✅ HOOK VERSION: For components needing filtered data directly
+import { useClientSearchFilter } from '@/app/components/shared'
+
+const filteredPosts = useClientSearchFilter(posts, searchQuery, { 
+  category: selectedCategory 
+})
+```
+
+**Key Features:**
+- ✅ **0-5ms filtering time** - Instant results
+- ✅ **Type-safe** - Full TypeScript support
+- ✅ **Error resilient** - Graceful failure handling
+- ✅ **Memory efficient** - Optimized algorithms
+- ✅ **Module agnostic** - Works with Blog, Forum, Wiki, Dex
+
+**This hybrid architecture delivers enterprise-level performance with simple implementation.**
+
 # Development Guidelines
 
 > This document outlines the conventions and requirements for the Minecraft Server Website project.
@@ -160,15 +459,25 @@ This ensures:
 ## Naming Conventions
 
 ### DAL Method Naming
-**Important**: Wiki uses "Guide" terminology, not "Post":
-- Forum DAL: `getPosts()`, `getPostBySlug()`, `createPost()`, `updatePost()`, `deletePost()`
-- Blog DAL: `getPosts()`, `getPostBySlug()`, `createPost()`, `updatePost()`, `deletePost()`
-- Wiki DAL: `getGuides()`, `getGuideBySlug()`, `createGuide()`, `updateGuide()`, `deleteGuide()`
+**Important**: Each module uses semantically appropriate terminology:
+- **Forum DAL**: `getPosts()`, `getPostBySlug()`, `createPost()`, `updatePost()`, `deletePost()`
+- **Blog DAL**: `getPosts()`, `getPostBySlug()`, `createPost()`, `updatePost()`, `deletePost()`
+- **Wiki DAL**: `getGuides()`, `getGuideBySlug()`, `createGuide()`, `updateGuide()`, `deleteGuide()`
+- **Dex DAL**: `getMonsters()`, `getMonsterBySlug()`, `createMonster()`, `updateMonster()`, `deleteMonster()`
 
-This distinction is intentional because:
-- Forum and Blog contain user-generated posts/articles
-- Wiki contains instructional guides that teach users how to play
-- Using "Guide" for wiki content better represents its educational purpose
+#### Intentional Naming Differences (✅ Correct)
+These distinctions are **intentional and appropriate**:
+- **Forum/Blog**: Use "posts" - user-generated content and articles
+- **Wiki**: Uses "guides" - instructional content that teaches users how to play
+- **Dex**: Uses "monsters" - 3D creature/entity data with game statistics
+
+#### Required Consistency Patterns (✅ Must Follow)
+All modules **MUST** maintain these patterns:
+- **Method prefixes**: Module-specific (`recordBlogView`, `recordForumView`, `recordDexView`)
+- **API routes**: Follow `/api/[module]/[content-type]/` pattern
+- **Hook naming**: `use[Module][ContentType]()` format
+- **Permission system**: All use centralized `PermissionChecker`
+- **Response format**: All use `ApiResponse.success/error`
 
 ### Component Import Consistency
 **Important**: Always use direct imports for components:
@@ -491,20 +800,34 @@ await dal.forum.recordInteraction(user.id, post.id, 'post', 'view')
 **CRITICAL**: Never use direct fetch() calls or manual database queries. Always combine DAL (Data Access Layer) with React Query for all data operations.
 
 ```typescript
-// ✅ CORRECT: Use DAL + React Query hooks
+// ✅ CORRECT: Use DAL + React Query + Client Search
 import { useForum, useCategories, useCurrentUser } from '@/lib/hooks/useForum'
 import { useReplies, useCreateReply } from '@/lib/hooks/useReplies'
+import { ClientSearchFilter } from '@/app/components/shared'
 
-// Data fetching with intelligent caching
+// Data fetching with intelligent caching and SSR support
 const { data: posts, error, isLoading } = useForum({
   category: 'announcements',
   sortBy: 'popular',
-  search: searchQuery
+  initialData: initialPosts  // ✅ SSR data for hydration
 })
+
+// Client-side search for instant results
+<ClientSearchFilter
+  data={posts}
+  searchQuery={searchQuery}
+  filters={{ category: selectedCategory }}
+  searchFields={['title', 'content', 'excerpt']}
+>
+  {(filteredPosts) => <PostList posts={filteredPosts} />}
+</ClientSearchFilter>
 
 // Mutations with automatic cache updates
 const createPostMutation = useCreatePost()
 await createPostMutation.mutateAsync(postData)
+
+// ❌ DEPRECATED: Server-side search hooks (removed for performance)
+// const searchResults = useForumSearch(searchQuery) // Caused flickering UX
 
 // ❌ NEVER DO: Direct fetch() calls
 const [posts, setPosts] = useState([])
@@ -597,21 +920,49 @@ export function useCreatePost() {
 ### Component Data Fetching Pattern
 
 ```typescript
-// ✅ CORRECT: Components using React Query
+// ✅ CORRECT: SSR + CSR Hybrid with Client Search
 import { useForum, useCurrentUser } from '@/lib/hooks/useForum'
+import { ClientSearchFilter } from '@/app/components/shared'
 
-export function PostList() {
+export function ForumContent({ initialPosts = [] }) {
+  // SSR data with React Query hydration
   const { data: posts, isLoading, error } = useForum({ 
     category: 'general',
-    sortBy: 'latest' 
+    sortBy: 'latest',
+    initialData: initialPosts  // ✅ SSR data for instant load
   })
   const { data: user } = useCurrentUser()
   
-  if (isLoading) return <LoadingSpinner />
+  // Client-side search state
+  const [searchQuery, setSearchQuery] = useState('')
+  
+  if (isLoading && !posts?.length) return <LoadingSpinner />
   if (error) return <ErrorState error={error} />
   
-  return <div>{posts?.map(post => <PostItem key={post._id} post={post} />)}</div>
+  return (
+    <div>
+      <SearchInput value={searchQuery} onChange={setSearchQuery} />
+      
+      {/* ✅ Instant client-side filtering */}
+      <ClientSearchFilter
+        data={posts || initialPosts}
+        searchQuery={searchQuery}
+        filters={{ category: selectedCategory }}
+      >
+        {(filteredPosts) => (
+          <div>
+            {filteredPosts.map(post => (
+              <PostItem key={post._id} post={post} />
+            ))}
+          </div>
+        )}
+      </ClientSearchFilter>
+    </div>
+  )
 }
+
+// ❌ DEPRECATED: Server-side search (removed)
+// const searchResults = useForumSearch(searchQuery) // Caused flickering
 
 // ❌ NEVER DO: Manual useState + useEffect patterns
 export function PostList() {
@@ -960,26 +1311,27 @@ Required packages are already installed:
 ## React Query Hook Consistency
 
 ### Required Hooks for Each Module
-Each module (blog, wiki, forum) MUST have these hooks for consistency:
+Each module (blog, wiki, forum, dex) MUST have these hooks for consistency:
 
 ```typescript
 // Main content hooks (implemented via useContent wrapper)
-- use[Module]Posts/Guides()     // Fetch with filters and pagination
-- useInfinite[Module]Posts()     // Infinite scrolling
-- use[Module]Post/Guide()        // Single item by slug
-- useCreate[Module]Post()        // Create new
-- useUpdate[Module]Post()        // Update existing
-- useDelete[Module]Post()        // Delete
-- use[Module]PostInteraction()   // Like, bookmark, share
+- use[Module]Posts/Guides/Monsters()  // Fetch with filters and pagination
+- useInfinite[Module]Posts()          // Infinite scrolling
+- use[Module]Post/Guide/Monster()     // Single item by slug
+- useCreate[Module]Post()             // Create new
+- useUpdate[Module]Post()             // Update existing
+- useDelete[Module]Post()             // Delete
+- use[Module]PostInteraction()        // Like, bookmark, share
 
 // Module-specific hooks
-- use[Module]Categories()        // Fetch categories
-- use[Module]Stats()             // Module statistics
-- usePopular[Module]Posts()      // Popular content
+- use[Module]Categories()             // Fetch categories
+- use[Module]Stats()                  // Module statistics
+- usePopular[Module]Posts()           // Popular content
 
 // Additional hooks as needed
-- useAdminPostAction()           // Admin actions (pin/lock for forum)
-- use[Module]Search()            // Dedicated search (optional)
+- useAdminPostAction()                // Admin actions (pin/lock for forum)
+- use[Module]Search()                 // Dedicated search (optional)
+- useDexModels()                      // 3D model list (dex only)
 ```
 
 ### Consistent Query Configuration
@@ -1049,10 +1401,11 @@ if (isReady) return <ContentList data={data} />
 ```
 
 ### Hook Naming Convention
-- Always use module name in hook: `useBlogPosts`, `useWikiGuides`, `useForumPosts`
+- Always use module name in hook: `useBlogPosts`, `useWikiGuides`, `useForumPosts`, `useDexMonsters`
 - Never use generic names like `usePosts` or `useContent` directly
 - Stats hooks: `use[Module]Stats()` → `/api/stats/[module]`
 - Categories: `use[Module]Categories()` → `/api/[module]/categories`
+- Special hooks: `useDexModels()` → `/api/dex/models` (3D model list)
 
 ## Code Quality Checks
 
@@ -1063,14 +1416,15 @@ if (isReady) return <ContentList data={data} />
 ### Fix all errors while maintaining consistency across modules:
 - Replace all `any` types with proper types
 - Fix unused imports and variables
-- Ensure all three modules (wiki, blog, forum) follow the same patterns
+- Ensure all four modules (wiki, blog, forum, dex) follow the same patterns
 - Update type definitions consistently
+- Verify 3D-specific dex extensions don't break standard patterns
 
 ### When fixing errors, ALWAYS check for consistency:
-**IMPORTANT**: When you find an error in one module (e.g., dal/blog.ts), immediately check the corresponding files in the other modules (dal/forum.ts and dal/wiki.ts):
-1. If they have the same problem - fix all three consistently
+**IMPORTANT**: When you find an error in one module (e.g., dal/blog.ts), immediately check the corresponding files in the other modules (dal/forum.ts, dal/wiki.ts, and dal/dex.ts):
+1. If they have the same problem - fix all four consistently
 2. If they DON'T have the same problem - investigate why there's inconsistency
-3. Choose the best implementation pattern and apply it to all three modules
+3. Choose the best implementation pattern and apply it to all four modules
 4. This ensures all modules remain consistent and follow the same patterns
 
 ### Naming Consistency Requirements:

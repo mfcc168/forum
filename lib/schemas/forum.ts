@@ -1,29 +1,6 @@
 import { z } from 'zod'
 import { paginationSchema } from '@/lib/utils/validation'
-
-// Content validation helpers
-const htmlContentSchema = z.string()
-  .min(1, 'Content is required')
-  .max(50000, 'Content must be less than 50000 characters')
-  .refine(
-    (content) => {
-      // Basic HTML validation - ensure content has meaningful text
-      const textContent = content.replace(/<[^>]*>/g, '').trim()
-      return textContent.length > 0
-    },
-    { message: 'Content must contain text, not just HTML tags' }
-  )
-
-const replyContentSchema = z.string()
-  .min(1, 'Content is required')
-  .max(5000, 'Reply content must be less than 5000 characters')
-  .refine(
-    (content) => {
-      const textContent = content.replace(/<[^>]*>/g, '').trim()
-      return textContent.length > 0
-    },
-    { message: 'Reply must contain text, not just HTML tags' }
-  )
+import { htmlContentSchema, replyContentSchema } from './common'
 
 // Enhanced Forum Post Creation Schema
 export const createForumPostSchema = z.object({

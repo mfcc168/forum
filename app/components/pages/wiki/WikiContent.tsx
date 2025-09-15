@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { usePermissions } from '@/lib/hooks/usePermissions'
@@ -9,13 +9,12 @@ import { Button } from '@/app/components/ui/Button'
 import { Icon } from '@/app/components/ui/Icon'
 import { HydrationCheck, useHydration } from '@/app/components/ui/HydrationCheck'
 import { SearchInput, SearchResultsHeader } from '@/app/components/shared/SearchInput'
+import { ClientSearchFilter } from '@/app/components/shared/ClientSearchFilter'
 import { 
   useWikiGuides,
-  useWikiStats, 
-  useWikiSearch 
+  useWikiStats
 } from '@/lib/hooks/useWiki'
 import { formatNumber } from '@/lib/utils'
-import { ListRenderer } from '@/app/components/ui/StateRenderer'
 import type { WikiGuide, WikiStats, WikiCategory } from '@/lib/types'
 
 interface WikiContentProps {
@@ -26,14 +25,13 @@ interface WikiContentProps {
 
 export function WikiContent({
   initialGuides = [],
-  initialCategories = [],
+  initialCategories: _initialCategories = [],
   initialStats
 }: WikiContentProps) {
   const { t } = useTranslation()
   const { data: session } = useSession()
   const [searchQuery, setSearchQuery] = useState<string>('')
-  const [isSearching, setIsSearching] = useState(false)
-  const isHydrated = useHydration()
+  const _isHydrated = useHydration()
 
   // Ensure initial guides is always an array
   const safeInitialGuides = Array.isArray(initialGuides) ? initialGuides : []
@@ -57,20 +55,12 @@ export function WikiContent({
   const communityGuides = effectiveGuides.filter(guide => guide.category === 'community').slice(0, 6)
 
   // Use stats with initial data for hydration (SSR consistency)
-  const statsQuery = useWikiStats({
+  const _statsQuery = useWikiStats({
     initialData: initialStats
   })
 
-  // Search functionality
-  const searchResults = useWikiSearch(searchQuery, { 
-    enabled: !!searchQuery.trim()
-  })
-  
-  // Determine search states
-  // CRITICAL: Only show results when query is valid AND complete AND not loading
-  const isQueryValid = !!searchQuery && searchQuery.length >= 1;
-  const shouldShowSearchLoading = Boolean(searchQuery) && (isSearching || (isQueryValid && searchResults.isLoading)) && isHydrated;
-  const shouldShowSearchResults = Boolean(searchQuery) && isQueryValid && !isSearching && !searchResults.isLoading && isHydrated;
+  // Determine if we're in search mode
+  const isSearchMode = Boolean(searchQuery.trim())
 
   // Helper to render guide cards
   const renderGuideCard = (guide: WikiGuide) => {
@@ -247,11 +237,10 @@ export function WikiContent({
             <SearchInput
               value={searchQuery}
               onChange={setSearchQuery}
-              onSearchStateChange={setIsSearching}
               placeholder={t.wiki?.searchPlaceholder || 'Search guides...'}
               className="w-full"
-              showSuggestions={true}
-              debounceMs={200}
+              showSuggestions={false}
+              debounceMs={100}
               module="wiki"
             />
           </HydrationCheck>
@@ -274,49 +263,52 @@ export function WikiContent({
           )}
         </HydrationCheck>
 
-        {/* Search Results */}
-        {shouldShowSearchResults && (
+        {/* Client-Side Search Results */}
+        {isSearchMode && (
           <div className="mb-12">
-            <SearchResultsHeader
-              query={searchQuery}
-              resultCount={searchResults.data?.length || 0}
-              onClear={() => setSearchQuery('')}
-              module="wiki"
-            />
-            
-            <ListRenderer
-              state={{
-                data: searchResults.data || [],
-                isLoading: shouldShowSearchLoading,
-                error: searchResults.error,
-                refetch: searchResults.refetch
-              }}
-              loading={{
-                variant: 'skeleton',
-                layout: 'grid',
-                count: 6,
-                message: 'Searching guides...'
-              }}
-              error={{
-                variant: 'card',
-                onRetry: searchResults.refetch,
-                showReload: true
-              }}
-              empty={{
-                title: t.wiki?.noGuidesFound || 'No guides found for',
-                description: `${t.wiki?.searchSuggestion || 'Try different keywords or browse categories below'} "${searchQuery}"`,
-                icon: 'search',
-                variant: 'card',
-                action: {
-                  label: t.common.clear || 'Clear Search',
-                  onClick: () => setSearchQuery('')
-                }
-              }}
+            <ClientSearchFilter
+              data={effectiveGuides}
+              searchQuery={searchQuery}
+              searchFields={['title', 'content', 'excerpt']}
+              categoryField="category"
             >
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {(searchResults.data || []).filter(guide => guide && guide.id && guide.slug).map(renderGuideCard)}
-              </div>
-            </ListRenderer>
+              {(filteredGuides) => (
+                <>
+                  <SearchResultsHeader
+                    query={searchQuery}
+                    resultCount={filteredGuides.length}
+                    onClear={() => setSearchQuery('')}
+                    module="wiki"
+                  />
+                  
+                  {filteredGuides.length === 0 ? (
+                    /* Empty Search State */
+                    <div className="text-center py-12 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
+                      <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-100 flex items-center justify-center">
+                        <Icon name="search" className="w-8 h-8 text-slate-400" />
+                      </div>
+                      <h3 className="text-xl font-semibold text-slate-600 mb-2">
+                        {t.wiki?.noGuidesFound || 'No guides found'}
+                      </h3>
+                      <p className="text-slate-500 mb-6">
+                        {t.wiki?.searchSuggestion || 'Try different keywords or browse categories below'}
+                      </p>
+                      <Button 
+                        onClick={() => setSearchQuery('')}
+                        className="minecraft-button"
+                      >
+                        {t.common.clear || 'Clear Search'}
+                      </Button>
+                    </div>
+                  ) : (
+                    /* Search Results Grid */
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {filteredGuides.filter(guide => guide && guide.id && guide.slug).map(renderGuideCard)}
+                    </div>
+                  )}
+                </>
+              )}
+            </ClientSearchFilter>
           </div>
         )}
 

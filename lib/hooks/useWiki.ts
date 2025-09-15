@@ -130,16 +130,6 @@ export function useWikiStats(options: { initialData?: WikiStats } = {}) {
   })
 }
 
-/**
- * Search wiki guides
- */
-export function useWikiSearch(query: string, options: Omit<UseWikiGuidesOptions, 'search'> = {}) {
-  return useWikiGuides({
-    ...options,
-    search: query,
-    enabled: !!query && query.length >= 1 // Allow single character searches like blog/forum
-  })
-}
 
 /**
  * Get popular wiki guides

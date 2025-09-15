@@ -7,19 +7,13 @@
 
 import { z } from 'zod'
 import { 
-  htmlContentSchema,
   titleSchema,
-  excerptSchema,
-  optionalExcerptSchema,
   metaDescriptionSchema,
   tagsSchema,
-  statusSchema,
   defaultStatusSchema,
   userRefSchema,
   baseStatsSchema,
-  categoryStringSchema,
-  baseQuerySchema,
-  mongoIdTransform
+  categoryStringSchema
 } from './common'
 
 // ============================================================================

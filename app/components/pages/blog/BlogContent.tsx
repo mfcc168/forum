@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { usePermissions } from '@/lib/hooks/usePermissions';
@@ -10,9 +10,9 @@ import { Button } from '@/app/components/ui/Button';
 import { CategoryFilter } from '@/app/components/ui/CategoryFilter';
 import { SidebarCategoryFilter } from '@/app/components/ui/SidebarCategoryFilter';
 import { SearchInput, SearchResultsHeader } from '@/app/components/shared/SearchInput';
-import { useBlogPosts, useBlogSearch } from '@/lib/hooks/useBlog';
+import { ClientSearchFilter } from '@/app/components/shared/ClientSearchFilter';
+import { useBlogPosts } from '@/lib/hooks/useBlog';
 import { BlogList } from '@/app/components/blog/BlogList';
-import { ListRenderer } from '@/app/components/ui/StateRenderer';
 import type { BlogPost, BlogStats, BlogCategory } from '@/lib/types';
 
 interface BlogContentProps {
@@ -29,7 +29,6 @@ export function BlogContent({
   const { data: session } = useSession();
   const [selectedCategory, setSelectedCategory] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
   
   // Ensure initial posts is always an array
   const safeInitialPosts = Array.isArray(initialPosts) ? initialPosts : []
@@ -45,30 +44,15 @@ export function BlogContent({
   
   // Use blog hooks with initial data for hydration (consistent with wiki pattern)
   const blogQuery = useBlogPosts({
-    category: selectedCategory || undefined,
     sortBy: 'latest',
     status: 'published',
     initialData: safeInitialPosts
   });
   
-  // Dedicated search hook (like wiki)
-  const searchQuery_trimmed = searchQuery.trim()
-  const searchResults = useBlogSearch(searchQuery_trimmed, {
-    status: 'published',
-    sortBy: 'latest'
-  })
-  
   const blogPosts = blogQuery.data || safeInitialPosts;
 
   // Determine if we're in search mode
-  const isSearchMode = Boolean(searchQuery_trimmed);
-  const displayPosts = isSearchMode ? (searchResults.data || []) : blogPosts;
-  
-  // Determine if we should show search results or loading
-  // CRITICAL: Only show results when query is valid AND complete AND not loading
-  const isQueryValid = !!searchQuery_trimmed && searchQuery_trimmed.length >= 1;
-  const shouldShowSearchLoading = isSearchMode && (isSearching || (isQueryValid && searchResults.isLoading));
-  const shouldShowSearchResults = isSearchMode && isQueryValid && !isSearching && !searchResults.isLoading;
+  const isSearchMode = Boolean(searchQuery.trim());
 
   // Prepare categories for the CategoryFilter component
   const categoryFilterData = (safeInitialCategories || [])
@@ -79,11 +63,6 @@ export function BlogContent({
       displayName: getCategoryName(cat.name),
       count: cat.stats?.postsCount || 0
     }));
-  
-
-  const filteredPosts = selectedCategory
-    ? displayPosts.filter((post: BlogPost) => post?.category && post.category === selectedCategory)
-    : displayPosts.filter((post: BlogPost) => post?.category !== null);
 
   // Use centralized permission system
   const permissions = usePermissions(session, 'blog');
@@ -97,24 +76,13 @@ export function BlogContent({
           <SearchInput
             value={searchQuery}
             onChange={setSearchQuery}
-            onSearchStateChange={setIsSearching}
             placeholder={t.common.searchPlaceholder || 'Search blog posts...'}
             className="w-full"
-            showSuggestions={true}
-            debounceMs={200}
+            showSuggestions={false}
+            debounceMs={100}
             module="blog"
           />
         </div>
-
-        {/* Search Results Header */}
-        {isSearchMode && (
-          <SearchResultsHeader
-            query={searchQuery}
-            resultCount={searchResults.data?.length || 0}
-            onClear={() => setSearchQuery('')}
-            module="blog"
-          />
-        )}
 
         {/* Category Filter - Hidden in search mode */}
         {!isSearchMode && (
@@ -141,56 +109,92 @@ export function BlogContent({
         )}
 
 
-        {/* Blog Posts - Standard List (consistent with forum/wiki) */}
-        <ListRenderer
-          state={{
-            data: filteredPosts,
-            isLoading: isSearchMode 
-              ? shouldShowSearchLoading
-              : (blogQuery.isLoading && !blogQuery.data && safeInitialPosts.length === 0),
-            error: isSearchMode ? searchResults.error : blogQuery.error,
-            refetch: isSearchMode ? searchResults.refetch : blogQuery.refetch
-          }}
-          loading={{
-            variant: 'skeleton',
-            layout: 'list',
-            count: 3,
-            message: t.blog.loading || 'Loading blog posts...'
-          }}
-          error={{
-            variant: 'card',
-            onRetry: blogQuery.refetch,
-            showReload: true
-          }}
-          empty={{
-            title: isSearchMode
-              ? t.common.noResults || 'No search results'
-              : selectedCategory 
-                ? t.blog.emptyState?.noPostsInCategory?.replace('{category}', getCategoryName(selectedCategory)) || `No posts in ${getCategoryName(selectedCategory)}`
-                : t.blog.emptyState?.noPosts || 'No blog posts yet',
-            description: isSearchMode
-              ? t.common.tryDifferentTerms || 'Try different search terms'
-              : selectedCategory 
-                ? t.blog.emptyState?.checkBack || 'Check back later for new posts'
-                : t.blog.emptyState?.checkBack || 'Check back later for new posts',
-            icon: isSearchMode ? 'search' : 'document',
-            variant: 'card',
-            action: isSearchMode ? {
-              label: t.common.clear || 'Clear Search',
-              onClick: () => setSearchQuery('')
-            } : selectedCategory ? {
-              label: t.blog.sidebar?.viewAllPosts || 'View All Posts',
-              onClick: () => setSelectedCategory('')
-            } : undefined
-          }}
+        {/* Client-Side Search Results Header */}
+        <ClientSearchFilter
+          data={blogPosts}
+          searchQuery={searchQuery}
+          filters={{ category: selectedCategory }}
+          searchFields={['title', 'content', 'excerpt']}
+          categoryField="category"
         >
-          <BlogList 
-            posts={filteredPosts}
-            compact={false}
-            showCategory={true}
-            showExcerpt={true}
-          />
-        </ListRenderer>
+          {(filteredPosts) => (
+            <>
+              {/* Search Results Header */}
+              {isSearchMode && (
+                <SearchResultsHeader
+                  query={searchQuery}
+                  resultCount={filteredPosts.length}
+                  onClear={() => setSearchQuery('')}
+                  module="blog"
+                />
+              )}
+
+              {/* Loading State */}
+              {blogQuery.isLoading && !blogQuery.data && safeInitialPosts.length === 0 ? (
+                <div className="space-y-6">
+                  {Array.from({ length: 3 }).map((_, index) => (
+                    <div key={index} className="p-6 bg-white rounded-2xl shadow-lg border border-slate-200 animate-pulse">
+                      <div className="flex items-start space-x-4">
+                        <div className="w-12 h-12 bg-slate-200 rounded-lg"></div>
+                        <div className="flex-1 space-y-3">
+                          <div className="h-6 bg-slate-200 rounded w-3/4"></div>
+                          <div className="h-4 bg-slate-200 rounded w-1/2"></div>
+                          <div className="space-y-2">
+                            <div className="h-3 bg-slate-200 rounded w-full"></div>
+                            <div className="h-3 bg-slate-200 rounded w-5/6"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : filteredPosts.length === 0 ? (
+                /* Empty State */
+                <div className="text-center py-12 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-100 flex items-center justify-center">
+                    <Icon name={isSearchMode ? 'search' : 'document'} className="w-8 h-8 text-slate-400" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-slate-600 mb-2">
+                    {isSearchMode
+                      ? t.common.noResults || 'No search results'
+                      : selectedCategory 
+                        ? t.blog.emptyState?.noPostsInCategory?.replace('{category}', getCategoryName(selectedCategory)) || `No posts in ${getCategoryName(selectedCategory)}`
+                        : t.blog.emptyState?.noPosts || 'No blog posts yet'}
+                  </h3>
+                  <p className="text-slate-500 mb-6">
+                    {isSearchMode
+                      ? t.common.tryDifferentTerms || 'Try different search terms'
+                      : selectedCategory 
+                        ? t.blog.emptyState?.checkBack || 'Check back later for new posts'
+                        : t.blog.emptyState?.checkBack || 'Check back later for new posts'}
+                  </p>
+                  {(isSearchMode || selectedCategory) && (
+                    <Button 
+                      onClick={() => {
+                        if (isSearchMode) setSearchQuery('')
+                        if (selectedCategory) setSelectedCategory('')
+                      }}
+                      className="minecraft-button"
+                    >
+                      {isSearchMode 
+                        ? t.common.clear || 'Clear Search'
+                        : t.blog.sidebar?.viewAllPosts || 'View All Posts'
+                      }
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                /* Blog Posts List */
+                <BlogList 
+                  posts={filteredPosts}
+                  compact={false}
+                  showCategory={true}
+                  showExcerpt={true}
+                />
+              )}
+            </>
+          )}
+        </ClientSearchFilter>
       </div>
 
       {/* Enhanced Sidebar */}
