@@ -6,7 +6,6 @@ import { usePermissions } from '@/lib/hooks/usePermissions'
 import { useTranslation } from '@/lib/contexts/LanguageContext'
 import { 
   ContentCard, 
-  EmptyState, 
   Skeleton as CardSkeleton,
   type ContentCardProps 
 } from '@/app/components/shared'

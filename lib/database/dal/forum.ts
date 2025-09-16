@@ -7,7 +7,7 @@
 import { ObjectId, Filter } from 'mongodb'
 import { BaseDAL } from './base'
 import { statsManager } from '@/lib/database/stats'
-import { MongoForumPostSchema, MongoForumReplySchema, MongoForumCategorySchema, type ForumPost, type ForumReply as SchemaForumReply } from '@/lib/schemas/forum'
+import { MongoForumPostSchema, type ForumPost } from '@/lib/schemas/forum'
 import { generateSlug, generateSlugWithCounter } from '@/lib/utils/slug'
 import { handleDatabaseError } from '@/lib/utils/error-handler'
 import { ReferentialIntegrityManager } from '@/lib/database/referential-integrity'
@@ -855,14 +855,6 @@ export class ForumDAL extends BaseDAL<ForumPost> {
 
     const results = await collection.aggregate<ForumReply>(pipeline).toArray()
     return results[0] || null
-  }
-
-  /**
-   * Helper method for aggregation on different collections
-   */
-  async aggregateQuery(pipeline: object[]): Promise<unknown[]> {
-    const collection = await this.getNamedCollection('forumPosts')
-    return await collection.aggregate(pipeline).toArray()
   }
 
   /**

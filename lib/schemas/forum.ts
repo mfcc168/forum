@@ -74,8 +74,8 @@ export const MongoForumPostSchema = z.object({
   isPinned: z.boolean().default(false),
   isLocked: z.boolean().default(false),
   isDeleted: z.boolean().default(false),
-  createdAt: z.string(),
-  updatedAt: z.string()
+  createdAt: z.union([z.string(), z.date()]).transform(val => val instanceof Date ? val.toISOString() : val),
+  updatedAt: z.union([z.string(), z.date()]).transform(val => val instanceof Date ? val.toISOString() : val)
 }).transform((doc) => ({
   id: doc._id.toString(),
   title: doc.title,
@@ -110,8 +110,8 @@ export const MongoForumReplySchema = z.object({
     isDisliked: z.boolean().default(false)
   }).optional(),
   isDeleted: z.boolean().default(false),
-  createdAt: z.string(),
-  updatedAt: z.string()
+  createdAt: z.union([z.string(), z.date()]).transform(val => val instanceof Date ? val.toISOString() : val),
+  updatedAt: z.union([z.string(), z.date()]).transform(val => val instanceof Date ? val.toISOString() : val)
 }).transform((doc) => ({
   id: doc._id.toString(),
   content: doc.content,
@@ -137,8 +137,8 @@ export const MongoForumCategorySchema = z.object({
     postsCount: z.number().default(0),
     viewsCount: z.number().default(0)
   }),
-  createdAt: z.string(),
-  updatedAt: z.string()
+  createdAt: z.union([z.string(), z.date()]).transform(val => val instanceof Date ? val.toISOString() : val),
+  updatedAt: z.union([z.string(), z.date()]).transform(val => val instanceof Date ? val.toISOString() : val)
 }).transform((doc) => ({
   id: doc._id.toString(),
   name: doc.name,

@@ -15,9 +15,7 @@ import type {
   DexMonster,
   ContentFilters,
   PaginationMeta,
-  DetailedInteractionResponse,
-  ContentStats,
-  ContentInteractionState
+  DetailedInteractionResponse
 } from '@/lib/types'
 
 // ============================================================================

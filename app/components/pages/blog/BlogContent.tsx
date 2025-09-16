@@ -9,7 +9,7 @@ import { Icon } from '@/app/components/ui/Icon';
 import { Button } from '@/app/components/ui/Button';
 import { CategoryFilter } from '@/app/components/ui/CategoryFilter';
 import { SidebarCategoryFilter } from '@/app/components/ui/SidebarCategoryFilter';
-import { SearchInput, SearchResultsHeader } from '@/app/components/shared/SearchInput';
+import { SearchInput } from '@/app/components/shared';
 import { ClientSearchFilter } from '@/app/components/shared/ClientSearchFilter';
 import { useBlogPosts } from '@/lib/hooks/useBlog';
 import { BlogList } from '@/app/components/blog/BlogList';
@@ -78,9 +78,7 @@ export function BlogContent({
             onChange={setSearchQuery}
             placeholder={t.common.searchPlaceholder || 'Search blog posts...'}
             className="w-full"
-            showSuggestions={false}
             debounceMs={100}
-            module="blog"
           />
         </div>
 
@@ -121,12 +119,25 @@ export function BlogContent({
             <>
               {/* Search Results Header */}
               {isSearchMode && (
-                <SearchResultsHeader
-                  query={searchQuery}
-                  resultCount={filteredPosts.length}
-                  onClear={() => setSearchQuery('')}
-                  module="blog"
-                />
+                <div className="mb-6 p-4 bg-slate-50 rounded-lg border">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-semibold text-slate-800">
+                        Search Results for &ldquo;{searchQuery}&rdquo;
+                      </h3>
+                      <p className="text-sm text-slate-600 mt-1">
+                        {filteredPosts.length} result{filteredPosts.length !== 1 ? 's' : ''} found
+                      </p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setSearchQuery('')}
+                    >
+                      Clear
+                    </Button>
+                  </div>
+                </div>
               )}
 
               {/* Loading State */}

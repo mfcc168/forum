@@ -8,7 +8,7 @@ import { Icon } from '@/app/components/ui/Icon';
 import { Button } from '@/app/components/ui/Button';
 import { CategoryFilter } from '@/app/components/ui/CategoryFilter';
 import { SidebarCategoryFilter } from '@/app/components/ui/SidebarCategoryFilter';
-import { SearchInput, SearchResultsHeader } from '@/app/components/shared/SearchInput';
+import { SearchInput } from '@/app/components/shared';
 import { ClientSearchFilter } from '@/app/components/shared/ClientSearchFilter';
 import { useForumPosts } from '@/lib/hooks/useForum';
 import { ForumList } from '@/app/components/forum/ForumList';
@@ -77,9 +77,7 @@ export function ForumContent({
             onChange={setSearchQuery}
             placeholder={t.common.searchPlaceholder || 'Search forum posts...'}
             className="w-full"
-            showSuggestions={false}
             debounceMs={100}
-            module="forum"
           />
         </div>
 
@@ -120,12 +118,25 @@ export function ForumContent({
             <>
               {/* Search Results Header */}
               {isSearchMode && (
-                <SearchResultsHeader
-                  query={searchQuery}
-                  resultCount={filteredPosts.length}
-                  onClear={() => setSearchQuery('')}
-                  module="forum"
-                />
+                <div className="mb-6 p-4 bg-slate-50 rounded-lg border">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-semibold text-slate-800">
+                        Search Results for &ldquo;{searchQuery}&rdquo;
+                      </h3>
+                      <p className="text-sm text-slate-600 mt-1">
+                        {filteredPosts.length} result{filteredPosts.length !== 1 ? 's' : ''} found
+                      </p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setSearchQuery('')}
+                    >
+                      Clear
+                    </Button>
+                  </div>
+                </div>
               )}
 
               {/* Loading State */}

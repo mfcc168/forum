@@ -6,7 +6,6 @@
  */
 
 import { z } from 'zod'
-import { paginationSchema } from '@/lib/utils/validation'
 
 // ============================================================================
 // CONTENT VALIDATION HELPERS

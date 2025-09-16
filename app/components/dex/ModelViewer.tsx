@@ -260,7 +260,7 @@ export function ModelViewer({
             setIsLoading(false)
             animate()
           },
-          (_progress: ProgressEvent<EventTarget>) => {
+          () => {
             // Loading progress - could show percentage if needed
           },
           (error: unknown) => {

@@ -8,7 +8,7 @@
 import { ObjectId, Filter } from 'mongodb'
 import { BaseDAL } from './base'
 import { statsManager } from '@/lib/database/stats'
-import { MongoBlogPostSchema, MongoBlogCategorySchema, type BlogPost } from '@/lib/schemas/blog'
+import { MongoBlogPostSchema, type BlogPost } from '@/lib/schemas/blog'
 import { handleDatabaseError } from '@/lib/utils/error-handler'
 import { ReferentialIntegrityManager } from '@/lib/database/referential-integrity'
 import { 
@@ -291,12 +291,12 @@ export class BlogDAL extends BaseDAL<BlogPost> {
   async updatePost(slug: string, updateData: Partial<Pick<BlogPost, 'title' | 'content' | 'excerpt' | 'category' | 'tags' | 'status'>>): Promise<boolean> {
     const updateDoc: Record<string, unknown> = {
       ...updateData,
-      updatedAt: new Date()
+      updatedAt: new Date().toISOString()
     }
 
     // Set publishedAt if status is being set to published
     if (updateData.status === 'published') {
-      updateDoc.publishedAt = new Date()
+      updateDoc.publishedAt = new Date().toISOString()
     }
 
     const result = await this.updateOne(

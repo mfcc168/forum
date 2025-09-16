@@ -35,10 +35,7 @@ import {
   formReducer, 
   createInitialFormState, 
   processFormData, 
-  validateField,
-  autoGenerateExcerpt,
-  autoGenerateSlug,
-  type FormAction 
+  autoGenerateExcerpt
 } from './ContentFormReducer'
 
 // Hook result types - properly typed
@@ -112,15 +109,6 @@ export function ContentForm<T extends ContentItem = ContentItem>({
 }: ContentFormProps<T>) {
   const { data: session } = useSession()
   const permissions = usePermissions(session, config.module, item)
-
-  // Handle model value changes from the 3D editor - ALWAYS define this hook
-  const handle3DValueChange = useCallback((values: {
-    modelScale: number
-    cameraPosition: { x: number; y: number; z: number }
-    cameraLookAt: { x: number; y: number; z: number }
-  }) => {
-    // This will be used if there's a 3D preview
-  }, [])
 
   // Permission check - use centralized permissions system
   const hasPermission = useMemo(() => {

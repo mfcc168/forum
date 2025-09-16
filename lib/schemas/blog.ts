@@ -60,9 +60,9 @@ export const MongoBlogPostSchema = z.object({
   status: z.enum(['draft', 'published', 'archived']),
   featuredImage: z.string().optional().nullable(),
   isDeleted: z.boolean().default(false),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-  publishedAt: z.string().optional().nullable()
+  createdAt: z.union([z.string(), z.date()]).transform(val => val instanceof Date ? val.toISOString() : val),
+  updatedAt: z.union([z.string(), z.date()]).transform(val => val instanceof Date ? val.toISOString() : val),
+  publishedAt: z.union([z.string(), z.date()]).transform(val => val instanceof Date ? val.toISOString() : val).optional().nullable()
 }).transform((doc) => ({
   id: doc._id.toString(),
   title: doc.title,

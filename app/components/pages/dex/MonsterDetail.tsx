@@ -2,7 +2,6 @@
 
 import { Suspense } from 'react'
 import { useTranslation } from '@/lib/contexts/LanguageContext'
-import { formatNumber } from '@/lib/utils'
 import type { DexMonster } from '@/lib/types'
 import dynamic from 'next/dynamic'
 import { Icon } from '@/app/components/ui/Icon'
@@ -23,7 +22,6 @@ export function MonsterDetail({ monster }: MonsterDetailProps) {
   
   // Hardcoded translations as fallback
   const isZhTW = locale === 'zh-TW'
-  const combatStatsTitle = isZhTW ? '戰鬥數據' : 'Combat Statistics'
   const healthLabel = isZhTW ? '生命值' : 'Health'
   const damageLabel = isZhTW ? '攻擊力' : 'Damage'
   const xpDropLabel = isZhTW ? '經驗值' : 'XP Drop'

@@ -13,7 +13,7 @@ export { default as CategoryBadge } from './CategoryBadge'
 // Phase 3: Utility Components
 export { default as ActionButton } from './ActionButton'
 export { default as ContentRenderer } from './ContentRenderer'
-export { SearchInput, SearchResultsHeader } from './SearchInput'
+export { SearchInput, SimpleSearchInput } from './SimpleSearchInput'
 export { ClientSearchFilter, SafeClientSearchFilter, useClientSearchFilter } from './ClientSearchFilter'
 export { SearchErrorBoundary } from './SearchErrorBoundary'
 export { EmptyState } from '@/app/components/ui/EmptyState'
@@ -22,6 +22,10 @@ export { LoadingSpinner, Skeleton } from '@/app/components/ui/LoadingSpinner'
 // Phase 4: Unified Components
 export { ContentActions } from './ContentActions'
 export { ContentDetail } from './ContentDetail'
+
+// Phase 5: Simple Search Components
+export { GlobalSearch } from './GlobalSearch'
+export { SearchTrigger } from './SearchTrigger'
 
 // Re-export types
 export type { 
@@ -36,7 +40,7 @@ export type { StatsDisplayProps } from './StatsDisplay'
 export type { CategoryBadgeProps } from './CategoryBadge'
 export type { ActionButtonProps } from './ActionButton'
 export type { ContentRendererProps } from './ContentRenderer'
-export type { SearchInputProps, SearchResultsHeaderProps } from './SearchInput'
+export type { SearchInputProps } from './SimpleSearchInput'
 export type { EmptyStateProps } from '@/app/components/ui/EmptyState'
 export type { LoadingSpinnerProps, SkeletonProps } from '@/lib/types'
 export type { ContentActionsConfig } from './ContentActions'

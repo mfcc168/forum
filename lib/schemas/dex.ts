@@ -305,8 +305,8 @@ export const MongoDexMonsterSchema = z.object({
   tags: z.array(z.string()),
   status: z.enum(['draft', 'published', 'archived']),
   isDeleted: z.boolean().default(false),
-  createdAt: z.string(),
-  updatedAt: z.string()
+  createdAt: z.union([z.string(), z.date()]).transform(val => val instanceof Date ? val.toISOString() : val),
+  updatedAt: z.union([z.string(), z.date()]).transform(val => val instanceof Date ? val.toISOString() : val)
 }).transform((doc) => ({
   id: doc._id.toString(),
   name: doc.name,

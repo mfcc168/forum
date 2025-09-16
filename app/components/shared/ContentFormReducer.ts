@@ -296,7 +296,7 @@ export function validateField(
   fieldName: string,
   value: unknown,
   field: ContentFormField,
-  allData: Record<string, unknown>
+  _allData: Record<string, unknown>
 ): string | null {
   // Required field validation
   if (field.required) {

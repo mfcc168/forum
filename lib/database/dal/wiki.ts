@@ -7,7 +7,7 @@
 
 import { ObjectId, Filter } from 'mongodb'
 import { BaseDAL } from './base'
-import { MongoWikiGuideSchema, MongoWikiCategorySchema, type WikiGuide } from '@/lib/schemas/wiki'
+import { MongoWikiGuideSchema, type WikiGuide } from '@/lib/schemas/wiki'
 import { generateSlug, generateSlugWithCounter } from '@/lib/utils/slug'
 import { statsManager } from '@/lib/database/stats'
 import { handleDatabaseError } from '@/lib/utils/error-handler'

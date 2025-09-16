@@ -8,7 +8,7 @@ import { useTranslation } from '@/lib/contexts/LanguageContext'
 import { Button } from '@/app/components/ui/Button'
 import { Icon } from '@/app/components/ui/Icon'
 import { HydrationCheck, useHydration } from '@/app/components/ui/HydrationCheck'
-import { SearchInput, SearchResultsHeader } from '@/app/components/shared/SearchInput'
+import { SearchInput } from '@/app/components/shared'
 import { ClientSearchFilter } from '@/app/components/shared/ClientSearchFilter'
 import { 
   useWikiGuides,
@@ -239,9 +239,7 @@ export function WikiContent({
               onChange={setSearchQuery}
               placeholder={t.wiki?.searchPlaceholder || 'Search guides...'}
               className="w-full"
-              showSuggestions={false}
               debounceMs={100}
-              module="wiki"
             />
           </HydrationCheck>
         </div>
@@ -274,12 +272,25 @@ export function WikiContent({
             >
               {(filteredGuides) => (
                 <>
-                  <SearchResultsHeader
-                    query={searchQuery}
-                    resultCount={filteredGuides.length}
-                    onClear={() => setSearchQuery('')}
-                    module="wiki"
-                  />
+                  <div className="mb-6 p-4 bg-slate-50 rounded-lg border">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-lg font-semibold text-slate-800">
+                          Search Results for &ldquo;{searchQuery}&rdquo;
+                        </h3>
+                        <p className="text-sm text-slate-600 mt-1">
+                          {filteredGuides.length} result{filteredGuides.length !== 1 ? 's' : ''} found
+                        </p>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setSearchQuery('')}
+                      >
+                        Clear
+                      </Button>
+                    </div>
+                  </div>
                   
                   {filteredGuides.length === 0 ? (
                     /* Empty Search State */
