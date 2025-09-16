@@ -30,8 +30,8 @@ export const GET = withDALAndValidation(
         return ApiResponse.error('Post not found', 404)
       }
 
-      // Check if user can view this post (non-published posts require permissions)
-      if (postWithStats.status !== 'published' && (!user || !PermissionChecker.canViewDrafts(user, 'forum'))) {
+      // Check if user can view this post (deleted posts require admin permissions)
+      if (postWithStats.isDeleted && (!user || !PermissionChecker.canViewDrafts(user, 'forum'))) {
         return ApiResponse.error('Post not found', 404)
       }
 

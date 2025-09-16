@@ -92,7 +92,7 @@ export const createMockWikiGuide = (overrides = {}) => ({
     likesCount: 5,
     bookmarksCount: 3,
     sharesCount: 2,
-    helpfulCount: 8
+    helpfulsCount: 8
   },
   interactions: {
     isLiked: false,

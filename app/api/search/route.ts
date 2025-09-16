@@ -154,7 +154,7 @@ export const POST = withDALAndValidation(
                 module: 'forum' as const,
                 type: 'post' as const,
                 title: post.title,
-                excerpt: post.excerpt || generateExcerpt(post.content),
+                excerpt: generateExcerpt(post.content),
                 content: post.content,
                 author: { 
                   id: post.author?.id || '', 
@@ -166,7 +166,7 @@ export const POST = withDALAndValidation(
                 stats: {
                   viewsCount: post.stats?.viewsCount || 0,
                   likesCount: post.stats?.likesCount || 0,
-                  repliesCount: post.stats?.repliesCount
+                  repliesCount: post.stats?.repliesCount || 0
                 },
                 createdAt: post.createdAt,
                 updatedAt: post.updatedAt,
@@ -211,7 +211,7 @@ export const POST = withDALAndValidation(
                 stats: {
                   viewsCount: post.stats?.viewsCount || 0,
                   likesCount: post.stats?.likesCount || 0,
-                  repliesCount: post.stats?.repliesCount
+                  bookmarksCount: post.stats?.bookmarksCount || 0
                 },
                 createdAt: post.createdAt,
                 updatedAt: post.updatedAt,
@@ -257,7 +257,7 @@ export const POST = withDALAndValidation(
                 stats: {
                   viewsCount: guide.stats?.viewsCount || 0,
                   likesCount: guide.stats?.likesCount || 0,
-                  repliesCount: guide.stats?.repliesCount
+                  helpfulsCount: guide.stats?.helpfulsCount || 0
                 },
                 createdAt: guide.createdAt,
                 updatedAt: guide.updatedAt,

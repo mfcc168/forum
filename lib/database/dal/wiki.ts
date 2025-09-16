@@ -7,7 +7,7 @@
 
 import { ObjectId, Filter } from 'mongodb'
 import { BaseDAL } from './base'
-import { MongoWikiGuideSchema, type WikiGuide } from '@/lib/database/schemas'
+import { MongoWikiGuideSchema, MongoWikiCategorySchema, type WikiGuide } from '@/lib/schemas/wiki'
 import { generateSlug, generateSlugWithCounter } from '@/lib/utils/slug'
 import { statsManager } from '@/lib/database/stats'
 import { handleDatabaseError } from '@/lib/utils/error-handler'
@@ -47,7 +47,7 @@ interface MongoMatchConditions {
 interface MongoSortStage {
   'stats.likesCount'?: -1 | 1
   'stats.viewsCount'?: -1 | 1
-  'stats.helpfulCount'?: -1 | 1
+  'stats.helpfulsCount'?: -1 | 1
   difficulty?: -1 | 1
   createdAt?: -1 | 1
   title?: -1 | 1
@@ -228,7 +228,7 @@ export class WikiDAL extends BaseDAL<WikiGuide> {
       let sortStage: MongoSortStage = {}
       switch (sortBy) {
         case 'popular':
-          sortStage = { 'stats.likesCount': -1, 'stats.helpfulCount': -1 }
+          sortStage = { 'stats.likesCount': -1, 'stats.helpfulsCount': -1 }
           break
         case 'views':
           sortStage = { 'stats.viewsCount': -1 }
@@ -312,7 +312,7 @@ export class WikiDAL extends BaseDAL<WikiGuide> {
   /**
    * Create new wiki guide with slug uniqueness check (consistent with blog/forum pattern)
    */
-  async createGuide(guideData: Omit<WikiGuide, '_id' | 'createdAt' | 'updatedAt' | 'stats' | 'slug'>): Promise<string> {
+  async createGuide(guideData: Omit<WikiGuide, 'id' | '_id' | 'createdAt' | 'updatedAt' | 'stats' | 'slug'>): Promise<string> {
     try {
       // Generate unique slug from title
       const baseSlug = generateSlug(guideData.title)
@@ -330,6 +330,7 @@ export class WikiDAL extends BaseDAL<WikiGuide> {
     
       const guide: Omit<WikiGuide, '_id'> = {
         ...guideData,
+        id: '', // Placeholder ID - will be set after insertion
         slug: uniqueSlug, // Use the unique slug
         // Ensure required fields have defaults
         excerpt: guideData.excerpt || plainText.substring(0, 200),

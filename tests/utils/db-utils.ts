@@ -143,7 +143,7 @@ export async function seedTestData(): Promise<void> {
         likesCount: 25,
         bookmarksCount: 10,
         sharesCount: 5,
-        helpfulCount: 30
+        helpfulsCount: 30
       },
       status: 'published',
       estimatedReadTime: '5 minutes',
@@ -169,7 +169,7 @@ export async function seedTestData(): Promise<void> {
         likesCount: 45,
         bookmarksCount: 20,
         sharesCount: 8,
-        helpfulCount: 50
+        helpfulsCount: 50
       },
       status: 'published',
       estimatedReadTime: '10 minutes',

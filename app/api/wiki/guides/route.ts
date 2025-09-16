@@ -22,7 +22,7 @@ export const GET = withDALAndValidation(
     // Build filter options
     const permissionUser: PermissionUser | null = user ? { id: user.id, role: user.role } : null
     const filters = {
-      category: category && category !== 'all' ? category : undefined,
+      category: (category && category !== 'all') ? category : undefined,
       difficulty,
       search: search || undefined,
       status: (PermissionChecker.canViewDrafts(permissionUser, 'wiki') ? status : 'published') as 'draft' | 'published' | 'archived'
@@ -70,17 +70,23 @@ export const POST = withDALAndValidation(
     const excerpt = validatedData.excerpt || validatedData.content.replace(/<[^>]*>/g, '').trim().substring(0, 200)
     
     const guideId = await dal.wiki.createGuide({
-      id: '', // Will be set by the DAL
       title: validatedData.title,
       content: validatedData.content,
       excerpt,
+      metaDescription: excerpt.substring(0, 160), // Add required metaDescription
       category: validatedData.category,
       difficulty: validatedData.difficulty,
       tags: validatedData.tags || [],
       author: { id: user.id, name: user.name || 'Unknown User', avatar: user.avatar },
       status: validatedData.status || 'published',
-      estimatedTime: '10 minutes', // Default
-      version: 1
+      interactions: { // Add required interactions field
+        isLiked: false,
+        isBookmarked: false,
+        isHelpful: false,
+        isShared: false
+      },
+      isDeleted: false, // Add required isDeleted field
+      publishedAt: (validatedData.status === 'published') ? new Date().toISOString() : undefined // Add publishedAt
     })
     
     // Get the created guide by ID to get the full guide with stats

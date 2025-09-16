@@ -18,7 +18,7 @@ describe('ContentCard', () => {
         title: 'How to Join Server',
         excerpt: 'A beginner guide to joining our server',
         difficulty: 'beginner',
-        stats: { viewsCount: 150, likesCount: 25, helpfulCount: 30 }
+        stats: { viewsCount: 150, likesCount: 25, helpfulsCount: 30 }
       })
 
       render(
@@ -44,7 +44,7 @@ describe('ContentCard', () => {
       expect(screen.getByText('A beginner guide to joining our server')).toBeInTheDocument()
       expect(screen.getByText('150')).toBeInTheDocument() // views
       expect(screen.getByText('25')).toBeInTheDocument() // likes
-      // Note: Difficulty badge and helpfulCount may not be displayed by ContentCard component
+      // Note: Difficulty badge and helpfulsCount may not be displayed by ContentCard component
     })
 
     it('renders difficulty badge for wiki guides', () => {

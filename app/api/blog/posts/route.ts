@@ -82,7 +82,10 @@ export const POST = withDALAndValidation(
       author: { id: user.id, name: user.name || 'Unknown User', avatar: user.avatar },
       status: validatedData.status || 'published',
       metaDescription,
-      featuredImage: validatedData.featuredImage
+      featuredImage: validatedData.featuredImage,
+      publishedAt: validatedData.status === 'published' ? new Date().toISOString() : undefined,
+      interactions: undefined,
+      isDeleted: false
     })
     
     // Get the actual post with proper lookup using the generated slug

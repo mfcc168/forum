@@ -45,7 +45,7 @@ describe('Basic User Workflows', () => {
         category: 'getting-started',
         difficulty: 'beginner',
         author: { id: 'author-1', name: 'Author' },
-        stats: { viewsCount: 50, likesCount: 10, helpfulCount: 8 },
+        stats: { viewsCount: 50, likesCount: 10, helpfulsCount: 8 },
         interactions: { isLiked: false, isBookmarked: false, isHelpful: false },
         status: 'published',
         createdAt: '2024-01-01T00:00:00Z',

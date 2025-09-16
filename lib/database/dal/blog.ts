@@ -8,7 +8,7 @@
 import { ObjectId, Filter } from 'mongodb'
 import { BaseDAL } from './base'
 import { statsManager } from '@/lib/database/stats'
-import { MongoBlogPostSchema, type BlogPost } from '@/lib/database/schemas'
+import { MongoBlogPostSchema, MongoBlogCategorySchema, type BlogPost } from '@/lib/schemas/blog'
 import { handleDatabaseError } from '@/lib/utils/error-handler'
 import { ReferentialIntegrityManager } from '@/lib/database/referential-integrity'
 import { 
@@ -26,7 +26,7 @@ import type {
   BlogStats,
   PaginatedResponse
 } from '@/lib/types'
-import type { UserInteraction } from '@/lib/database/models'
+import type { UserInteraction } from '@/lib/types'
 import { BLOG_CATEGORIES } from '@/lib/config/blog-categories'
 
 // MongoDB aggregation pipeline interfaces
@@ -464,7 +464,7 @@ export class BlogDAL extends BaseDAL<BlogPost> {
       
       const activeUsers = await interactionsCollection.distinct('userId', {
         targetType: 'post',
-        createdAt: { $gte: thirtyDaysAgo }
+        createdAt: { $gte: thirtyDaysAgo.toISOString() }
       })
 
       return activeUsers.length

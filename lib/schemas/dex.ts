@@ -345,3 +345,5 @@ export const dexCategorySchema = z.object({
   icon: z.string(),
   order: z.number().min(0)
 })
+
+export type DexCategory = z.infer<typeof dexCategorySchema>

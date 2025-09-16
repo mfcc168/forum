@@ -8,10 +8,7 @@ export * from './base'
 // User model
 export * from './user'
 
-// Blog model
-export * from './blog'
-
-// Analytics model
+// Analytics model (keep until analytics migration)
 export * from './analytics'
 
 export type {
@@ -28,18 +25,27 @@ export type {
   UserInteraction
 } from './user'
 
-// Forum types from unified types module
-export type {
-  ForumPost,
-  ForumCategory,
-  ForumReply
-} from '@/lib/types'
-
+// Content types now exported from schemas (schema-first pattern)
 export type {
   BlogPost,
-  BlogComment,
-  BlogPostContent
-} from './blog'
+  BlogCategory
+} from '@/lib/schemas/blog'
+
+export type {
+  ForumPost,
+  ForumReply,
+  ForumCategory
+} from '@/lib/schemas/forum'
+
+export type {
+  WikiGuide,
+  WikiCategory
+} from '@/lib/schemas/wiki'
+
+export type {
+  DexMonster,
+  DexCategory
+} from '@/lib/schemas/dex'
 
 export type {
   ServerMetrics,

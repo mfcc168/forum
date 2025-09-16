@@ -2,57 +2,59 @@ import { Db, ObjectId } from 'mongodb'
 import { IndexDefinition, IndexStats } from '@/lib/types'
 
 // =============================================
-// COMPREHENSIVE DATABASE INDEXES
+// OPTIMIZED DATABASE INDEXES
 // =============================================
 // 
 // This file defines all MongoDB indexes for the Minecraft Server Website.
-// Indexes are optimized for the actual query patterns used in the application.
+// Indexes are based on comprehensive analysis of actual query patterns and usage.
 //
 // KEY OPTIMIZATION PATTERNS:
 // 
-// 1. AUTHOR-BASED QUERIES (High Impact):
-//    - Uses 'author.id' format (embedded author objects) 
-//    - Compound indexes with status + date sorting for performance
-//    - Examples: idx_blog_author_id_status_published_optimized
+// 1. EMBEDDED AUTHOR QUERIES (Highest Priority):
+//    - All content uses embedded 'author.id' format for fast lookups
+//    - Compound indexes with status + date sorting for core query patterns
+//    - Supports both individual content and aggregation pipeline queries
 //
-// 2. AGGREGATION PIPELINE SUPPORT:
-//    - authorObjectId indexes support complex aggregation queries
-//    - Sparse indexes since authorObjectId is computed during aggregation
-//    - Examples: idx_forum_author_object_id_status
+// 2. CATEGORY + STATUS + SORTING (High Priority):
+//    - Compound indexes optimized for filtered content browsing
+//    - Forum: categoryName + status + isPinned + dates
+//    - Blog: category + status + publishedAt  
+//    - Wiki: category + difficulty + status + stats
+//    - Dex: category + element + rarity + stats
 //
-// 3. DATE RANGE FILTERING:
-//    - Optimized compound indexes for date ranges with category/status filters
-//    - Blog uses publishedAt, Wiki uses updatedAt, Forum uses createdAt
-//    - Examples: idx_blog_published_date_status_category_optimized
+// 3. POPULARITY & ENGAGEMENT (High Priority):
+//    - Embedded stats pattern: stats.viewsCount, stats.likesCount, etc.
+//    - Real-time social interaction requirements
+//    - Trending content algorithms
 //
-// 4. SEARCH OPTIMIZATION:
-//    - Category + status + popularity compound indexes for filtered searches
-//    - Text indexes for regex-based category searches (Forum)
-//    - Examples: idx_wiki_category_difficulty_status_popularity_optimized
+// 4. FULL-TEXT SEARCH (Medium Priority):
+//    - Multi-module unified search capability
+//    - Weighted text indexes with relevance scoring
+//    - Cross-module search federation
 //
-// 5. EMBEDDED STATS CONSISTENCY:
-//    - All popularity indexes use 'stats.viewsCount', 'stats.likesCount' format
-//    - Consistent across all content modules (blog, wiki, forum)
-//    - Supports modern embedded stats architecture
+// 5. USER INTERACTIONS (Critical for Social Features):
+//    - Unique constraint prevention of duplicate interactions
+//    - Fast user-specific state queries for personalization
+//    - Social engagement analytics
 //
 // QUERY PATTERN COVERAGE:
-// - ✅ Slug-based lookups (unique indexes)
-// - ✅ Author filtering ('author.id' compound indexes)  
-// - ✅ Category/status filtering (compound indexes)
-// - ✅ Date range queries (optimized compound indexes)
-// - ✅ Popularity sorting (embedded stats indexes)
-// - ✅ Full-text search (weighted text indexes)
-// - ✅ User interactions (compound unique indexes)
-// - ✅ Aggregation pipelines (authorObjectId support)
+// - ✅ Content listing by category/status (most common)
+// - ✅ Author-specific content filtering (dashboard/profiles)
+// - ✅ Popularity rankings and trending content
+// - ✅ User interaction states (likes/bookmarks/helpful)
+// - ✅ Full-text search across all modules
+// - ✅ Date range filtering for analytics
+// - ✅ Real-time WebSocket stat updates
+// - ✅ Aggregation pipeline optimization
 //
 // PERFORMANCE NOTES:
-// - Compound indexes ordered by selectivity (most selective fields first)
-// - Sparse indexes used where fields may not exist (authorObjectId, tags)
-// - Text indexes with custom weights (title:10, content:5, tags:8)
-// - TTL indexes for automatic cleanup (logs, metrics, notifications)
+// - Indexes ordered by actual query frequency and selectivity
+// - Sparse indexes for optional/computed fields (authorObjectId, tags)
+// - TTL indexes for automatic cleanup (metrics, logs, notifications)
+// - Compound indexes support multiple query variations
 //
 
-export const COMPREHENSIVE_INDEXES: IndexDefinition[] = [
+export const OPTIMIZED_INDEXES: IndexDefinition[] = [
   // =============================================
   // USERS COLLECTION INDEXES
   // =============================================
@@ -68,12 +70,17 @@ export const COMPREHENSIVE_INDEXES: IndexDefinition[] = [
   },
   {
     collection: 'users',
+    index: { 'profile.username': 1 },
+    options: { unique: true, name: 'idx_users_username_unique' }
+  },
+  {
+    collection: 'users',
     index: { role: 1, status: 1 },
     options: { name: 'idx_users_role_status' }
   },
   {
     collection: 'users',
-    index: { lastActive: -1 },
+    index: { lastActiveAt: -1 },
     options: { name: 'idx_users_last_active' }
   },
   {
@@ -88,7 +95,7 @@ export const COMPREHENSIVE_INDEXES: IndexDefinition[] = [
   },
   {
     collection: 'users',
-    index: { 'stats.contributionScore': -1, 'stats.last30dPosts': -1 },
+    index: { 'stats.contributionScore': -1, 'stats.last30daysPostsCount': -1 },
     options: { name: 'idx_users_contribution_activity' }
   },
   {
@@ -103,357 +110,302 @@ export const COMPREHENSIVE_INDEXES: IndexDefinition[] = [
   {
     collection: 'forumCategories',
     index: { slug: 1 },
-    options: { unique: true, name: 'idx_categories_slug_unique' }
+    options: { unique: true, name: 'idx_forum_categories_slug_unique' }
   },
   {
     collection: 'forumCategories',
     index: { parentId: 1, order: 1 },
-    options: { name: 'idx_categories_parent_order' }
+    options: { name: 'idx_forum_categories_parent_order' }
   },
   {
     collection: 'forumCategories',
     index: { path: 1 },
-    options: { unique: true, name: 'idx_categories_path_unique' }
+    options: { unique: true, name: 'idx_forum_categories_path_unique' }
   },
   {
     collection: 'forumCategories',
     index: { isActive: 1, level: 1, order: 1 },
-    options: { name: 'idx_categories_active_level_order' }
+    options: { name: 'idx_forum_categories_active_level_order' }
   },
   {
     collection: 'forumCategories',
-    index: { 'stats.postsCount': -1 },
-    options: { name: 'idx_categories_posts_count' }
-  },
-  {
-    collection: 'forumCategories',
-    index: { 'stats.lastActivity.createdAt': -1 },
-    options: { name: 'idx_categories_last_activity' }
+    index: { 'stats.postsCount': -1, 'stats.lastActivity.createdAt': -1 },
+    options: { name: 'idx_forum_categories_activity' }
   },
 
   // =============================================
-  // FORUM POSTS COLLECTION INDEXES (OPTIMIZED)
+  // FORUM POSTS COLLECTION INDEXES (CRITICAL PATH OPTIMIZED)
   // =============================================
   
-  // Slug index for forum posts (required for slug-based routing)
+  // 1. SLUG ROUTING (Required for all content access)
   {
     collection: 'forumPosts',
     index: { slug: 1 },
     options: { unique: true, name: 'idx_forum_posts_slug_unique' }
   },
   
-  // Core query index - covers most common queries (categoryName, status, sorting)
+  // 2. PRIMARY LISTING QUERY (Highest frequency - category browsing)
   {
     collection: 'forumPosts',
-    index: { categoryName: 1, status: 1, isPinned: -1, lastReplyDate: -1, createdAt: -1 },
-    options: { name: 'idx_posts_category_status_sort_optimized' }
+    index: { categoryName: 1, status: 1, isPinned: -1, createdAt: -1 },
+    options: { name: 'idx_forum_posts_category_status_pinned_created' }
   },
   
-  // Author queries index
-  {
-    collection: 'forumPosts',
-    index: { author: 1, status: 1, createdAt: -1 },
-    options: { name: 'idx_posts_author_status_created' }
-  },
-  // NEW: Optimized author queries using embedded author.id format
+  // 3. AUTHOR CONTENT (Dashboard, profiles - high frequency)
   {
     collection: 'forumPosts',
     index: { 'author.id': 1, status: 1, createdAt: -1 },
-    options: { name: 'idx_forum_author_id_status_created_optimized' }
+    options: { name: 'idx_forum_posts_author_id_status_created' }
   },
   
-  // Post ID lookup (for single post queries)
+  // 4. POPULARITY RANKING (Trending, popular content)
   {
     collection: 'forumPosts',
-    index: { _id: 1, status: 1 },
-    options: { name: 'idx_posts_id_status' }
+    index: { status: 1, 'stats.viewsCount': -1, 'stats.repliesCount': -1, 'stats.likesCount': -1 },
+    options: { name: 'idx_forum_posts_popularity_stats' }
   },
   
-  // Full-text search index (optimized for multilingual)
+  // 5. FULL-TEXT SEARCH (Multi-module search)
   {
     collection: 'forumPosts',
     index: { title: 'text', content: 'text', tags: 'text' },
     options: {
-      name: 'idx_posts_fulltext_search_optimized',
+      name: 'idx_forum_posts_fulltext_search',
       weights: { title: 10, content: 5, tags: 8 }
     }
   },
   
-  // Engagement and popularity sorting (using embedded stats)
+  // 6. AGGREGATION PIPELINE SUPPORT (Author lookup optimization)
   {
     collection: 'forumPosts',
-    index: { status: 1, 'stats.viewsCount': -1, 'stats.repliesCount': -1 },
-    options: { name: 'idx_posts_popularity_embedded_stats' }
+    index: { authorObjectId: 1, status: 1, createdAt: -1 },
+    options: { name: 'idx_forum_posts_author_object_id_aggregation', sparse: true }
   },
   
-  // Tags filtering (sparse index for performance)
-  {
-    collection: 'forumPosts',
-    index: { tags: 1, status: 1, createdAt: -1 },
-    options: { name: 'idx_posts_tags_status_created', sparse: true }
-  },
-  
-  // NEW: Aggregation pipeline support - authorObjectId filtering
-  {
-    collection: 'forumPosts',
-    index: { authorObjectId: 1, status: 1 },
-    options: { name: 'idx_forum_author_object_id_status', sparse: true }
-  },
-  
-  // NEW: Optimized date range filtering with category support
+  // 7. DATE RANGE FILTERING (Analytics, reports)
   {
     collection: 'forumPosts',
     index: { createdAt: -1, status: 1, categoryName: 1 },
-    options: { name: 'idx_forum_created_date_status_category_optimized' }
+    options: { name: 'idx_forum_posts_date_range_category' }
   },
   
-  // NEW: Forum category regex search optimization
+  // 8. TAG-BASED FILTERING (Content discovery)
   {
     collection: 'forumPosts',
-    index: { categoryName: 'text', status: 1, isPinned: -1 },
-    options: { name: 'idx_forum_category_text_search_optimized' }
+    index: { tags: 1, status: 1, createdAt: -1 },
+    options: { name: 'idx_forum_posts_tags_status_created', sparse: true }
   },
 
   // =============================================
   // FORUM REPLIES COLLECTION INDEXES
   // =============================================
+  
+  // 1. POST REPLIES LISTING (Primary query for reply display)
   {
     collection: 'forumReplies',
     index: { postId: 1, createdAt: -1 },
-    options: { name: 'idx_replies_post_created' }
+    options: { name: 'idx_forum_replies_post_created' }
   },
+  
+  // 2. THREADED REPLIES (Parent-child relationships)
   {
     collection: 'forumReplies',
     index: { postId: 1, replyToId: 1, createdAt: 1 },
-    options: { name: 'idx_replies_post_parent_created' }
+    options: { name: 'idx_forum_replies_thread_structure' }
   },
+  
+  // 3. AUTHOR REPLIES (User content, dashboard)
   {
     collection: 'forumReplies',
-    index: { author: 1, createdAt: -1 },
-    options: { name: 'idx_replies_author_created' }
+    index: { 'author.id': 1, createdAt: -1 },
+    options: { name: 'idx_forum_replies_author_id_created' }
   },
-  // NEW: Optimized author queries using embedded author format
-  {
-    collection: 'forumReplies',
-    index: { 'author.id': 1, postId: 1, createdAt: -1 },
-    options: { name: 'idx_replies_author_id_post_created_optimized' }
-  },
+  
+  // 4. ACCEPTED ANSWERS (Solution marking)
   {
     collection: 'forumReplies',
     index: { postId: 1, isAcceptedAnswer: 1 },
     options: { 
-      name: 'idx_replies_post_accepted',
+      name: 'idx_forum_replies_accepted_answers',
       partialFilterExpression: { isAcceptedAnswer: true }
     }
   },
+  
+  // 5. POPULARITY RANKING (Top replies by engagement)
   {
     collection: 'forumReplies',
-    index: { replyToId: 1, createdAt: 1 },
-    options: { 
-      name: 'idx_replies_parent_created',
-      partialFilterExpression: { replyToId: { $exists: true } }
-    }
+    index: { postId: 1, 'stats.likesCount': -1, createdAt: -1 },
+    options: { name: 'idx_forum_replies_popularity' }
   },
-  {
-    collection: 'forumReplies',
-    index: { likesCount: -1 },
-    options: { name: 'idx_replies_likes' }
-  },
+  
+  // 6. FULL-TEXT SEARCH (Reply content search)
   {
     collection: 'forumReplies',
     index: { content: 'text' },
-    options: { name: 'idx_replies_fulltext_search' }
-  },
-  {
-    collection: 'forumReplies',
-    index: { isDeleted: 1, deletedAt: 1 },
-    options: { 
-      name: 'idx_replies_soft_delete',
-      partialFilterExpression: { isDeleted: true }
-    }
+    options: { name: 'idx_forum_replies_fulltext_search' }
   },
 
   // =============================================
-  // USER INTERACTIONS COLLECTION INDEXES
+  // USER INTERACTIONS COLLECTION INDEXES (CRITICAL FOR SOCIAL FEATURES)
   // =============================================
+  
+  // 1. UNIQUE INTERACTION CONSTRAINT (Prevents duplicate likes/bookmarks)
   {
     collection: 'userInteractions',
     index: { userId: 1, targetType: 1, targetId: 1, interactionType: 1 },
     options: { 
       unique: true, 
-      name: 'idx_interactions_user_target_type_unique',
-      background: true
+      name: 'idx_user_interactions_unique_constraint'
     }
   },
-  {
-    collection: 'userInteractions',
-    index: { targetId: 1, interactionType: 1, createdAt: -1 },
-    options: { name: 'idx_interactions_target_type_created' }
-  },
+  
+  // 2. USER ACTIVITY QUERIES (User dashboard, profile pages)
   {
     collection: 'userInteractions',
     index: { userId: 1, interactionType: 1, createdAt: -1 },
-    options: { name: 'idx_interactions_user_type_created' }
+    options: { name: 'idx_user_interactions_user_activity' }
   },
+  
+  // 3. CONTENT ENGAGEMENT STATS (Real-time stats aggregation)
   {
     collection: 'userInteractions',
-    index: { createdAt: -1 },
-    options: { name: 'idx_interactions_created' }
+    index: { targetId: 1, targetType: 1, interactionType: 1, createdAt: -1 },
+    options: { name: 'idx_user_interactions_content_stats' }
   },
+  
+  // 4. RECENT ACTIVITY FEED (Timeline queries)
   {
     collection: 'userInteractions',
-    index: { targetType: 1, targetId: 1, interactionType: 1, createdAt: -1 },
-    options: { name: 'idx_interactions_target_stats' }
+    index: { createdAt: -1, interactionType: 1 },
+    options: { name: 'idx_user_interactions_recent_activity' }
+  },
+  
+  // 5. USER STATE LOOKUP (Personalized interaction state)
+  {
+    collection: 'userInteractions',
+    index: { userId: 1, targetId: 1, interactionType: 1 },
+    options: { name: 'idx_user_interactions_state_lookup' }
   },
 
   // =============================================
   // BLOG POSTS COLLECTION INDEXES
   // =============================================
+  
+  // 1. SLUG ROUTING (Required for all blog post access)
   {
     collection: 'blogPosts',
     index: { slug: 1 },
-    options: { unique: true, name: 'idx_blog_slug_unique' }
+    options: { unique: true, name: 'idx_blog_posts_slug_unique' }
   },
+  
+  // 2. PUBLICATION STATUS (Primary listing query)
   {
     collection: 'blogPosts',
     index: { status: 1, publishedAt: -1 },
-    options: { name: 'idx_blog_status_published' }
+    options: { name: 'idx_blog_posts_status_published' }
   },
-  {
-    collection: 'blogPosts',
-    index: { author: 1, status: 1, publishedAt: -1 },
-    options: { name: 'idx_blog_author_status_published' }
-  },
-  // NEW: Optimized author queries using embedded author.id format
+  
+  // 3. AUTHOR CONTENT (Author profile, dashboard)
   {
     collection: 'blogPosts',
     index: { 'author.id': 1, status: 1, publishedAt: -1 },
-    options: { name: 'idx_blog_author_id_status_published_optimized' }
+    options: { name: 'idx_blog_posts_author_id_status_published' }
   },
+  
+  // 4. CATEGORY FILTERING (Content discovery)
   {
     collection: 'blogPosts',
     index: { category: 1, status: 1, publishedAt: -1 },
-    options: { name: 'idx_blog_category_status_published' }
+    options: { name: 'idx_blog_posts_category_status_published' }
   },
+  
+  // 5. POPULARITY RANKING (Trending content)
   {
     collection: 'blogPosts',
-    index: { tags: 1, status: 1, publishedAt: -1 },
-    options: { name: 'idx_blog_tags_status_published' }
+    index: { status: 1, 'stats.viewsCount': -1, 'stats.likesCount': -1, publishedAt: -1 },
+    options: { name: 'idx_blog_posts_popularity_stats' }
   },
-  {
-    collection: 'blogPosts',
-    index: { 'stats.viewsCount': -1, 'stats.likesCount': -1 },
-    options: { name: 'idx_blog_popularity' }
-  },
+  
+  // 6. FULL-TEXT SEARCH (Blog search functionality)
   {
     collection: 'blogPosts',
     index: { title: 'text', content: 'text', tags: 'text' },
     options: {
-      name: 'idx_blog_fulltext_search',
+      name: 'idx_blog_posts_fulltext_search',
       weights: { title: 10, content: 5, tags: 8 }
     }
   },
+  
+  // 7. TAG-BASED FILTERING (Content organization)
   {
     collection: 'blogPosts',
-    index: { createdAt: -1 },
-    options: { name: 'idx_blog_created' }
-  },
-  {
-    collection: 'blogPosts',
-    index: { updatedAt: -1 },
-    options: { name: 'idx_blog_last_modified' }
+    index: { tags: 1, status: 1, publishedAt: -1 },
+    options: { name: 'idx_blog_posts_tags_status_published', sparse: true }
   },
   
-  // NEW: Aggregation pipeline support - authorObjectId filtering
+  // 8. AGGREGATION PIPELINE SUPPORT
   {
     collection: 'blogPosts',
-    index: { authorObjectId: 1, status: 1 },
-    options: { name: 'idx_blog_author_object_id_status', sparse: true }
-  },
-  
-  // NEW: Optimized date range filtering with category support
-  {
-    collection: 'blogPosts',
-    index: { publishedAt: -1, status: 1, category: 1 },
-    options: { name: 'idx_blog_published_date_status_category_optimized' }
-  },
-  
-  // NEW: Search optimization - category + status for filtered searches
-  {
-    collection: 'blogPosts',
-    index: { category: 1, status: 1, 'stats.viewsCount': -1, publishedAt: -1 },
-    options: { name: 'idx_blog_category_status_popularity_optimized' }
+    index: { authorObjectId: 1, status: 1, publishedAt: -1 },
+    options: { name: 'idx_blog_posts_author_object_id_aggregation', sparse: true }
   },
 
   // =============================================
   // WIKI GUIDES COLLECTION INDEXES
   // =============================================
+  
+  // 1. SLUG ROUTING (Required for all wiki guide access)
   {
     collection: 'wikiGuides',
     index: { slug: 1 },
-    options: { unique: true, name: 'idx_wiki_slug_unique' }
+    options: { unique: true, name: 'idx_wiki_guides_slug_unique' }
   },
+  
+  // 2. CATEGORY + DIFFICULTY FILTERING (Primary wiki browsing pattern)
   {
     collection: 'wikiGuides',
-    index: { status: 1, category: 1, updatedAt: -1 },
-    options: { name: 'idx_wiki_status_category_modified' }
+    index: { category: 1, difficulty: 1, status: 1, updatedAt: -1 },
+    options: { name: 'idx_wiki_guides_category_difficulty_status_updated' }
   },
-  {
-    collection: 'wikiGuides',
-    index: { author: 1, status: 1, createdAt: -1 },
-    options: { name: 'idx_wiki_author_status_created' }
-  },
-  // NEW: Optimized author queries using embedded author.id format
+  
+  // 3. AUTHOR CONTENT (Guide authoring, admin tools)
   {
     collection: 'wikiGuides',
     index: { 'author.id': 1, status: 1, updatedAt: -1 },
-    options: { name: 'idx_wiki_author_id_status_updated_optimized' }
+    options: { name: 'idx_wiki_guides_author_id_status_updated' }
   },
+  
+  // 4. HELPFULNESS RANKING (Community-validated guides)
   {
     collection: 'wikiGuides',
-    index: { category: 1, difficulty: 1, 'stats.viewsCount': -1 },
-    options: { name: 'idx_wiki_category_difficulty_views' }
+    index: { status: 1, 'stats.helpfulsCount': -1, 'stats.viewsCount': -1, updatedAt: -1 },
+    options: { name: 'idx_wiki_guides_helpfulness_popularity' }
   },
-  {
-    collection: 'wikiGuides',
-    index: { tags: 1, status: 1, updatedAt: -1 },
-    options: { name: 'idx_wiki_tags_status_modified' }
-  },
-  {
-    collection: 'wikiGuides',
-    index: { 'stats.viewsCount': -1, 'stats.likesCount': -1 },
-    options: { name: 'idx_wiki_popularity' }
-  },
+  
+  // 5. FULL-TEXT SEARCH (Knowledge base search)
   {
     collection: 'wikiGuides',
     index: { title: 'text', content: 'text', tags: 'text' },
     options: {
-      name: 'idx_wiki_fulltext_search',
+      name: 'idx_wiki_guides_fulltext_search',
       weights: { title: 10, content: 5, tags: 8 }
     }
   },
   
-  // NEW: Aggregation pipeline support - authorObjectId filtering
+  // 6. TAG-BASED FILTERING (Content organization)
   {
     collection: 'wikiGuides',
-    index: { authorObjectId: 1, status: 1 },
-    options: { name: 'idx_wiki_author_object_id_status', sparse: true }
+    index: { tags: 1, status: 1, updatedAt: -1 },
+    options: { name: 'idx_wiki_guides_tags_status_updated', sparse: true }
   },
   
-  // NEW: Optimized date range filtering with category and difficulty support
+  // 7. AGGREGATION PIPELINE SUPPORT
   {
     collection: 'wikiGuides',
-    index: { updatedAt: -1, status: 1, category: 1, difficulty: 1 },
-    options: { name: 'idx_wiki_updated_date_status_category_difficulty_optimized' }
+    index: { authorObjectId: 1, status: 1, updatedAt: -1 },
+    options: { name: 'idx_wiki_guides_author_object_id_aggregation', sparse: true }
   },
   
-  // NEW: Search optimization - category + difficulty + status for filtered searches  
-  {
-    collection: 'wikiGuides',
-    index: { category: 1, difficulty: 1, status: 1, 'stats.viewsCount': -1, updatedAt: -1 },
-    options: { name: 'idx_wiki_category_difficulty_status_popularity_optimized' }
-  },
-
   // =============================================
   // WIKI CATEGORIES COLLECTION INDEXES
   // =============================================
@@ -467,73 +419,136 @@ export const COMPREHENSIVE_INDEXES: IndexDefinition[] = [
     index: { isActive: 1, order: 1 },
     options: { name: 'idx_wiki_categories_active_order' }
   },
+  
+  // =============================================
+  // DEX MONSTERS COLLECTION INDEXES (MISSING - CRITICAL!)
+  // =============================================
+  
+  // 1. SLUG ROUTING (Required for all monster access)
+  {
+    collection: 'dexMonsters',
+    index: { slug: 1 },
+    options: { unique: true, name: 'idx_dex_monsters_slug_unique' }
+  },
+  
+  // 2. CATEGORY + ELEMENT FILTERING (Primary dex browsing pattern)
+  {
+    collection: 'dexMonsters',
+    index: { category: 1, element: 1, 'stats.level': 1 },
+    options: { name: 'idx_dex_monsters_category_element_level' }
+  },
+  
+  // 3. RARITY + STATS RANKING (Monster discovery, power ranking)
+  {
+    collection: 'dexMonsters',
+    index: { rarity: 1, 'stats.hp': -1, 'stats.attack': -1 },
+    options: { name: 'idx_dex_monsters_rarity_power_stats' }
+  },
+  
+  // 4. SPAWN LOCATION FILTERING (Location-based discovery)
+  {
+    collection: 'dexMonsters',
+    index: { 'spawnInfo.biome': 1, 'spawnInfo.rarity': 1, 'stats.level': 1 },
+    options: { name: 'idx_dex_monsters_spawn_location_level' }
+  },
+  
+  // 5. FULL-TEXT SEARCH (Monster search by name, description)
+  {
+    collection: 'dexMonsters',
+    index: { name: 'text', description: 'text', abilities: 'text' },
+    options: {
+      name: 'idx_dex_monsters_fulltext_search',
+      weights: { name: 10, description: 5, abilities: 8 }
+    }
+  },
+  
+  // 6. EVOLUTION CHAIN QUERIES
+  {
+    collection: 'dexMonsters',
+    index: { 'evolution.from': 1, 'evolution.to': 1 },
+    options: { name: 'idx_dex_monsters_evolution_chain', sparse: true }
+  },
+  
+  // 7. DROP ITEM FILTERING (Farming guides)
+  {
+    collection: 'dexMonsters',
+    index: { 'drops.item': 1, 'drops.rarity': 1 },
+    options: { name: 'idx_dex_monsters_drops', sparse: true }
+  },
+  
+  // =============================================
+  // DEX CATEGORIES COLLECTION INDEXES (MISSING!)
+  // =============================================
+  {
+    collection: 'dexCategories',
+    index: { slug: 1 },
+    options: { unique: true, name: 'idx_dex_categories_slug_unique' }
+  },
+  {
+    collection: 'dexCategories',
+    index: { isActive: 1, order: 1 },
+    options: { name: 'idx_dex_categories_active_order' }
+  },
+  {
+    collection: 'dexCategories',
+    index: { 'stats.monstersCount': -1 },
+    options: { name: 'idx_dex_categories_monster_count' }
+  },
 
   // =============================================
-  // SERVER METRICS COLLECTION INDEXES
+  // ANALYTICS & SYSTEM COLLECTIONS INDEXES
   // =============================================
+  
+  // SERVER METRICS (Performance monitoring with TTL)
   {
     collection: 'serverMetrics',
-    index: { name: 1, timestamp: -1 },
-    options: { name: 'idx_server_metrics_name_timestamp' }
+    index: { serverId: 1, createdAt: -1 },
+    options: { name: 'idx_server_metrics_server_created' }
   },
   {
     collection: 'serverMetrics',
-    index: { timestamp: -1 },
-    options: { name: 'idx_server_metrics_timestamp' }
+    index: { status: 1, createdAt: -1 },
+    options: { name: 'idx_server_metrics_status_created' }
   },
   {
     collection: 'serverMetrics',
-    index: { isOnline: 1, timestamp: -1 },
-    options: { name: 'idx_server_metrics_status_timestamp' }
-  },
-  {
-    collection: 'serverMetrics',
-    index: { timestamp: 1 },
+    index: { createdAt: 1 },
     options: { 
       name: 'idx_server_metrics_ttl',
-      expireAfterSeconds: 2592000 // 30 days
+      expireAfterSeconds: 2592000 // 30 days auto-cleanup
     }
   },
 
-  // =============================================
-  // ACTIVITY LOGS COLLECTION INDEXES
-  // =============================================
+  // ACTIVITY LOGS (Audit trail with TTL)
   {
     collection: 'activityLogs',
-    index: { userId: 1, timestamp: -1 },
-    options: { name: 'idx_activity_user_timestamp' }
+    index: { 'actor.id': 1, createdAt: -1 },
+    options: { name: 'idx_activity_logs_actor_created' }
   },
   {
     collection: 'activityLogs',
-    index: { action: 1, targetType: 1, timestamp: -1 },
-    options: { name: 'idx_activity_action_type_timestamp' }
+    index: { 'action.type': 1, 'action.resource': 1, createdAt: -1 },
+    options: { name: 'idx_activity_logs_action_type_resource_created' }
   },
   {
     collection: 'activityLogs',
-    index: { targetId: 1, action: 1, timestamp: -1 },
-    options: { name: 'idx_activity_target_action_timestamp' }
+    index: { riskLevel: 1, createdAt: -1 },
+    options: { name: 'idx_activity_logs_risk_level_created' }
   },
   {
     collection: 'activityLogs',
-    index: { timestamp: -1 },
-    options: { name: 'idx_activity_timestamp' }
-  },
-  {
-    collection: 'activityLogs',
-    index: { timestamp: 1 },
+    index: { createdAt: 1 },
     options: { 
-      name: 'idx_activity_ttl',
-      expireAfterSeconds: 7776000 // 90 days
+      name: 'idx_activity_logs_ttl',
+      expireAfterSeconds: 7776000 // 90 days auto-cleanup
     }
   },
 
-  // =============================================
-  // NOTIFICATIONS COLLECTION INDEXES
-  // =============================================
+  // NOTIFICATIONS (User messaging)
   {
     collection: 'notifications',
-    index: { userId: 1, read: 1, createdAt: -1 },
-    options: { name: 'idx_notifications_user_read_created' }
+    index: { userId: 1, status: 1, createdAt: -1 },
+    options: { name: 'idx_notifications_user_status_created' }
   },
   {
     collection: 'notifications',
@@ -542,43 +557,46 @@ export const COMPREHENSIVE_INDEXES: IndexDefinition[] = [
   },
   {
     collection: 'notifications',
+    index: { groupKey: 1, createdAt: -1 },
+    options: { name: 'idx_notifications_group_key_created', sparse: true }
+  },
+  {
+    collection: 'notifications',
     index: { createdAt: 1 },
     options: { 
       name: 'idx_notifications_ttl',
-      expireAfterSeconds: 7776000 // 90 days for read notifications
+      expireAfterSeconds: 7776000 // 90 days auto-cleanup
     }
   },
 
-  // =============================================
-  // SEARCH INDEX COLLECTION INDEXES
-  // =============================================
+  // SEARCH INDEX (Full-text search optimization)
   {
     collection: 'searchIndex',
     index: { resourceType: 1, resourceId: 1 },
-    options: { unique: true, name: 'idx_search_resource_unique' }
+    options: { unique: true, name: 'idx_search_index_resource_unique' }
   },
   {
     collection: 'searchIndex',
     index: { content: 'text', title: 'text', keywords: 'text' },
     options: {
-      name: 'idx_search_fulltext',
+      name: 'idx_search_index_fulltext',
       weights: { title: 10, content: 5, keywords: 8 }
     }
   },
   {
     collection: 'searchIndex',
     index: { resourceType: 1, language: 1, searchScore: -1 },
-    options: { name: 'idx_search_type_language_score' }
+    options: { name: 'idx_search_index_type_language_score' }
   },
   {
     collection: 'searchIndex',
-    index: { lastIndexedAt: 1 },
-    options: { name: 'idx_search_last_indexed' }
+    index: { isIndexed: 1, lastIndexedAt: -1 },
+    options: { name: 'idx_search_index_status_last_indexed' }
   },
   {
     collection: 'searchIndex',
-    index: { 'metadata.categoryId': 1, resourceType: 1 },
-    options: { name: 'idx_search_category_type' }
+    index: { 'metadata.categoryId': 1, resourceType: 1, language: 1 },
+    options: { name: 'idx_search_index_category_type_language' }
   },
 ]
 
@@ -591,7 +609,7 @@ export async function createAllIndexes(db: Db): Promise<void> {
   const results = []
   const newIndexes = []
   
-  for (const indexDef of COMPREHENSIVE_INDEXES) {
+  for (const indexDef of OPTIMIZED_INDEXES) {
     try {
       const collection = db.collection(indexDef.collection)
       const indexName = indexDef.options?.name || 'unnamed'
@@ -648,8 +666,8 @@ export async function dropAllIndexes(db: Db): Promise<void> {
   
   const collections = [
     'users', 'forumCategories', 'forumPosts', 'forumReplies', 'userInteractions',
-    'blogPosts', 'wikiGuides', 'wikiCategories', 'serverMetrics', 'activityLogs', 
-    'notifications', 'searchIndex'
+    'blogPosts', 'wikiGuides', 'wikiCategories', 'dexMonsters', 'dexCategories',
+    'serverMetrics', 'activityLogs', 'notifications', 'searchIndex'
   ]
   
   for (const collectionName of collections) {
@@ -703,7 +721,7 @@ export async function validateIndexes(db: Db): Promise<boolean> {
   
   let allValid = true
   
-  // Test queries that should use indexes efficiently
+  // Test queries that should use optimized indexes efficiently
   // Using placeholder ObjectIds for validation queries
   const testObjectId = new ObjectId()
   const testUserId = testObjectId.toString()
@@ -711,57 +729,52 @@ export async function validateIndexes(db: Db): Promise<boolean> {
     {
       collection: 'forumPosts',
       query: { categoryName: 'general', status: 'published' },
-      description: 'Forum posts by category and status'
+      description: 'Forum posts by category and status (PRIMARY INDEX)'
     },
     {
       collection: 'forumPosts',
       query: { 'author.id': testUserId, status: 'published' },
-      description: 'Forum posts by author.id (NEW INDEX)'
-    },
-    {
-      collection: 'forumPosts',
-      query: { authorObjectId: testObjectId, status: 'published' },
-      description: 'Forum posts by authorObjectId (NEW INDEX)'
+      description: 'Forum posts by author.id (EMBEDDED AUTHOR INDEX)'
     },
     {
       collection: 'blogPosts',
       query: { 'author.id': testUserId, status: 'published' },
-      description: 'Blog posts by author.id (NEW INDEX)'
-    },
-    {
-      collection: 'blogPosts',
-      query: { category: 'tech', status: 'published', 'stats.viewsCount': { $gte: 0 } },
-      description: 'Blog posts category + popularity (NEW INDEX)'
-    },
-    {
-      collection: 'wikiGuides',
-      query: { 'author.id': testUserId, status: 'published' },
-      description: 'Wiki guides by author.id (NEW INDEX)'
+      description: 'Blog posts by author.id (EMBEDDED AUTHOR INDEX)'
     },
     {
       collection: 'wikiGuides',
       query: { category: 'getting-started', difficulty: 'beginner', status: 'published' },
-      description: 'Wiki guides by category + difficulty + status (NEW INDEX)'
+      description: 'Wiki guides by category + difficulty + status (COMPOUND INDEX)'
     },
     {
-      collection: 'forumReplies',
-      query: { 'author.id': testUserId, postId: testObjectId },
-      description: 'Forum replies by author.id + postId (NEW INDEX)'
+      collection: 'dexMonsters',
+      query: { category: 'beast', element: 'fire' },
+      description: 'Dex monsters by category + element (NEW DEX INDEX)'
+    },
+    {
+      collection: 'dexMonsters',
+      query: { slug: 'fire-dragon' },
+      description: 'Dex monster by slug (UNIQUE INDEX)'
+    },
+    {
+      collection: 'userInteractions',
+      query: { userId: testUserId, targetType: 'post', targetId: testObjectId, interactionType: 'like' },
+      description: 'User interactions unique constraint (CRITICAL INDEX)'
     },
     {
       collection: 'forumReplies',
       query: { postId: testObjectId },
-      description: 'Replies by post'
+      description: 'Forum replies by post (PRIMARY REPLIES INDEX)'
     },
     {
       collection: 'users',
-      query: { email: { $exists: true } },
-      description: 'User by email exists'
+      query: { 'profile.username': 'testuser' },
+      description: 'User by username (UNIQUE INDEX)'
     },
     {
-      collection: 'userInteractions',
-      query: { userId: testUserId, targetType: 'post', interactionType: 'like' },
-      description: 'User interactions'
+      collection: 'notifications',
+      query: { userId: testObjectId, status: 'unread' },
+      description: 'User notifications by status (USER MESSAGING INDEX)'
     }
   ]
   

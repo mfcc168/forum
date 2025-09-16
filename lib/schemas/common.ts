@@ -146,7 +146,7 @@ export const baseStatsSchema = z.object({
  * Extended stats schema with helpfulness (for wiki)
  */
 export const extendedStatsSchema = baseStatsSchema.extend({
-  helpfulCount: z.number().min(0).default(0)
+  helpfulsCount: z.number().min(0).default(0)
 })
 
 /**

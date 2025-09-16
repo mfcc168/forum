@@ -7,7 +7,7 @@
 import { ObjectId, Filter } from 'mongodb'
 import { BaseDAL } from './base'
 import { statsManager } from '@/lib/database/stats'
-import { MongoForumPostSchema, type ForumPost } from '@/lib/database/schemas'
+import { MongoForumPostSchema, MongoForumReplySchema, MongoForumCategorySchema, type ForumPost, type ForumReply as SchemaForumReply } from '@/lib/schemas/forum'
 import { generateSlug, generateSlugWithCounter } from '@/lib/utils/slug'
 import { handleDatabaseError } from '@/lib/utils/error-handler'
 import { ReferentialIntegrityManager } from '@/lib/database/referential-integrity'
@@ -333,7 +333,7 @@ export class ForumDAL extends BaseDAL<ForumPost> {
   /**
    * Update post by slug
    */
-  async updatePost(slug: string, updateData: Partial<Pick<ForumPost, 'title' | 'content' | 'tags' | 'status'>>): Promise<boolean> {
+  async updatePost(slug: string, updateData: Partial<Pick<ForumPost, 'title' | 'content' | 'tags'>>): Promise<boolean> {
     const updateDoc: Record<string, unknown> = {
       ...updateData,
       updatedAt: new Date().toISOString()

@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { DAL } from '@/lib/database/dal'
 import { ApiResponse } from '@/lib/utils/validation'
 import { getServerUser } from '@/lib/auth/server'
+import { PermissionChecker } from '@/lib/utils/permissions'
 
 export const runtime = 'nodejs'
 
@@ -51,9 +52,9 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
-    // Check authentication
+    // Check authentication and permissions using centralized system
     const user = await getServerUser()
-    if (!user || user.role !== 'admin') {
+    if (!user || !PermissionChecker.isAdmin(user)) {
       return ApiResponse.error('Admin access required', 403)
     }
 
