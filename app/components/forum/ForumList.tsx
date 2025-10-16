@@ -104,7 +104,7 @@ export const ForumList = memo(function ForumList({
   }
 
   return (
-    <div className={`flex flex-col ${compact ? 'gap-4' : 'gap-6'}`}>
+    <div className={`flex flex-col ${compact ? 'gap-3' : 'gap-6'}`}>
       {posts.filter(Boolean).map((post, index) => {
         const transformedPost = transformPost(post)
         
@@ -112,7 +112,7 @@ export const ForumList = memo(function ForumList({
           <ContentCard
             key={post.id?.toString() || `post-${index}`}
             item={transformedPost}
-            variant={compact ? 'compact' : variant}
+            variant={compact ? 'mini' : variant}
             theme="minecraft"
             linkTo={`/forum/${post.slug}`}
             clickable={true}
@@ -121,11 +121,11 @@ export const ForumList = memo(function ForumList({
               category: showCategory,
               tags: true,
               stats: true,
-              excerpt: showExcerpt,
+              excerpt: showExcerpt && !compact,
               date: true,
               status: false // Forum posts don't show status
             }}
-            className={compact ? 'shadow-sm' : ''}
+            className={compact ? 'shadow-sm hover:shadow-md' : ''}
             headerContent={
               // Custom header for pinned/locked indicators
               (post.isPinned || post.isLocked) ? (

@@ -198,7 +198,7 @@ export function BlogContent({
                 /* Blog Posts List */
                 <BlogList 
                   posts={filteredPosts}
-                  compact={false}
+                  compact={true}
                   showCategory={true}
                   showExcerpt={true}
                 />

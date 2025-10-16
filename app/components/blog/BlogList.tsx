@@ -107,7 +107,7 @@ export const BlogList = memo(function BlogList({
   }
 
   return (
-    <div className={`flex flex-col ${compact ? 'gap-4' : 'gap-6'}`}>
+    <div className={`flex flex-col ${compact ? 'gap-3' : 'gap-6'}`}>
       {posts.filter(Boolean).map((post) => {
         const transformedPost = transformPost(post)
         
@@ -115,7 +115,7 @@ export const BlogList = memo(function BlogList({
           <ContentCard
             key={post.slug}
             item={transformedPost}
-            variant={compact ? 'compact' : variant}
+            variant={compact ? 'mini' : variant}
             theme="default"
             linkTo={`/blog/${post.slug}`}
             clickable={true}
@@ -124,7 +124,7 @@ export const BlogList = memo(function BlogList({
               category: showCategory,
               tags: true,
               stats: true,
-              excerpt: showExcerpt,
+              excerpt: showExcerpt && !compact,
               date: true,
               status: permissions.isAdmin // Only show status to admins
             }}
@@ -135,7 +135,7 @@ export const BlogList = memo(function BlogList({
               bookmarks: false, // Blog posts don't have bookmarks
               shares: false // Blog posts don't have shares
             }}
-            className={compact ? 'shadow-sm' : ''}
+            className={compact ? 'shadow-sm hover:shadow-md' : ''}
           />
         )
       })}

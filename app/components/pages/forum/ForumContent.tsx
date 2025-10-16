@@ -197,7 +197,7 @@ export function ForumContent({
                 /* Forum Posts List */
                 <ForumList 
                   posts={filteredPosts}
-                  compact={false}
+                  compact={true}
                   showCategory={true}
                   showExcerpt={true}
                 />
